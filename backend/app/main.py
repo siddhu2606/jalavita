@@ -1089,6 +1089,22 @@ def simulator_redirect():
     return RedirectResponse(url="/simulator.html")
 
 
+@app.get("/install")
+def install_redirect():
+    return RedirectResponse(url="/install.html")
+
+
+@app.get("/api/qr.png")
+def qr_png(data: str):
+    import io
+    import qrcode
+    img = qrcode.make(data, border=2, box_size=10)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return StreamingResponse(buf, media_type="image/png", headers={"Cache-Control": "no-store"})
+
+
 @app.get("/")
 def deck_root(request: Request):
     # This gates only the dashboard's initial page load — the JSON API underneath

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<title>Install Jalavita Wayfinder</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --abyss:#070b12; --panel-2:#0d1420;
+    --panel-line:rgba(122,204,214,.16); --panel-line-strong:rgba(122,204,214,.32);
+    --ink:#e7eef0; --ink-dim:#8ca0ac; --ink-faint:#4d5c67;
+    --bio:#2fe6c6; --bio-dim:rgba(47,230,198,.14);
+  }
+  *{box-sizing:border-box;}
+  html{background:var(--abyss);}
+  body{
+    margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse 900px 600px at 20% -10%, rgba(47,230,198,.06), transparent 60%),
+               radial-gradient(ellipse 900px 700px at 90% 110%, rgba(90,169,255,.06), transparent 60%),
+               var(--abyss);
+    color:var(--ink);font:400 14px/1.5 'IBM Plex Sans',system-ui,sans-serif;padding:24px;
+  }
+  .card{
+    background:rgba(13,20,32,.85);border:1px solid var(--panel-line);border-radius:18px;
+    padding:36px 32px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:20px;
+  }
+  .brand{display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;}
+  .brand-mark{font-family:'Unbounded';font-weight:800;font-size:22px;letter-spacing:.03em;}
+  .brand-mark span{color:var(--bio);}
+  .brand-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);}
+  .qr-wrap{
+    background:#fff;border-radius:14px;padding:16px;align-self:center;
+    width:220px;height:220px;display:flex;align-items:center;justify-content:center;
+  }
+  .qr-wrap img{width:100%;height:100%;display:block;}
+  #url-label{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-faint);
+    text-align:center;word-break:break-all;
+  }
+  ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--ink-dim);}
+  ol b{color:var(--ink);}
+  .divider{border-top:1px solid var(--panel-line);}
+  .tag{
+    background:var(--bio-dim);border:1px solid var(--panel-line-strong);color:var(--bio);
+    border-radius:999px;padding:3px 10px;font-size:10.5px;font-weight:600;
+    letter-spacing:.05em;text-transform:uppercase;align-self:center;
+  }
+  .note{
+    background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;
+    padding:10px 12px;font-size:11px;color:var(--ink-faint);text-align:center;line-height:1.6;
+  }
+</style>
+<div class="card">
+  <div class="brand">
+    <div class="brand-mark">JALA<span>VITA</span></div>
+    <div class="brand-sub">Wayfinder — Fisherman's App</div>
+  </div>
+  <span class="tag">Works fully offline once installed</span>
+  <div class="qr-wrap"><img id="qr" alt="QR code to install Jalavita Wayfinder"></div>
+  <div id="url-label"></div>
+  <div class="divider"></div>
+  <ol>
+    <li><b>Android (Chrome):</b> Scan the code, then tap <b>Install</b> in the banner — or open the menu (⋮) and choose <b>Add to Home screen</b>.</li>
+    <li><b>iPhone (Safari):</b> Scan the code, tap the <b>Share</b> icon, then <b>Add to Home Screen</b>.</li>
+    <li>Open it from your home screen like any app. It caches everything on first load — after that, turn off data or Wi-Fi and it keeps working: advisory, offline rules engine, catch logging, all of it.</li>
+  </ol>
+  <div class="note">No app store, no APK, nothing to "allow install from unknown sources." This is a real installed app running the same offline-first engine as the Command Deck.</div>
+</div>
+<script>
+  var appUrl = location.origin + '/app/';
+  document.getElementById('url-label').textContent = appUrl;
+  document.getElementById('qr').src = '/api/qr.png?data=' + encodeURIComponent(appUrl);
+</script>
+</html>
