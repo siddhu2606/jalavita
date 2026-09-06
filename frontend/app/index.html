@@ -48,6 +48,13 @@
     overflow:hidden;
     display:flex;flex-direction:column;
   }
+  .screen-wallpaper{
+    position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:url('wallpaper-logo.png') center 38% no-repeat;
+    background-size:78% auto;
+    opacity:.07;
+  }
+  .screen > *:not(.screen-wallpaper){position:relative;z-index:1;}
 
   .status-strip{
     padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 10px;
@@ -220,6 +227,7 @@
 </head>
 <body>
 <div class="screen">
+<div class="screen-wallpaper" aria-hidden="true"></div>
 
   <!-- ADVISORY -->
   <div data-view="advisory" class="app-view">
