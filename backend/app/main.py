@@ -6,9 +6,12 @@ import secrets
 import uuid
 from datetime import datetime, timezone, timedelta
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import StreamingResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+
+load_dotenv()
 
 from .db import db, hash_password
 from .events import broadcaster
