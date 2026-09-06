@@ -449,7 +449,7 @@ async def submit_tip(request: Request):
     if tip_type not in TIP_TYPE_LABELS:
         raise HTTPException(400, f"unknown tip_type '{tip_type}'")
     conn = db()
-    vessel = conn.execute("SELECT id FROM vessels WHERE id=?", (vessel_id,)).fetchone()
+    vessel = conn.execute("SELECT id, name FROM vessels WHERE id=?", (vessel_id,)).fetchone()
     if not vessel:
         raise HTTPException(404, "vessel not found")
     tip_id = str(uuid.uuid4())
@@ -459,7 +459,10 @@ async def submit_tip(request: Request):
         (tip_id, vessel_id, tip_type, body.get("note"), body.get("lat"), body.get("lon"), now, "PENDING"),
     )
     conn.commit()
-    broadcaster.publish("tip", {"id": tip_id, "vessel_id": vessel_id})
+    broadcaster.publish("tip", {
+        "id": tip_id, "vessel_id": vessel_id, "vessel_name": vessel["name"],
+        "tip_type": tip_type, "tip_label": TIP_TYPE_LABELS[tip_type],
+    })
     audit(f"Climate tip received from {vessel_id}: {TIP_TYPE_LABELS[tip_type]} (unverified)", kind="warn")
     return {"id": tip_id, "status": "PENDING"}
 

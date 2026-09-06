@@ -156,6 +156,36 @@
   .situation-modal.critical button{border-color:var(--danger);}
   .situation-modal.warning button{border-color:#ffc400;color:#2a1e00;background:rgba(255,196,0,.25);}
   .situation-modal button:hover{filter:brightness(1.15);}
+
+  .tip-toast-container{
+    position:fixed;top:calc(var(--topbar-h) + 12px);left:50%;transform:translateX(-50%);
+    z-index:9998;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;
+  }
+  @keyframes tip-toast-in{from{opacity:0;transform:translateY(-16px);}to{opacity:1;transform:translateY(0);}}
+  .tip-toast{
+    pointer-events:auto;display:flex;align-items:center;gap:12px;
+    background:var(--glass);backdrop-filter:blur(14px);border:1.5px solid var(--flare);border-radius:12px;
+    padding:12px 14px;box-shadow:0 8px 30px -6px rgba(255,138,76,.4);min-width:300px;max-width:400px;
+    animation:tip-toast-in .25s ease-out;transition:opacity .3s,transform .3s;
+  }
+  .tip-toast.closing{opacity:0;transform:translateY(-16px);}
+  .tip-toast .icon{color:var(--flare);flex:0 0 auto;}
+  .tip-toast .tt-body{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+  .tip-toast .tt-body b{font-size:12.5px;color:var(--ink);}
+  .tip-toast .tt-body span{font-size:11px;color:var(--ink-dim);}
+  .tip-toast button{
+    flex:0 0 auto;background:var(--flare-dim);border:1px solid var(--flare);color:var(--flare);
+    border-radius:7px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;
+  }
+  .tip-toast button:hover{background:var(--flare);color:#20120a;}
+
+  .security-modal-box{max-width:340px;}
+  .security-modal-box input{
+    background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;color:var(--ink);
+    font-size:16px;letter-spacing:.3em;text-align:center;padding:11px 12px;font-family:'IBM Plex Mono',monospace;width:100%;
+  }
+  .security-modal-box input:focus{outline:none;border-color:var(--bio);}
+  .security-modal-box .sec-error{color:var(--danger);font-size:11.5px;min-height:16px;}
   .flow-line{stroke-dasharray:6 6;animation:dash-flow 1s linear infinite;}
   .flow-line-slow{animation-duration:2.2s;}
 
@@ -401,6 +431,22 @@
     </div>
   </div>
 
+  <div class="situation-overlay" id="security-overlay" hidden>
+    <div class="situation-modal warning security-modal-box">
+      <svg class="icon icon-xl"><use href="#i-target"></use></svg>
+      <h2>Security Code Required</h2>
+      <p>Enter the security code to export archive data.</p>
+      <form id="security-form" style="width:100%;display:flex;flex-direction:column;gap:10px;align-items:center">
+        <input id="security-code-input" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
+        <div class="sec-error" id="security-error"></div>
+        <div class="modal-actions">
+          <button type="submit" id="security-confirm">Confirm</button>
+          <button type="button" id="security-cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <nav class="rail" aria-label="Primary">
     <div class="rail-brand">
       <div class="brand-mark">JALA<span>VITA</span></div>
@@ -444,6 +490,8 @@
       <button class="icon-btn" aria-label="Settings"><svg class="icon"><use href="#i-gear"></use></svg></button>
     </div>
   </header>
+
+  <div class="tip-toast-container" id="tip-toast-container"></div>
 
   <main class="canvas">
 
@@ -935,7 +983,7 @@
         <select><option>Last 7 Days</option><option>Last 30 Days</option><option>Custom Range…</option></select>
         <select><option>All Sensors</option><option>Sonar Array</option><option>AIS Transceiver</option></select>
         <select><option>All Outcomes</option><option>Resolved</option><option>Escalated</option></select>
-        <button class="btn btn-solid" style="margin-left:auto"><svg class="icon" style="width:14px;height:14px"><use href="#i-download"></use></svg>Export Selected</button>
+        <button class="btn btn-solid" id="btn-export" style="margin-left:auto"><svg class="icon" style="width:14px;height:14px"><use href="#i-download"></use></svg>Export Selected</button>
       </div>
 
       <div class="grid grid-split">
@@ -1585,15 +1633,17 @@
     });
   }
 
+  var lastIncidents = [];
   function renderIncidents(incidents){
     var body = document.getElementById('incidents-body');
     if (!body) return;
+    lastIncidents = incidents;
     body.innerHTML = '';
     if (!incidents.length) { body.innerHTML = '<tr><td colspan="5" style="color:var(--ink-faint)">No incidents logged yet.</td></tr>'; return; }
-    incidents.forEach(function(inc){
+    incidents.forEach(function(inc, idx){
       var chipClass = inc.severity === 'CRITICAL' ? 'chip-bad' : (inc.severity === 'WARNING' ? 'chip-warn' : 'chip-good');
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td><input class="checkbox" type="checkbox"></td><td class="mono"></td><td class="mono" style="color:var(--bio)"></td><td></td><td><span class="chip ' + chipClass + '"><i class="dot" style="background:currentColor"></i></span></td>';
+      tr.innerHTML = '<td><input class="checkbox" type="checkbox" data-idx="' + idx + '"></td><td class="mono"></td><td class="mono" style="color:var(--bio)"></td><td></td><td><span class="chip ' + chipClass + '"><i class="dot" style="background:currentColor"></i></span></td>';
       tr.children[1].textContent = new Date(inc.ts).toISOString().replace('T', ' ').slice(0, 19);
       tr.children[2].textContent = inc.vessel_id;
       tr.children[3].textContent = inc.type;
@@ -1718,10 +1768,39 @@
   setInterval(fetchKyc, 8000);
 
   // ---------- Fisherman Tips (unverified — must be reviewed before anyone is alerted) ----------
+  function showTipToast(tip){
+    var container = document.getElementById('tip-toast-container');
+    if (!container) return;
+    var el = document.createElement('div');
+    el.className = 'tip-toast';
+    el.innerHTML = '<svg class="icon"><use href="#i-alert"></use></svg><div class="tt-body"><b></b><span></span></div><button>View</button>';
+    el.querySelector('b').textContent = 'New tip: ' + (tip.tip_label || tip.tip_type || 'Report');
+    el.querySelector('span').textContent = 'from ' + (tip.vessel_name || tip.vessel_id) + ' (' + tip.vessel_id + ') · unverified';
+    el.querySelector('button').addEventListener('click', function(){
+      var fieldLink = document.querySelector('.rail-link[data-panel="field"]');
+      if (fieldLink) fieldLink.click();
+      dismissToast(el);
+    });
+    container.appendChild(el);
+    setTimeout(function(){ dismissToast(el); }, 8000);
+  }
+  function dismissToast(el){
+    if (!el || !el.parentNode) return;
+    el.classList.add('closing');
+    setTimeout(function(){ if (el.parentNode) el.parentNode.removeChild(el); }, 300);
+  }
+  var seenTipIds = null; // null = baseline not yet established
+  function markTipsSeen(rows){
+    if (seenTipIds === null) { seenTipIds = new Set(rows.map(function(r){ return r.id; })); return; }
+    rows.forEach(function(r){
+      if (!seenTipIds.has(r.id)) { seenTipIds.add(r.id); showTipToast(r); }
+    });
+  }
   function renderTips(rows){
     var body = document.getElementById('tips-body');
     var summary = document.getElementById('tips-summary');
     if (!body) return;
+    markTipsSeen(rows);
     if (summary) summary.textContent = rows.length + ' pending';
     if (!rows.length) { body.innerHTML = '<tr><td colspan="5" style="color:var(--ink-faint)">No pending tips.</td></tr>'; return; }
     body.innerHTML = '';
@@ -1762,6 +1841,70 @@
   }
   fetchTips();
   setInterval(fetchTips, 6000);
+
+  // ---------- Archive export, gated by a security code ----------
+  var EXPORT_SECURITY_CODE = '251';
+  function csvEscape(val){
+    var s = String(val == null ? '' : val);
+    if (/[",\n]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+  function downloadIncidentsCsv(rows){
+    var header = ['Timestamp (UTC)', 'Vessel ID', 'Incident Type', 'Severity', 'Status'];
+    var lines = [header.map(csvEscape).join(',')];
+    rows.forEach(function(inc){
+      lines.push([
+        new Date(inc.ts).toISOString().replace('T', ' ').slice(0, 19),
+        inc.vessel_id, inc.type, inc.severity, inc.status,
+      ].map(csvEscape).join(','));
+    });
+    var blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'jalavita-archive-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  }
+  function openSecurityModal(){
+    var overlay = document.getElementById('security-overlay');
+    var input = document.getElementById('security-code-input');
+    var error = document.getElementById('security-error');
+    if (!overlay) return;
+    overlay.hidden = false;
+    if (error) error.textContent = '';
+    if (input) { input.value = ''; setTimeout(function(){ input.focus(); }, 50); }
+  }
+  function closeSecurityModal(){
+    var overlay = document.getElementById('security-overlay');
+    if (overlay) overlay.hidden = true;
+  }
+  var exportBtn = document.getElementById('btn-export');
+  if (exportBtn) exportBtn.addEventListener('click', openSecurityModal);
+  var securityCancel = document.getElementById('security-cancel');
+  if (securityCancel) securityCancel.addEventListener('click', closeSecurityModal);
+  var securityForm = document.getElementById('security-form');
+  if (securityForm) {
+    securityForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      var input = document.getElementById('security-code-input');
+      var error = document.getElementById('security-error');
+      var code = input ? input.value.trim() : '';
+      if (code !== EXPORT_SECURITY_CODE) {
+        if (error) error.textContent = 'Incorrect security code. Try again.';
+        if (input) { input.value = ''; input.focus(); }
+        return;
+      }
+      var checked = Array.prototype.slice.call(document.querySelectorAll('#incidents-body input[type=checkbox]:checked'));
+      var toExport = checked.length
+        ? checked.map(function(cb){ return lastIncidents[parseInt(cb.dataset.idx, 10)]; }).filter(Boolean)
+        : lastIncidents;
+      downloadIncidentsCsv(toExport);
+      closeSecurityModal();
+    });
+  }
 
   function renderCrisis(crisis){
     if (!crisis) return;
@@ -1962,7 +2105,13 @@
       es.addEventListener('ack', function(){ fetchLedger(); fetchAudit(); });
       es.addEventListener('vessel_position', function(){ fetchState(); });
       es.addEventListener('situation', function(e){ renderSituation(JSON.parse(e.data)); });
-      es.addEventListener('tip', function(){ fetchTips(); fetchAudit(); });
+      es.addEventListener('tip', function(e){
+        try {
+          var data = JSON.parse(e.data);
+          if (seenTipIds && data.id && !seenTipIds.has(data.id)) { seenTipIds.add(data.id); showTipToast(data); }
+        } catch (err) {}
+        fetchTips(); fetchAudit();
+      });
       es.onerror = function(){ /* browser auto-reconnects; polling keeps data fresh meanwhile */ };
     } catch (e) { /* SSE unsupported — polling covers it */ }
   })();
