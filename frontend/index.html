@@ -1121,9 +1121,13 @@
         <div class="card">
           <div class="card-head">
             <div class="card-title"><svg class="icon"><use href="#i-target"></use></svg>Mission Parameters</div>
-            <span class="chip chip-info"><i class="dot" style="background:currentColor"></i>Synced</span>
+            <span class="chip chip-info" id="tp-sync-chip"><i class="dot" style="background:currentColor"></i><span id="tp-sync-status">Synced</span></span>
           </div>
           <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="slider-group">
+              <div class="slider-label"><span>Vessel (twin-planned with its Wayfinder)</span></div>
+              <select id="tp-vessel" class="field" style="width:100%"></select>
+            </div>
             <div class="slider-group">
               <div class="slider-label"><span>Departure Window</span><span class="mono" id="val-departure">06:00</span></div>
               <input type="range" min="4" max="12" step="0.5" value="6" id="sl-departure">
@@ -1141,7 +1145,7 @@
             </div>
             <div class="slider-group">
               <div class="slider-label"><span>Fuel Tank Limit (L)</span></div>
-              <input class="field" type="number" value="50" style="width:100%">
+              <input class="field" type="number" value="50" style="width:100%" id="tp-fuel-limit">
             </div>
             <button class="btn btn-solid btn-block" id="btn-recalc" style="background:var(--flare);border-color:var(--flare);color:#20120a"><svg class="icon" style="width:14px;height:14px"><use href="#i-refresh"></use></svg>Recalculate Spatiotemporal Twin</button>
           </div>
@@ -2117,11 +2121,20 @@
         } catch (err) {}
         fetchTips(); fetchAudit();
       });
+      es.addEventListener('trip_plan', function(e){
+        try {
+          var plan = JSON.parse(e.data);
+          if (plan.vessel_id === tpVesselId && Date.now() > tpLocalPushUntil) applyTripPlanToUI(plan);
+        } catch (err) {}
+      });
       es.onerror = function(){ /* browser auto-reconnects; polling keeps data fresh meanwhile */ };
     } catch (e) { /* SSE unsupported — polling covers it */ }
   })();
 
-  // ---------- Trip planner ----------
+  // ---------- Twin Trip Planner (shared, synced state per vessel) ----------
+  var tpVesselId = 'MH-RTN-408'; // matches the Wayfinder demo phone's vessel by default
+  var tpLocalPushUntil = 0; // ignore incoming poll/SSE updates briefly after our own push, to avoid fighting a live drag
+
   function wireSlider(sliderId, outId, suffix){
     var slider = document.getElementById(sliderId);
     var out = document.getElementById(outId);
@@ -2140,37 +2153,61 @@
   wireSlider('sl-speed', 'val-speed');
   wireSlider('sl-duration', 'val-duration');
 
-  async function recalcPlan(){
+  function applyTripPlanToUI(plan){
+    document.getElementById('sl-departure').value = plan.departure_hour;
+    document.getElementById('sl-speed').value = plan.cruise_speed_kt;
+    document.getElementById('sl-duration').value = plan.duration_hours;
+    document.getElementById('tp-fuel-limit').value = plan.fuel_limit_l;
+    var h = Math.floor(plan.departure_hour), m = (plan.departure_hour % 1) ? '30' : '00';
+    document.getElementById('val-departure').textContent = String(h).padStart(2, '0') + ':' + m;
+    document.getElementById('val-speed').textContent = plan.cruise_speed_kt.toFixed(1);
+    document.getElementById('val-duration').textContent = plan.duration_hours.toFixed(1);
+
+    var fuelEl = document.getElementById('pl-fuel');
+    var fuelBar = document.getElementById('pl-fuel-bar');
+    var nrpEl = document.getElementById('pl-nrp');
+    var nrpNote = document.getElementById('pl-nrp-note');
+    var waveEl = document.getElementById('pl-wave');
+    var waveNote = document.getElementById('pl-wave-note');
+    var color = plan.verdict === 'UNSAFE' ? 'var(--danger)' : (plan.verdict === 'CAUTION' ? 'var(--flare)' : 'var(--kelp)');
+    if (fuelEl) { fuelEl.innerHTML = plan.fuel_estimate_l + '<span>/' + plan.fuel_limit_l + 'L</span>'; fuelEl.style.color = color; }
+    if (fuelBar) { fuelBar.style.width = Math.min(100, Math.round(100 * plan.fuel_estimate_l / plan.fuel_limit_l)) + '%'; fuelBar.style.background = color; }
+    if (nrpEl) nrpEl.textContent = plan.point_of_no_return;
+    if (nrpNote) { nrpNote.textContent = plan.verdict === 'SAFE' ? 'HEALTHY MARGIN' : (plan.verdict === 'CAUTION' ? 'LIMITED MARGIN' : 'INSUFFICIENT MARGIN'); nrpNote.style.color = color; }
+    if (waveEl) waveEl.innerHTML = plan.max_offshore_wave_m.value + '<span>m max</span>';
+    if (waveNote) { waveNote.textContent = (plan.verdict === 'UNSAFE' ? '✗ ' : '✓ ') + plan.reasons.join('; '); waveNote.style.color = plan.verdict === 'SAFE' ? 'var(--kelp)' : color; }
+
+    var syncStatus = document.getElementById('tp-sync-status');
+    if (syncStatus) syncStatus.textContent = 'Synced · updated by ' + plan.updated_by + ' ' + timeAgo(plan.updated_at) + ' ago';
+  }
+
+  function fetchTripPlan(vesselId){
+    fetch(API + '/api/trip-plan/' + vesselId)
+      .then(function(r){ if (!r.ok) throw new Error('bad'); return r.json(); })
+      .then(function(plan){ if (vesselId === tpVesselId && Date.now() > tpLocalPushUntil) applyTripPlanToUI(plan); })
+      .catch(function(){});
+  }
+
+  async function pushTripPlan(){
     var departure = parseFloat(document.getElementById('sl-departure').value);
     var duration = parseFloat(document.getElementById('sl-duration').value);
     var speed = parseFloat(document.getElementById('sl-speed').value);
-    var fuelInput = document.querySelector('#panel-planner input[type=number]');
+    var fuelInput = document.getElementById('tp-fuel-limit');
     var fuel = fuelInput ? parseFloat(fuelInput.value) : 50;
+    tpLocalPushUntil = Date.now() + 3000;
     try {
-      var res = await fetch(API + '/api/plan', {
+      var res = await fetch(API + '/api/trip-plan/' + tpVesselId, {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ departure_hour: departure, duration_hours: duration, cruise_speed_kt: speed, fuel_limit_l: fuel })
+        body: JSON.stringify({ departure_hour: departure, duration_hours: duration, cruise_speed_kt: speed, fuel_limit_l: fuel, source: 'deck' }),
       });
       if (!res.ok) throw new Error('bad');
-      var plan = await res.json();
-      var fuelEl = document.getElementById('pl-fuel');
-      var fuelBar = document.getElementById('pl-fuel-bar');
-      var nrpEl = document.getElementById('pl-nrp');
-      var nrpNote = document.getElementById('pl-nrp-note');
-      var waveEl = document.getElementById('pl-wave');
-      var waveNote = document.getElementById('pl-wave-note');
-      var color = plan.verdict === 'UNSAFE' ? 'var(--danger)' : (plan.verdict === 'CAUTION' ? 'var(--flare)' : 'var(--kelp)');
-      if (fuelEl) { fuelEl.innerHTML = plan.fuel_estimate_l + '<span>/' + fuel + 'L</span>'; fuelEl.style.color = color; }
-      if (fuelBar) { fuelBar.style.width = Math.min(100, Math.round(100 * plan.fuel_estimate_l / fuel)) + '%'; fuelBar.style.background = color; }
-      if (nrpEl) nrpEl.textContent = plan.point_of_no_return;
-      if (nrpNote) { nrpNote.textContent = plan.verdict === 'SAFE' ? 'HEALTHY MARGIN' : (plan.verdict === 'CAUTION' ? 'LIMITED MARGIN' : 'INSUFFICIENT MARGIN'); nrpNote.style.color = color; }
-      if (waveEl) waveEl.innerHTML = plan.max_offshore_wave_m.value + '<span>m max</span>';
-      if (waveNote) { waveNote.textContent = (plan.verdict === 'UNSAFE' ? '✗ ' : '✓ ') + plan.reasons.join('; '); waveNote.style.color = plan.verdict === 'SAFE' ? 'var(--kelp)' : color; }
+      applyTripPlanToUI(await res.json());
+      fetchAudit();
     } catch (e) { /* backend unreachable — leave last computed values visible */ }
   }
-  ['sl-departure','sl-speed','sl-duration'].forEach(function(id){
+  ['sl-departure','sl-speed','sl-duration','tp-fuel-limit'].forEach(function(id){
     var el = document.getElementById(id);
-    if (el) el.addEventListener('change', recalcPlan);
+    if (el) el.addEventListener('change', pushTripPlan);
   });
 
   var recalcBtn = document.getElementById('btn-recalc');
@@ -2179,13 +2216,31 @@
       var original = recalcBtn.innerHTML;
       recalcBtn.style.opacity = '.7';
       recalcBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px"><use href="#i-refresh"></use></svg>Recalculating…';
-      recalcPlan().finally(function(){
+      pushTripPlan().finally(function(){
         recalcBtn.style.opacity = '1';
         recalcBtn.innerHTML = original;
       });
     });
-    recalcPlan();
   }
+
+  var tpVesselSelect = document.getElementById('tp-vessel');
+  if (tpVesselSelect) {
+    fetch(API + '/api/vessels').then(function(r){ return r.json(); }).then(function(vessels){
+      vessels.forEach(function(v){
+        var opt = document.createElement('option');
+        opt.value = v.id;
+        opt.textContent = v.name + ' (' + v.id + ')';
+        if (v.id === tpVesselId) opt.selected = true;
+        tpVesselSelect.appendChild(opt);
+      });
+    }).catch(function(){});
+    tpVesselSelect.addEventListener('change', function(){
+      tpVesselId = tpVesselSelect.value;
+      fetchTripPlan(tpVesselId);
+    });
+  }
+  fetchTripPlan(tpVesselId);
+  setInterval(function(){ fetchTripPlan(tpVesselId); }, 4000);
 
   function wireChartHover(svgId, points, crosshairId, dotId, tooltipId, vbW, vbH, fmt){
     var svg = document.getElementById(svgId);

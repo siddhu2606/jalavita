@@ -666,6 +666,58 @@ def post_plan(plan: PlanRequest):
     return result.model_dump(mode="json")
 
 
+# Twin Trip Planner: a single shared plan per vessel, not two independent
+# calculators. Either the deck operator or the fisherman's own phone can
+# change departure/duration/speed/fuel — whichever side changes it recomputes
+# the shared result and the other side picks it up live (poll + SSE).
+TRIP_PLANS: dict[str, dict] = {}
+DEFAULT_TRIP_PLAN = {"departure_hour": 6.0, "duration_hours": 4.5, "cruise_speed_kt": 12.5, "fuel_limit_l": 50.0}
+
+
+def _compute_and_store_plan(vessel_id: str, departure_hour: float, duration_hours: float,
+                             cruise_speed_kt: float, fuel_limit_l: float, source: str) -> dict:
+    result = compute_plan(departure_hour, duration_hours, cruise_speed_kt, fuel_limit_l)
+    plan = {
+        "vessel_id": vessel_id,
+        "departure_hour": departure_hour, "duration_hours": duration_hours,
+        "cruise_speed_kt": cruise_speed_kt, "fuel_limit_l": fuel_limit_l,
+        "verdict": result.verdict.value, "fuel_estimate_l": result.fuel_estimate_l,
+        "point_of_no_return": result.point_of_no_return,
+        "max_offshore_wave_m": result.max_offshore_wave_m.model_dump(mode="json"),
+        "reasons": result.reasons, "updated_at": now_utc().isoformat(), "updated_by": source,
+    }
+    TRIP_PLANS[vessel_id] = plan
+    broadcaster.publish("trip_plan", plan)
+    return plan
+
+
+@app.get("/api/trip-plan/{vessel_id}")
+def get_trip_plan(vessel_id: str):
+    if vessel_id in TRIP_PLANS:
+        return TRIP_PLANS[vessel_id]
+    conn = db()
+    if not conn.execute("SELECT id FROM vessels WHERE id=?", (vessel_id,)).fetchone():
+        raise HTTPException(404, "vessel not found")
+    d = DEFAULT_TRIP_PLAN
+    return _compute_and_store_plan(vessel_id, d["departure_hour"], d["duration_hours"], d["cruise_speed_kt"], d["fuel_limit_l"], "default")
+
+
+@app.post("/api/trip-plan/{vessel_id}")
+async def post_trip_plan(vessel_id: str, request: Request):
+    conn = db()
+    if not conn.execute("SELECT id FROM vessels WHERE id=?", (vessel_id,)).fetchone():
+        raise HTTPException(404, "vessel not found")
+    body = await request.json()
+    plan = _compute_and_store_plan(
+        vessel_id,
+        float(body["departure_hour"]), float(body["duration_hours"]),
+        float(body["cruise_speed_kt"]), float(body.get("fuel_limit_l", 50.0)),
+        body.get("source", "unknown"),
+    )
+    audit(f"Trip plan for {vessel_id} updated from {plan['updated_by']} — verdict {plan['verdict']}", kind="info")
+    return plan
+
+
 def _fleet_advisories():
     conn = db()
     rows = conn.execute("SELECT * FROM vessels ORDER BY id").fetchall()

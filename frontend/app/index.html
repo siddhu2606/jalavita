@@ -194,6 +194,14 @@
   .guidance{background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--panel-line);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--ink);}
   .guidance .icon{color:var(--current);margin-top:1px;}
 
+  .tp-mini-card{background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--panel-line);border-radius:12px;padding:10px 14px 12px;display:flex;flex-direction:column;gap:2px;}
+  .tp-mini-head{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px;}
+  .tp-mini-sync{font-size:9.5px;color:var(--bio);text-transform:none;letter-spacing:0;font-family:'IBM Plex Mono',monospace;}
+  .tp-mini-row{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-dim);margin-top:6px;}
+  input.tp-mini-slider{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:99px;background:var(--panel-2);outline:none;margin:4px 0;}
+  input.tp-mini-slider::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--bio);box-shadow:0 0 6px var(--bio);cursor:pointer;}
+  input.tp-mini-slider::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--bio);box-shadow:0 0 6px var(--bio);border:none;cursor:pointer;}
+
   .crisis-screen{flex:1;position:relative;background:var(--abyss);overflow:hidden;display:flex;flex-direction:column;}
   .crisis-bar{background:linear-gradient(180deg, var(--danger), #d63152);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px;font-family:'Unbounded';font-size:14px;font-weight:700;letter-spacing:.02em;animation:crisis-flash 1.6s ease-in-out infinite;}
   .crisis-sub{background:var(--danger-dim);color:var(--danger);font-size:11px;letter-spacing:.08em;text-transform:uppercase;text-align:center;padding:8px;font-weight:600;}
@@ -335,12 +343,27 @@
         <div class="float-row">
           <div class="float-card">
             <div class="fc-label"><svg class="icon" style="width:11px;height:11px"><use href="#m-fuel"></use></svg><span data-i18n="chart.fuel_est">Fuel Est.</span></div>
-            <div class="fc-value mono" id="fuel-value">38<span style="font-size:12px;color:var(--ink-faint)">/50L</span></div>
+            <div class="fc-value mono" id="fuel-value">--<span style="font-size:12px;color:var(--ink-faint)">/50L</span></div>
           </div>
           <div class="float-card">
             <div class="fc-label"><svg class="icon" style="width:11px;height:11px"><use href="#m-clock"></use></svg><span data-i18n="chart.no_return">No Return Pt.</span></div>
-            <div class="fc-value mono" id="nrp-value">11:15</div>
+            <div class="fc-value mono" id="nrp-value">--:--</div>
           </div>
+        </div>
+        <div class="tp-mini-card">
+          <div class="tp-mini-head"><span data-i18n="tripplan.title">Twin Trip Plan</span><span id="tp-mini-sync" class="tp-mini-sync">—</span></div>
+          <div class="tp-mini-row">
+            <span data-i18n="tripplan.departure">Departure</span><span class="mono" id="tp-mini-departure-val">06:00</span>
+          </div>
+          <input type="range" min="4" max="12" step="0.5" value="6" id="tp-mini-departure" class="tp-mini-slider">
+          <div class="tp-mini-row">
+            <span data-i18n="tripplan.duration">Duration (hrs)</span><span class="mono" id="tp-mini-duration-val">4.5</span>
+          </div>
+          <input type="range" min="2" max="8" step="0.5" value="4.5" id="tp-mini-duration" class="tp-mini-slider">
+          <div class="tp-mini-row">
+            <span data-i18n="tripplan.speed">Speed (kt)</span><span class="mono" id="tp-mini-speed-val">12.5</span>
+          </div>
+          <input type="range" min="6" max="14" step="0.5" value="12.5" id="tp-mini-speed" class="tp-mini-slider">
         </div>
         <div class="guidance">
           <svg class="icon"><use href="#m-route"></use></svg>

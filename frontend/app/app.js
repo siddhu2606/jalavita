@@ -375,6 +375,65 @@
     }
   }
 
+  // ---------------- Twin Trip Plan (shared with the Command Deck) ----------------
+  var tpMiniLocalPushUntil = 0;
+  function applyTripPlanToMiniUI(plan) {
+    var dSlider = document.getElementById('tp-mini-departure');
+    var durSlider = document.getElementById('tp-mini-duration');
+    var sSlider = document.getElementById('tp-mini-speed');
+    if (dSlider) dSlider.value = plan.departure_hour;
+    if (durSlider) durSlider.value = plan.duration_hours;
+    if (sSlider) sSlider.value = plan.cruise_speed_kt;
+    var h = Math.floor(plan.departure_hour), m = (plan.departure_hour % 1) ? '30' : '00';
+    var dVal = document.getElementById('tp-mini-departure-val');
+    var durVal = document.getElementById('tp-mini-duration-val');
+    var sVal = document.getElementById('tp-mini-speed-val');
+    if (dVal) dVal.textContent = String(h).padStart(2, '0') + ':' + m;
+    if (durVal) durVal.textContent = plan.duration_hours.toFixed(1);
+    if (sVal) sVal.textContent = plan.cruise_speed_kt.toFixed(1);
+
+    var fuelEl = document.getElementById('fuel-value');
+    var nrpEl = document.getElementById('nrp-value');
+    if (fuelEl) fuelEl.innerHTML = plan.fuel_estimate_l + '<span style="font-size:12px;color:var(--ink-faint)">/' + plan.fuel_limit_l + 'L</span>';
+    if (nrpEl) nrpEl.textContent = plan.point_of_no_return;
+
+    var syncEl = document.getElementById('tp-mini-sync');
+    if (syncEl) syncEl.textContent = plan.updated_by === 'wayfinder' ? 'by you' : 'by ' + plan.updated_by;
+  }
+  function fetchTripPlanMini() {
+    fetch(API + '/api/trip-plan/' + DEMO_VESSEL_ID)
+      .then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); })
+      .then(function (plan) { if (Date.now() > tpMiniLocalPushUntil) applyTripPlanToMiniUI(plan); })
+      .catch(function () {});
+  }
+  function pushTripPlanMini() {
+    var departure = parseFloat(document.getElementById('tp-mini-departure').value);
+    var duration = parseFloat(document.getElementById('tp-mini-duration').value);
+    var speed = parseFloat(document.getElementById('tp-mini-speed').value);
+    tpMiniLocalPushUntil = Date.now() + 3000;
+    fetch(API + '/api/trip-plan/' + DEMO_VESSEL_ID, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ departure_hour: departure, duration_hours: duration, cruise_speed_kt: speed, fuel_limit_l: 50, source: 'wayfinder' }),
+    }).then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); })
+      .then(applyTripPlanToMiniUI)
+      .catch(function () {});
+  }
+  ['tp-mini-departure', 'tp-mini-duration', 'tp-mini-speed'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', function () {
+      var h = Math.floor(el.value), m = (el.value % 1) ? '30' : '00';
+      if (id === 'tp-mini-departure') {
+        document.getElementById('tp-mini-departure-val').textContent = String(h).padStart(2, '0') + ':' + m;
+      } else {
+        document.getElementById(id + '-val').textContent = parseFloat(el.value).toFixed(1);
+      }
+    });
+    el.addEventListener('change', pushTripPlanMini);
+  });
+  fetchTripPlanMini();
+  setInterval(fetchTripPlanMini, 4000);
+
   function renderCrisisContext(ev) {
     var distEl = document.getElementById('crisis-distance');
     var transcript = document.getElementById('crisis-transcript-text');
@@ -694,6 +753,12 @@
     try {
       sse = new EventSource(API + '/api/events');
       sse.addEventListener('alert', function (e) { handleIncomingAlert(JSON.parse(e.data)); });
+      sse.addEventListener('trip_plan', function (e) {
+        try {
+          var plan = JSON.parse(e.data);
+          if (plan.vessel_id === DEMO_VESSEL_ID && Date.now() > tpMiniLocalPushUntil) applyTripPlanToMiniUI(plan);
+        } catch (err) {}
+      });
       sse.onerror = function () { if (sse) { sse.close(); sse = null; setTimeout(connectSSE, 5000); } };
     } catch (e) { /* SSE unsupported — polling below still covers it */ }
   }
