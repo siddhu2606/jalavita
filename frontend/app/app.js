@@ -361,6 +361,12 @@
       tag.textContent = '--';
       if (coastInfo) coastInfo.textContent = 'Distance to coast — no packet cached yet';
     }
+    var smsNote = document.getElementById('sms-fallback-note');
+    if (smsNote && packet) {
+      smsNote.textContent = packet.sms_gateway_number
+        ? t('tip.sms_fallback_configured', { number: packet.sms_gateway_number })
+        : t('tip.sms_fallback_unconfigured');
+    }
   }
 
   function renderChart(ev) {

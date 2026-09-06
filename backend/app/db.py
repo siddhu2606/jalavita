@@ -28,7 +28,20 @@ CREATE TABLE IF NOT EXISTS vessels (
     heading REAL NOT NULL,
     speed REAL NOT NULL,
     last_update TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'NORMAL'
+    status TEXT NOT NULL DEFAULT 'NORMAL',
+    phone_number TEXT
+);
+
+CREATE TABLE IF NOT EXISTS sms_log (
+    id TEXT PRIMARY KEY,
+    direction TEXT NOT NULL,
+    phone_number TEXT NOT NULL,
+    vessel_id TEXT,
+    body TEXT NOT NULL,
+    status TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    related_alert_id TEXT,
+    related_tip_id TEXT
 );
 
 CREATE TABLE IF NOT EXISTS alerts (
@@ -83,7 +96,8 @@ CREATE TABLE IF NOT EXISTS climate_tips (
     submitted_at TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'PENDING',
     reviewed_at TEXT,
-    reviewed_by TEXT
+    reviewed_by TEXT,
+    channel TEXT NOT NULL DEFAULT 'app'
 );
 
 CREATE TABLE IF NOT EXISTS operators (
@@ -159,11 +173,14 @@ def _seed_if_empty(conn: sqlite3.Connection) -> None:
         heading = round(rng.uniform(0, 360), 1)
         speed = round(rng.uniform(4, 15), 1)
         vclass = VESSEL_CLASSES[i % len(VESSEL_CLASSES)]
+        # Fake demo numbers — never real. To test a live Twilio send, replace one
+        # of these with a real number you've verified in the Twilio console.
+        phone = f"+9198765{43000 + i * 137:05d}"
         conn.execute(
             "INSERT INTO vessels (id, name, vessel_class, home_port, operator_name, preferred_language, "
-            "lat, lon, heading, speed, last_update, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            "lat, lon, heading, speed, last_update, status, phone_number) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (vid, NAMES[i], vclass, HOME_PORTS[i % len(HOME_PORTS)], OPERATORS[i], LANGS[i % len(LANGS)],
-             lat, lon, heading, speed, now, "NORMAL"),
+             lat, lon, heading, speed, now, "NORMAL", phone),
         )
     conn.execute(
         "INSERT INTO operators (username, password_hash, display_name, role) VALUES (?,?,?,?)",

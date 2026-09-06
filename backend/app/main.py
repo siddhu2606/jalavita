@@ -23,6 +23,18 @@ FRONTEND_DIR = os.path.join(ROOT, "frontend")
 SPECIES_CSV = os.path.join(ROOT, "data", "species_lexicon.csv")
 KYC_UPLOAD_DIR = os.path.join(ROOT, "data", "kyc_uploads")
 
+# SMS gateway — the one channel that can reach a vessel with zero internet.
+# Wired for real Twilio use, but degrades to a logged "SIMULATED" send when no
+# credentials are configured, so the whole pipeline stays demoable either way.
+TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
+TWILIO_FROM_NUMBER = os.environ.get("TWILIO_FROM_NUMBER")
+SMS_CONFIGURED = bool(TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_FROM_NUMBER)
+_twilio_client = None
+if SMS_CONFIGURED:
+    from twilio.rest import Client as _TwilioClient
+    _twilio_client = _TwilioClient(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
 app = FastAPI(title="Jalavita API")
 
 # In-memory session store — fine for a single-process demo, not for production.
@@ -98,6 +110,33 @@ def audit(text: str, kind: str = "info") -> None:
     conn.execute("INSERT INTO audit_log (ts, text, kind) VALUES (?,?,?)", (ts, text, kind))
     conn.commit()
     broadcaster.publish("audit", {"ts": ts, "text": text, "kind": kind})
+
+
+def send_sms(to_number: str, body: str, vessel_id: str | None = None, related_alert_id: str | None = None) -> dict:
+    conn = db()
+    log_id = str(uuid.uuid4())
+    now = now_utc().isoformat()
+    short_body = body if len(body) <= 300 else body[:297] + "..."
+    status = "SIMULATED"
+    if SMS_CONFIGURED and _twilio_client is not None:
+        try:
+            _twilio_client.messages.create(to=to_number, from_=TWILIO_FROM_NUMBER, body=short_body)
+            status = "SENT"
+        except Exception as e:
+            status = "FAILED"
+            audit(f"SMS send to {to_number} failed: {e}", kind="bad")
+    conn.execute(
+        "INSERT INTO sms_log (id, direction, phone_number, vessel_id, body, status, created_at, related_alert_id) "
+        "VALUES (?,?,?,?,?,?,?,?)",
+        (log_id, "OUT", to_number, vessel_id, short_body, status, now, related_alert_id),
+    )
+    conn.commit()
+    entry = {
+        "id": log_id, "direction": "OUT", "phone_number": to_number, "vessel_id": vessel_id,
+        "body": short_body, "status": status, "created_at": now,
+    }
+    broadcaster.publish("sms", entry)
+    return entry
 
 
 def vessel_row_to_out(row) -> VesselOut:
@@ -350,6 +389,9 @@ def _create_alert(vessel_id: str, severity: str, message: str, language: str) ->
     payload = {"id": alert_id, "vessel_id": vessel_id, "severity": severity, "message": message, "created_at": ts, "status": "SENT"}
     broadcaster.publish("alert", payload)
     audit(f"Alert issued to {vessel_id}: {message}", kind="warn" if severity != "CRITICAL" else "bad")
+    vessel_row = conn.execute("SELECT phone_number FROM vessels WHERE id=?", (vessel_id,)).fetchone()
+    if vessel_row and vessel_row["phone_number"]:
+        send_sms(vessel_row["phone_number"], message, vessel_id=vessel_id, related_alert_id=alert_id)
     return payload
 
 
@@ -468,11 +510,13 @@ async def submit_tip(request: Request):
 
 
 def _tip_row_to_dict(r) -> dict:
+    keys = r.keys()
     return {
         "id": r["id"], "vessel_id": r["vessel_id"], "vessel_name": r["vessel_name"],
         "tip_type": r["tip_type"], "tip_label": TIP_TYPE_LABELS.get(r["tip_type"], r["tip_type"]),
         "note": r["note"], "lat": r["lat"], "lon": r["lon"], "submitted_at": r["submitted_at"],
         "status": r["status"], "reviewed_at": r["reviewed_at"], "reviewed_by": r["reviewed_by"],
+        "channel": r["channel"] if "channel" in keys else "app",
     }
 
 
@@ -555,6 +599,106 @@ def ensure_tip(tip_id: str, request: Request):
     situation = _ensure_safety_protocols(f"Fisherman tip from {row['vessel_id']} — safety protocols ensured by {op['display_name']}")
     _mark_tip(tip_id, "ENSURED", op["display_name"])
     return situation
+
+
+# ---------------- SMS gateway: works with zero internet, only cellular signal ----------------
+# An inbound SMS becomes a climate tip through the exact same review pipeline as an
+# app tip (Verify / Ensure Safety Protocol / Clear) — SMS is just another channel in,
+# not a separate system. Outbound SMS piggybacks on every alert automatically.
+SMS_KEYWORDS = [
+    ("tsunami", "tsunami"), ("cyclone", "cyclone"), ("storm", "cyclone"),
+    ("high tide", "high_tide"), ("tide", "high_tide"),
+    ("rough sea", "rough_seas"), ("rough", "rough_seas"),
+]
+
+
+def _infer_tip_type_from_text(body: str) -> str:
+    low = (body or "").lower()
+    for kw, ttype in SMS_KEYWORDS:
+        if kw in low:
+            return ttype
+    return "other"
+
+
+@app.post("/api/sms/inbound")
+async def sms_inbound(request: Request):
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        payload = await request.json()
+        from_number = payload.get("From") or payload.get("from") or "unknown"
+        body_text = payload.get("Body") or payload.get("body") or ""
+    else:
+        form = await request.form()
+        from_number = form.get("From", "unknown")
+        body_text = form.get("Body", "")
+
+    conn = db()
+    vessel = conn.execute("SELECT * FROM vessels WHERE phone_number=?", (from_number,)).fetchone()
+    now = now_utc().isoformat()
+    log_id = str(uuid.uuid4())
+    conn.execute(
+        "INSERT INTO sms_log (id, direction, phone_number, vessel_id, body, status, created_at) VALUES (?,?,?,?,?,?,?)",
+        (log_id, "IN", from_number, vessel["id"] if vessel else None, body_text, "RECEIVED", now),
+    )
+    conn.commit()
+    broadcaster.publish("sms", {
+        "id": log_id, "direction": "IN", "phone_number": from_number,
+        "vessel_id": vessel["id"] if vessel else None, "body": body_text, "status": "RECEIVED", "created_at": now,
+    })
+
+    if vessel:
+        tip_type = _infer_tip_type_from_text(body_text)
+        tip_id = str(uuid.uuid4())
+        conn.execute(
+            "INSERT INTO climate_tips (id, vessel_id, tip_type, note, submitted_at, status, channel) VALUES (?,?,?,?,?,?,?)",
+            (tip_id, vessel["id"], tip_type, body_text, now, "PENDING", "sms"),
+        )
+        conn.commit()
+        broadcaster.publish("tip", {
+            "id": tip_id, "vessel_id": vessel["id"], "vessel_name": vessel["name"],
+            "tip_type": tip_type, "tip_label": TIP_TYPE_LABELS.get(tip_type, tip_type), "channel": "sms",
+        })
+        audit(f"SMS tip received from {vessel['id']} ({from_number}): \"{body_text}\" — unverified", kind="warn")
+    else:
+        audit(f"SMS received from unrecognized number {from_number}: \"{body_text}\"", kind="warn")
+
+    from fastapi.responses import Response
+    return Response(content='<?xml version="1.0" encoding="UTF-8"?><Response></Response>', media_type="application/xml")
+
+
+@app.get("/api/sms/log")
+def get_sms_log(request: Request, limit: int = 50):
+    require_operator(request)
+    conn = db()
+    rows = conn.execute(
+        "SELECT s.*, v.name AS vessel_name FROM sms_log s LEFT JOIN vessels v ON v.id = s.vessel_id "
+        "ORDER BY s.created_at DESC LIMIT ?",
+        (limit,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/sms/status")
+def get_sms_status(request: Request):
+    require_operator(request)
+    return {"configured": SMS_CONFIGURED, "from_number": TWILIO_FROM_NUMBER if SMS_CONFIGURED else None}
+
+
+@app.post("/api/sms/send")
+async def sms_send(request: Request):
+    op = require_operator(request)
+    body = await request.json()
+    vessel_id = body.get("vessel_id")
+    message = body.get("message", "")
+    conn = db()
+    row = conn.execute("SELECT * FROM vessels WHERE id=?", (vessel_id,)).fetchone()
+    if not row:
+        raise HTTPException(404, "vessel not found")
+    if not row["phone_number"]:
+        raise HTTPException(400, "vessel has no phone number on file")
+    entry = send_sms(row["phone_number"], message, vessel_id=vessel_id)
+    audit(f"Manual SMS sent to {vessel_id} by {op['display_name']}", kind="info")
+    return entry
 
 
 @app.get("/api/alerts/latest")
@@ -879,6 +1023,8 @@ def get_packet(vessel_id: str):
         "geofences": [geofence],
         "species_lexicon": _load_species(),
         "packet_version": now.strftime("%Y%m%d%H"),
+        "sms_gateway_number": TWILIO_FROM_NUMBER if SMS_CONFIGURED else None,
+        "own_phone_number": row["phone_number"],
     }
 
 

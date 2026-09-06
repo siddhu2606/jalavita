@@ -48,6 +48,8 @@
   "tip.sending": "Sending tip…",
   "tip.sent__SAFETY": "Tip sent — this is NOT a confirmed alert. An operator will review it.",
   "tip.failed": "Could not send — try again when you have signal.",
+  "tip.sms_fallback_configured": "📵 No internet? Text \"SOS\" or \"TSUNAMI\" to {number} from this phone — reaches the deck over plain cellular signal, no data needed.",
+  "tip.sms_fallback_unconfigured": "📵 An SMS fallback for zero-signal areas is built for this vessel but not switched on in this demo.",
   "species.not_found": "Species not recognized",
   "species.envelope": "{name} ({sci}) · {sstmin}–{sstmax}°C · {depthmin}–{depthmax}m",
   "lang.switch": "Language",

@@ -1063,6 +1063,29 @@
         </div>
       </div>
 
+      <div class="grid grid-split">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><svg class="icon"><use href="#i-satellite"></use></svg>SMS Gateway</div>
+            <span class="chip" id="sms-status-chip">Checking…</span>
+          </div>
+          <div class="panel-sub">Works over plain cellular signal — no data/internet needed on the vessel's phone. An inbound SMS becomes an unverified tip in Fisherman Tips, same as the app.</div>
+          <div class="table-wrap" style="max-height:220px">
+            <table>
+              <thead><tr><th></th><th>Vessel</th><th>Message</th><th style="text-align:right">When</th></tr></thead>
+              <tbody id="sms-log-body"><tr><td colspan="4" style="color:var(--ink-faint)">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><svg class="icon"><use href="#i-bell"></use></svg>Send SMS Directly</div>
+          <select id="sms-vessel"></select>
+          <div class="code-block" id="sms-message" style="min-height:50px;color:var(--ink-dim)" contenteditable="true">Test message from Command Deck.</div>
+          <button class="btn btn-solid btn-block" id="sms-send-btn"><svg class="icon" style="width:14px;height:14px"><use href="#i-bell"></use></svg>Send SMS</button>
+          <div class="panel-sub" id="sms-send-status" style="min-height:14px"></div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-head">
           <div class="card-title"><svg class="icon"><use href="#i-target"></use></svg>Captain KYC Verification</div>
@@ -1817,6 +1840,69 @@
   fetchKyc();
   setInterval(fetchKyc, 8000);
 
+  // ---------- SMS Gateway ----------
+  function fetchSmsStatus(){
+    fetch(API + '/api/sms/status').then(function(r){ return r.json(); }).then(function(s){
+      var chip = document.getElementById('sms-status-chip');
+      if (!chip) return;
+      if (s.configured) { chip.className = 'chip chip-good'; chip.textContent = 'Live · ' + s.from_number; }
+      else { chip.className = 'chip chip-warn'; chip.textContent = 'Simulated (no gateway configured)'; }
+    }).catch(function(){});
+  }
+  function renderSmsLog(rows){
+    var body = document.getElementById('sms-log-body');
+    if (!body) return;
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="4" style="color:var(--ink-faint)">No SMS activity yet.</td></tr>'; return; }
+    body.innerHTML = '';
+    rows.forEach(function(r){
+      var tr = document.createElement('tr');
+      var arrow = r.direction === 'IN' ? '📥' : '📤';
+      var statusColor = r.status === 'FAILED' ? 'var(--danger)' : (r.status === 'SIMULATED' ? 'var(--flare)' : 'var(--kelp)');
+      tr.innerHTML = '<td style="font-size:14px">' + arrow + '</td><td class="mono" style="color:var(--bio);font-size:11px"></td>' +
+        '<td style="font-size:11px;color:var(--ink-dim)"></td><td class="mono" style="text-align:right;font-size:10.5px;color:' + statusColor + '"></td>';
+      tr.children[1].textContent = r.vessel_name ? (r.vessel_name + ' (' + r.vessel_id + ')') : r.phone_number;
+      tr.children[2].textContent = r.body.length > 60 ? r.body.slice(0, 60) + '…' : r.body;
+      tr.children[3].textContent = r.status + ' · ' + timeAgo(r.created_at);
+      body.appendChild(tr);
+    });
+  }
+  function fetchSmsLog(){
+    fetch(API + '/api/sms/log?limit=15').then(function(r){ if (!r.ok) throw new Error('bad'); return r.json(); }).then(renderSmsLog).catch(function(){});
+  }
+  fetchSmsStatus();
+  fetchSmsLog();
+  setInterval(fetchSmsLog, 6000);
+
+  var smsVesselSelect = document.getElementById('sms-vessel');
+  if (smsVesselSelect) {
+    fetch(API + '/api/vessels').then(function(r){ return r.json(); }).then(function(vessels){
+      vessels.forEach(function(v){
+        var opt = document.createElement('option');
+        opt.value = v.id;
+        opt.textContent = v.name + ' (' + v.id + ')';
+        smsVesselSelect.appendChild(opt);
+      });
+    }).catch(function(){});
+  }
+  var smsSendBtn = document.getElementById('sms-send-btn');
+  if (smsSendBtn) {
+    smsSendBtn.addEventListener('click', function(){
+      var vesselId = smsVesselSelect ? smsVesselSelect.value : null;
+      var msgEl = document.getElementById('sms-message');
+      var statusEl = document.getElementById('sms-send-status');
+      if (!vesselId) return;
+      smsSendBtn.disabled = true;
+      if (statusEl) statusEl.textContent = 'Sending…';
+      fetch(API + '/api/sms/send', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ vessel_id: vesselId, message: msgEl ? msgEl.textContent.trim() : '' }),
+      }).then(function(r){ if (!r.ok) throw new Error('bad'); return r.json(); })
+        .then(function(entry){ if (statusEl) statusEl.textContent = entry.status + ' to ' + entry.phone_number; fetchSmsLog(); })
+        .catch(function(){ if (statusEl) statusEl.textContent = 'Failed to send.'; })
+        .finally(function(){ smsSendBtn.disabled = false; });
+    });
+  }
+
   // ---------- Fisherman Tips (unverified — must be reviewed before anyone is alerted) ----------
   function showTipToast(tip){
     var container = document.getElementById('tip-toast-container');
@@ -2168,6 +2254,7 @@
           if (plan.vessel_id === tpVesselId && Date.now() > tpLocalPushUntil) applyTripPlanToUI(plan);
         } catch (err) {}
       });
+      es.addEventListener('sms', function(){ fetchSmsLog(); });
       es.onerror = function(){ /* browser auto-reconnects; polling keeps data fresh meanwhile */ };
     } catch (e) { /* SSE unsupported — polling covers it */ }
   })();

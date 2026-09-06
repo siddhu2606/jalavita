@@ -38,6 +38,17 @@
   #status.err{color:var(--danger);}
   .current{background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--ink-dim);}
   .current b{color:var(--ink);}
+  label{font-size:11.5px;color:var(--ink-dim);display:flex;flex-direction:column;gap:6px;}
+  input, textarea{
+    background:var(--panel-2);border:1px solid var(--panel-line-strong);border-radius:9px;color:var(--ink);
+    font-size:13px;padding:10px 12px;font-family:inherit;resize:vertical;
+  }
+  input:focus, textarea:focus{outline:none;border-color:var(--bio);}
+  .send-sms-btn{
+    padding:12px;border-radius:10px;border:1px solid var(--bio);background:var(--bio-dim);color:var(--bio);
+    cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;
+  }
+  .send-sms-btn:hover{background:var(--bio);color:#062018;}
 </style>
 <h1>🌊 Ocean Conditions Simulator</h1>
 <div class="sub">Sets the "active scenario" the Command Deck sees. This does <b>not</b> alert any vessel by itself — an operator on the deck must click <b>"Ensure Safety Protocols"</b> to actually send it to the fleet.</div>
@@ -52,6 +63,19 @@
   <button class="clear-btn" id="clear-btn">✓ Clear conditions (all normal)</button>
   <div id="status"></div>
   <div class="current" id="current">Loading current situation…</div>
+</div>
+
+<h1 style="font-size:18px;margin-top:8px">📱 Simulate an Offline Fisherman's SMS</h1>
+<div class="sub">Sends a real request into the exact same code path a genuine SMS from a Twilio number would hit — this is how a fisherman with <b>zero internet, only phone signal</b>, reaches the Command Deck. It lands as an unverified tip, same as an app tip.</div>
+<div class="card">
+  <label>From (must match a seeded vessel's phone number)
+    <input id="sms-from" value="+919876543274" autocomplete="off">
+  </label>
+  <label>Message
+    <textarea id="sms-body" rows="2">tsunami warning big waves coming back</textarea>
+  </label>
+  <button class="send-sms-btn" id="sms-send">Send as SMS →</button>
+  <div id="sms-status" style="min-height:18px;font-size:12.5px;text-align:center;color:var(--kelp)"></div>
 </div>
 
 <script>
@@ -91,5 +115,19 @@
   });
   refreshCurrent();
   setInterval(refreshCurrent, 4000);
+
+  document.getElementById('sms-send').addEventListener('click', function(){
+    var from = document.getElementById('sms-from').value.trim();
+    var body = document.getElementById('sms-body').value.trim();
+    var statusEl = document.getElementById('sms-status');
+    statusEl.style.color = 'var(--kelp)';
+    statusEl.textContent = 'Sending…';
+    fetch(API + '/api/sms/inbound', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ From: from, Body: body }),
+    }).then(function(r){ if (!r.ok) throw new Error('failed'); return r.text(); })
+      .then(function(){ statusEl.textContent = 'Sent — check the Command Deck\'s Fisherman Tips / SMS Gateway.'; })
+      .catch(function(){ statusEl.style.color = 'var(--danger)'; statusEl.textContent = 'Could not reach the backend.'; });
+  });
 </script>
 </html>

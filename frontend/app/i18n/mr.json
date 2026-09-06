@@ -48,6 +48,8 @@
   "tip.sending": "टिप पाठवत आहे…",
   "tip.sent__SAFETY": "टिप पाठवली — हा पुष्टी केलेला इशारा नाही. एक अधिकारी याचे पुनरावलोकन करेल.",
   "tip.failed": "पाठवता आले नाही — सिग्नल मिळाल्यावर पुन्हा प्रयत्न करा.",
+  "tip.sms_fallback_configured": "📵 इंटरनेट नाही? या फोनवरून \"SOS\" किंवा \"TSUNAMI\" असा SMS {number} वर पाठवा — हा साध्या मोबाइल सिग्नलवरून डेकपर्यंत पोहोचतो, डेटाची गरज नाही.",
+  "tip.sms_fallback_unconfigured": "📵 सिग्नल नसलेल्या भागांसाठी SMS पर्याय तयार आहे पण या डेमोमध्ये अजून सुरू केलेला नाही.",
   "species.not_found": "प्रजाती ओळखली नाही",
   "species.envelope": "{name} ({sci}) · {sstmin}–{sstmax}°C · {depthmin}–{depthmax}मी",
   "lang.switch": "भाषा",
