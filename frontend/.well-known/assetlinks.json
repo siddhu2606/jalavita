@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.jalavita.wayfinder",
+    "sha256_cert_fingerprints": [
+      "B5:7F:09:F0:82:B4:F8:1A:96:7E:B2:31:BF:AD:08:FB:75:F6:9A:DC:DB:DE:AD:2B:26:F5:0C:6C:D7:7D:0A:05"
+    ]
+  }
+}]
