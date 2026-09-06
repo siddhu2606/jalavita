@@ -1735,21 +1735,24 @@
       tr.children[2].textContent = r.note || '—';
       tr.children[3].textContent = timeAgo(r.submitted_at);
       var wrap = document.createElement('div');
-      wrap.style.cssText = 'display:flex;gap:6px;justify-content:flex-end';
-      var escalateBtn = document.createElement('button');
-      escalateBtn.className = 'btn btn-solid'; escalateBtn.style.cssText = 'font-size:11px;padding:6px 10px;background:var(--flare);border-color:var(--flare);color:#20120a';
-      escalateBtn.textContent = 'Escalate as Scenario';
-      escalateBtn.addEventListener('click', function(){
-        fetch(API + '/api/tips/' + r.id + '/escalate', { method: 'POST' }).then(function(){ fetchTips(); fetchSituation(); fetchAudit(); });
-      });
-      var dismissBtn = document.createElement('button');
-      dismissBtn.className = 'btn'; dismissBtn.style.cssText = 'font-size:11px;padding:6px 10px';
-      dismissBtn.textContent = 'Dismiss';
-      dismissBtn.addEventListener('click', function(){
-        fetch(API + '/api/tips/' + r.id + '/dismiss', { method: 'POST' }).then(fetchTips);
-      });
-      wrap.appendChild(escalateBtn);
-      wrap.appendChild(dismissBtn);
+      wrap.style.cssText = 'display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap';
+
+      function tipAction(id, label, style, endpoint){
+        var btn = document.createElement('button');
+        btn.className = 'btn'; btn.style.cssText = 'font-size:11px;padding:6px 10px;' + style;
+        btn.textContent = label;
+        btn.addEventListener('click', function(){
+          btn.disabled = true;
+          fetch(API + '/api/tips/' + id + endpoint, { method: 'POST' })
+            .then(function(){ fetchTips(); fetchSituation(); fetchAudit(); fetchLedger(); })
+            .finally(function(){ btn.disabled = false; });
+        });
+        return btn;
+      }
+
+      wrap.appendChild(tipAction(r.id, 'Verify', 'border-color:var(--current);color:var(--current)', '/escalate'));
+      wrap.appendChild(tipAction(r.id, 'Ensure Safety Protocol', 'background:var(--danger);border-color:var(--danger);color:#fff', '/ensure'));
+      wrap.appendChild(tipAction(r.id, 'Clear', '', '/dismiss'));
       tr.children[4].appendChild(wrap);
       body.appendChild(tr);
     });

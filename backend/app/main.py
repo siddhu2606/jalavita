@@ -401,18 +401,22 @@ async def set_scenario(request: Request):
     return _arm_scenario(stype, tmpl["label"], tmpl["message"], tmpl["severity"], "Scenario simulator")
 
 
-@app.post("/api/scenario/broadcast")
-def broadcast_scenario():
-    if not SITUATION["active"] or SITUATION["source"] != "scenario":
-        raise HTTPException(400, "no active scenario to broadcast")
+def _ensure_safety_protocols(origin_note: str) -> dict:
     vessel_ids = _all_vessel_ids()
     for vid in vessel_ids:
         _create_alert(vid, SITUATION["severity"], SITUATION["message"], "mr")
     SITUATION["sent_at"] = now_utc().isoformat()
     SITUATION["sent_count"] = len(vessel_ids)
     broadcaster.publish("situation", SITUATION)
-    audit(f"Safety protocols ensured — '{SITUATION['label']}' alert sent to all {len(vessel_ids)} vessels", kind="bad")
+    audit(f"{origin_note} — '{SITUATION['label']}' alert sent to all {len(vessel_ids)} vessels", kind="bad")
     return SITUATION
+
+
+@app.post("/api/scenario/broadcast")
+def broadcast_scenario():
+    if not SITUATION["active"] or SITUATION["source"] != "scenario":
+        raise HTTPException(400, "no active scenario to broadcast")
+    return _ensure_safety_protocols("Safety protocols ensured")
 
 
 @app.post("/api/situation/clear")
@@ -499,31 +503,54 @@ def dismiss_tip(tip_id: str, request: Request):
     return {"id": tip_id, "status": "DISMISSED"}
 
 
-@app.post("/api/tips/{tip_id}/escalate")
-def escalate_tip(tip_id: str, request: Request):
-    op = require_operator(request)
+def _arm_scenario_from_tip(row, op_name: str) -> dict:
+    tmpl = SCENARIO_TEMPLATES.get(row["tip_type"])
+    if tmpl:
+        return _arm_scenario(row["tip_type"], tmpl["label"], tmpl["message"], tmpl["severity"],
+                              f"Fisherman tip from {row['vessel_id']} (reviewed by {op_name})")
+    label = TIP_TYPE_LABELS.get(row["tip_type"], "Reported Condition")
+    note = f" — \"{row['note']}\"" if row["note"] else ""
+    return _arm_scenario(
+        "tip_other", label,
+        f"रिपोर्ट केलेली स्थिती: {label}{note} — त्वरित सावधगिरी बाळगा. (Reported condition: {label}{note} — exercise caution.)",
+        "WARNING", f"Fisherman tip from {row['vessel_id']} (reviewed by {op_name})",
+    )
+
+
+def _get_tip_or_404(tip_id: str):
     conn = db()
     row = conn.execute("SELECT * FROM climate_tips WHERE id=?", (tip_id,)).fetchone()
     if not row:
         raise HTTPException(404, "tip not found")
-    tmpl = SCENARIO_TEMPLATES.get(row["tip_type"])
-    if tmpl:
-        situation = _arm_scenario(row["tip_type"], tmpl["label"], tmpl["message"], tmpl["severity"],
-                                   f"Fisherman tip from {row['vessel_id']} (reviewed by {op['display_name']})")
-    else:
-        label = TIP_TYPE_LABELS.get(row["tip_type"], "Reported Condition")
-        note = f" — \"{row['note']}\"" if row["note"] else ""
-        situation = _arm_scenario(
-            "tip_other", label,
-            f"रिपोर्ट केलेली स्थिती: {label}{note} — त्वरित सावधगिरी बाळगा. (Reported condition: {label}{note} — exercise caution.)",
-            "WARNING", f"Fisherman tip from {row['vessel_id']} (reviewed by {op['display_name']})",
-        )
+    return row
+
+
+def _mark_tip(tip_id: str, status: str, op_name: str) -> None:
+    conn = db()
     now = now_utc().isoformat()
     conn.execute(
-        "UPDATE climate_tips SET status='ESCALATED', reviewed_at=?, reviewed_by=? WHERE id=?",
-        (now, op["display_name"], tip_id),
+        "UPDATE climate_tips SET status=?, reviewed_at=?, reviewed_by=? WHERE id=?",
+        (status, now, op_name, tip_id),
     )
     conn.commit()
+
+
+@app.post("/api/tips/{tip_id}/escalate")
+def escalate_tip(tip_id: str, request: Request):
+    op = require_operator(request)
+    row = _get_tip_or_404(tip_id)
+    situation = _arm_scenario_from_tip(row, op["display_name"])
+    _mark_tip(tip_id, "VERIFIED", op["display_name"])
+    return situation
+
+
+@app.post("/api/tips/{tip_id}/ensure")
+def ensure_tip(tip_id: str, request: Request):
+    op = require_operator(request)
+    row = _get_tip_or_404(tip_id)
+    _arm_scenario_from_tip(row, op["display_name"])
+    situation = _ensure_safety_protocols(f"Fisherman tip from {row['vessel_id']} — safety protocols ensured by {op['display_name']}")
+    _mark_tip(tip_id, "ENSURED", op["display_name"])
     return situation
 
 
