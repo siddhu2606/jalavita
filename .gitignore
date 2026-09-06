@@ -6,3 +6,5 @@ data/jalavita.db
 *.log
 sse_local.out
 sse_test.out
+android/tools/
+android/wayfinder-app/

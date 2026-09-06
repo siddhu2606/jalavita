@@ -19,6 +19,25 @@ run.bat        (Windows)
 This creates a venv, installs dependencies, seeds a SQLite database with 12 vessels off
 the Ratnagiri/Malvan coast, and starts one server.
 
+## Native Android app (Wayfinder)
+
+`android/` holds the scripts used to package the Wayfinder PWA as an installable
+Android app via a Trusted Web Activity (the same technique Twitter Lite/Starbucks use —
+no rewrite, same offline code, just a native wrapper). The heavy generated pieces
+(a portable JDK 17 and the built Gradle project, including the signing keystore) are
+gitignored — rebuild them with:
+
+```
+node android/bw-init.js     # requires @bubblewrap/cli installed globally and a
+                             # ~/.bubblewrap/config.json pointing at a JDK 17 + Android SDK
+cd android/wayfinder-app
+bubblewrap build             # produces app-release-signed.apk
+adb install -r app-release-signed.apk
+```
+
+`bw-init.js` hardcodes the manifest URL it wraps — point it at wherever `/app/manifest.json`
+is actually being served before rebuilding.
+
 - Command Deck (operator dashboard): http://localhost:8000
 - Wayfinder (fisherman's app):        http://localhost:8000/app
 

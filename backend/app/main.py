@@ -26,6 +26,35 @@ app = FastAPI(title="Jalavita API")
 REQUEST_COUNTS = {"position": 0, "telemetry": 0, "background": 0}
 ORCA9_ID = "MH-RTN-408"
 
+# Fleet-wide situation state (Emergency Protocol / Scenario Simulator).
+# Emergency Protocol alerts every vessel immediately, in one action.
+# A scenario only becomes visible on the dashboard until an operator explicitly
+# broadcasts it via "Ensure Safety Protocols" — it never reaches a vessel on its own.
+SITUATION = {
+    "active": False, "source": None, "type": None, "label": None,
+    "message": None, "severity": None, "set_at": None, "sent_at": None, "sent_count": 0,
+}
+
+SCENARIO_TEMPLATES = {
+    "high_tide": {
+        "label": "High Tide Warning", "severity": "WARNING",
+        "message": "उधाणाची भरती अपेक्षित आहे — किनाऱ्याजवळ सावधगिरी बाळगा. (High tide expected — exercise caution near shore.)",
+    },
+    "rough_seas": {
+        "label": "Rough Seas", "severity": "WARNING",
+        "message": "समुद्र खवळलेला आहे — सावधगिरीने प्रवास करा. (Rough seas — proceed with caution.)",
+    },
+    "cyclone": {
+        "label": "Cyclone Warning", "severity": "CRITICAL",
+        "message": "चक्रीवादळाचा इशारा — सर्व बोटींनी त्वरित बंदराकडे परत जावे. (Cyclone warning — all vessels return to port immediately.)",
+    },
+    "tsunami": {
+        "label": "Tsunami Warning", "severity": "CRITICAL",
+        "message": "त्सुनामीचा इशारा — त्वरित सुरक्षित उंच जागी जा किंवा बंदरात परत या. (Tsunami warning — move to safe high ground or return to port immediately.)",
+    },
+}
+EMERGENCY_MESSAGE = "आणीबाणी — सर्व बोटींनी त्वरित बंदराकडे परत जावे. (EMERGENCY — all vessels return to port immediately.)"
+
 
 @app.middleware("http")
 async def count_requests(request: Request, call_next):
@@ -148,22 +177,96 @@ def post_alert(alert: AlertIn):
     vessel = conn.execute("SELECT * FROM vessels WHERE id=?", (alert.vessel_id,)).fetchone()
     if not vessel:
         raise HTTPException(404, "vessel not found")
+    return _create_alert(alert.vessel_id, alert.severity.value, alert.message, alert.language)
+
+
+def _create_alert(vessel_id: str, severity: str, message: str, language: str) -> dict:
+    conn = db()
     alert_id = str(uuid.uuid4())
     ts = now_utc().isoformat()
     conn.execute(
         "INSERT INTO alerts (id, vessel_id, severity, message, language, created_at, status) VALUES (?,?,?,?,?,?,?)",
-        (alert_id, alert.vessel_id, alert.severity.value, alert.message, alert.language, ts, "SENT"),
+        (alert_id, vessel_id, severity, message, language, ts, "SENT"),
     )
     ledger_id = str(uuid.uuid4())
     conn.execute(
         "INSERT INTO ack_ledger (id, alert_id, vessel_id, sent_at, channel, language, delivered_at) VALUES (?,?,?,?,?,?,?)",
-        (ledger_id, alert_id, alert.vessel_id, ts, "app", alert.language, ts),
+        (ledger_id, alert_id, vessel_id, ts, "app", language, ts),
     )
     conn.commit()
-    payload = AlertOut(id=alert_id, vessel_id=alert.vessel_id, severity=alert.severity, message=alert.message, created_at=ts, status="SENT").model_dump(mode="json")
+    payload = {"id": alert_id, "vessel_id": vessel_id, "severity": severity, "message": message, "created_at": ts, "status": "SENT"}
     broadcaster.publish("alert", payload)
-    audit(f"Alert issued to {alert.vessel_id}: {alert.message}", kind="warn" if alert.severity.value != "CRITICAL" else "bad")
+    audit(f"Alert issued to {vessel_id}: {message}", kind="warn" if severity != "CRITICAL" else "bad")
     return payload
+
+
+def _all_vessel_ids() -> list[str]:
+    conn = db()
+    return [r["id"] for r in conn.execute("SELECT id FROM vessels").fetchall()]
+
+
+@app.get("/api/situation")
+def get_situation():
+    return SITUATION
+
+
+@app.post("/api/emergency")
+def trigger_emergency():
+    vessel_ids = _all_vessel_ids()
+    now = now_utc()
+    for vid in vessel_ids:
+        _create_alert(vid, "CRITICAL", EMERGENCY_MESSAGE, "mr")
+    SITUATION.update({
+        "active": True, "source": "emergency", "type": "emergency", "label": "EMERGENCY",
+        "message": EMERGENCY_MESSAGE, "severity": "CRITICAL",
+        "set_at": now.isoformat(), "sent_at": now.isoformat(), "sent_count": len(vessel_ids),
+    })
+    broadcaster.publish("situation", SITUATION)
+    audit(f"EMERGENCY PROTOCOL activated — alert sent to all {len(vessel_ids)} vessels", kind="bad")
+    return SITUATION
+
+
+@app.post("/api/scenario")
+async def set_scenario(request: Request):
+    body = await request.json()
+    stype = body.get("type")
+    tmpl = SCENARIO_TEMPLATES.get(stype)
+    if not tmpl:
+        raise HTTPException(400, f"unknown scenario type '{stype}'")
+    now = now_utc()
+    SITUATION.update({
+        "active": True, "source": "scenario", "type": stype, "label": tmpl["label"],
+        "message": tmpl["message"], "severity": tmpl["severity"],
+        "set_at": now.isoformat(), "sent_at": None, "sent_count": 0,
+    })
+    broadcaster.publish("situation", SITUATION)
+    audit(f"Scenario simulator set conditions to '{tmpl['label']}' — not yet sent to fleet", kind="warn")
+    return SITUATION
+
+
+@app.post("/api/scenario/broadcast")
+def broadcast_scenario():
+    if not SITUATION["active"] or SITUATION["source"] != "scenario":
+        raise HTTPException(400, "no active scenario to broadcast")
+    vessel_ids = _all_vessel_ids()
+    for vid in vessel_ids:
+        _create_alert(vid, SITUATION["severity"], SITUATION["message"], "mr")
+    SITUATION["sent_at"] = now_utc().isoformat()
+    SITUATION["sent_count"] = len(vessel_ids)
+    broadcaster.publish("situation", SITUATION)
+    audit(f"Safety protocols ensured — '{SITUATION['label']}' alert sent to all {len(vessel_ids)} vessels", kind="bad")
+    return SITUATION
+
+
+@app.post("/api/situation/clear")
+def clear_situation():
+    SITUATION.update({
+        "active": False, "source": None, "type": None, "label": None,
+        "message": None, "severity": None, "set_at": None, "sent_at": None, "sent_count": 0,
+    })
+    broadcaster.publish("situation", SITUATION)
+    audit("Situation cleared", kind="info")
+    return SITUATION
 
 
 @app.get("/api/alerts/latest")
@@ -489,6 +592,12 @@ async def sse_events():
     return StreamingResponse(gen(), media_type="text/event-stream", headers={
         "Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no",
     })
+
+
+@app.get("/simulator")
+def simulator_redirect():
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/simulator.html")
 
 
 app.mount("/app", StaticFiles(directory=os.path.join(FRONTEND_DIR, "app"), html=True), name="wayfinder")

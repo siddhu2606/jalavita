@@ -119,6 +119,21 @@
   @keyframes radar-spin{to{transform:rotate(360deg);}}
   @keyframes dash-flow{to{stroke-dashoffset:-40;}}
   @keyframes flare-pulse{0%,100%{box-shadow:0 0 14px -4px rgba(255,138,76,.55);}50%{box-shadow:0 0 28px 2px rgba(255,138,76,.9);}}
+  @keyframes situation-blink{0%,100%{opacity:1;}50%{opacity:.55;}}
+  .situation-banner{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    padding:12px 24px;font-size:13px;font-weight:600;
+  }
+  .situation-banner.emergency{background:var(--danger);color:#2a0008;animation:situation-blink 1s ease-in-out infinite;}
+  .situation-banner.scenario{background:var(--flare);color:#2a1400;}
+  .situation-banner .sb-icon{width:20px;height:20px;flex:0 0 auto;}
+  .situation-banner .sb-text{flex:1;min-width:200px;}
+  .situation-banner .sb-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .situation-banner button{
+    border:1.5px solid currentColor;background:rgba(0,0,0,.12);color:inherit;border-radius:8px;
+    padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+  }
+  .situation-banner button:hover{background:rgba(0,0,0,.24);}
   .flow-line{stroke-dasharray:6 6;animation:dash-flow 1s linear infinite;}
   .flow-line-slow{animation-duration:2.2s;}
 
@@ -370,7 +385,7 @@
       <button class="rail-link" data-panel="planner"><svg class="icon"><use href="#i-route"></use></svg>Trip Planner</button>
     </div>
     <div class="rail-bottom">
-      <button class="btn-emergency"><svg class="icon"><use href="#i-flare"></use></svg>Emergency Protocol</button>
+      <button class="btn-emergency" id="btn-emergency-protocol"><svg class="icon"><use href="#i-flare"></use></svg>Emergency Protocol</button>
       <a class="rail-diag" href="#"><svg class="icon"><use href="#i-target"></use></svg>Diagnostics</a>
       <div class="operator">
         <span class="avatar">AR</span>
@@ -397,6 +412,12 @@
       <button class="icon-btn" aria-label="Settings"><svg class="icon"><use href="#i-gear"></use></svg></button>
     </div>
   </header>
+
+  <div class="situation-banner" id="situation-banner" hidden>
+    <svg class="icon sb-icon"><use href="#i-alert"></use></svg>
+    <span class="sb-text" id="situation-text"></span>
+    <div class="sb-actions" id="situation-actions"></div>
+  </div>
 
   <main class="canvas">
 
@@ -1666,6 +1687,58 @@
     });
   }
 
+  // ---------- Fleet-wide situation: Emergency Protocol + Scenario Simulator ----------
+  function renderSituation(s){
+    var banner = document.getElementById('situation-banner');
+    var text = document.getElementById('situation-text');
+    var actions = document.getElementById('situation-actions');
+    if (!banner) return;
+    if (!s || !s.active) { banner.hidden = true; return; }
+    banner.hidden = false;
+    banner.className = 'situation-banner ' + (s.source === 'emergency' ? 'emergency' : 'scenario');
+    actions.innerHTML = '';
+    if (s.source === 'emergency') {
+      text.textContent = '🚨 EMERGENCY PROTOCOL ACTIVE — alert sent to all ' + s.sent_count + ' vessel(s).';
+      var clearBtn = document.createElement('button');
+      clearBtn.textContent = 'Clear Emergency';
+      clearBtn.addEventListener('click', function(){ fetch(API + '/api/situation/clear', { method: 'POST' }).then(fetchSituation); });
+      actions.appendChild(clearBtn);
+    } else {
+      text.textContent = '⚠️ Active Scenario: ' + s.label + (s.sent_at ? ' — sent to ' + s.sent_count + ' vessel(s).' : ' — not yet sent to fleet.');
+      if (!s.sent_at) {
+        var ensureBtn = document.createElement('button');
+        ensureBtn.textContent = 'Ensure Safety Protocols';
+        ensureBtn.addEventListener('click', function(){
+          ensureBtn.disabled = true;
+          ensureBtn.textContent = 'Sending…';
+          fetch(API + '/api/scenario/broadcast', { method: 'POST' })
+            .then(function(){ fetchSituation(); fetchLedger(); })
+            .catch(function(){ ensureBtn.disabled = false; ensureBtn.textContent = 'Ensure Safety Protocols'; });
+        });
+        actions.appendChild(ensureBtn);
+      }
+      var clearBtn2 = document.createElement('button');
+      clearBtn2.textContent = 'Clear Scenario';
+      clearBtn2.addEventListener('click', function(){ fetch(API + '/api/situation/clear', { method: 'POST' }).then(fetchSituation); });
+      actions.appendChild(clearBtn2);
+    }
+  }
+  function fetchSituation(){
+    fetch(API + '/api/situation').then(function(r){ return r.json(); }).then(renderSituation).catch(function(){});
+  }
+  fetchSituation();
+  setInterval(fetchSituation, 3000);
+
+  var emergencyBtn = document.getElementById('btn-emergency-protocol');
+  if (emergencyBtn) {
+    emergencyBtn.addEventListener('click', function(){
+      emergencyBtn.disabled = true;
+      fetch(API + '/api/emergency', { method: 'POST' })
+        .then(function(){ fetchSituation(); fetchLedger(); fetchAudit(); })
+        .finally(function(){ emergencyBtn.disabled = false; });
+    });
+  }
+
   // ---------- SSE (fast path) — polling above remains as fallback ----------
   (function connectSSE(){
     try {
@@ -1674,6 +1747,7 @@
       es.addEventListener('alert', function(){ fetchLedger(); fetchAudit(); });
       es.addEventListener('ack', function(){ fetchLedger(); fetchAudit(); });
       es.addEventListener('vessel_position', function(){ fetchState(); });
+      es.addEventListener('situation', function(e){ renderSituation(JSON.parse(e.data)); });
       es.onerror = function(){ /* browser auto-reconnects; polling keeps data fresh meanwhile */ };
     } catch (e) { /* SSE unsupported — polling covers it */ }
   })();

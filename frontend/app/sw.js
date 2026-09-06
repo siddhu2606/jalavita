@@ -1,10 +1,12 @@
-const CACHE_VERSION = 'jalavita-shell-v4';
+const CACHE_VERSION = 'jalavita-shell-v6';
 const SHELL_FILES = [
   './',
   './index.html',
   './app.js',
   './manifest.json',
   './icon.svg',
+  './icon-512.png',
+  './icon-maskable-512.png',
   './i18n/en.json',
   './i18n/hi.json',
   './i18n/mr.json',

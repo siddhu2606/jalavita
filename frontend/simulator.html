@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<title>Jalavita Ocean Simulator</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --abyss:#070b12; --abyss-2:#0b1220; --panel:#101826; --panel-2:#0d1420;
+    --panel-line:rgba(122,204,214,.16); --panel-line-strong:rgba(122,204,214,.32);
+    --ink:#e7eef0; --ink-dim:#8ca0ac; --ink-faint:#4d5c67;
+    --bio:#2fe6c6; --bio-dim:rgba(47,230,198,.14);
+    --flare:#ff8a4c; --flare-dim:rgba(255,138,76,.14);
+    --danger:#ff4d6d; --danger-dim:rgba(255,77,109,.16);
+    --kelp:#38e29a; --kelp-dim:rgba(56,226,154,.14);
+  }
+  *{box-sizing:border-box;}
+  html{background:var(--abyss);}
+  body{margin:0;min-height:100vh;background:var(--abyss);color:var(--ink);font:400 14px/1.5 'IBM Plex Sans',system-ui,sans-serif;padding:32px 16px;display:flex;flex-direction:column;align-items:center;gap:24px;}
+  h1{font-family:'Unbounded',system-ui,sans-serif;font-size:22px;margin:0;text-align:center;}
+  .sub{color:var(--ink-faint);font-size:12.5px;text-align:center;max-width:480px;}
+  .card{background:rgba(13,20,32,.8);border:1px solid var(--panel-line);border-radius:16px;padding:22px;width:100%;max-width:520px;display:flex;flex-direction:column;gap:14px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  button.scenario{
+    display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 12px;
+    border-radius:14px;border:1px solid var(--panel-line-strong);background:var(--panel-2);color:var(--ink);
+    cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:transform .1s, border-color .15s;
+  }
+  button.scenario:hover{border-color:var(--bio);transform:translateY(-1px);}
+  button.scenario .emoji{font-size:30px;}
+  button.scenario.warn:hover{border-color:var(--flare);}
+  button.scenario.critical:hover{border-color:var(--danger);}
+  .clear-btn{
+    padding:12px;border-radius:10px;border:1px solid var(--panel-line-strong);background:transparent;color:var(--ink-dim);
+    cursor:pointer;font-size:12.5px;font-family:inherit;
+  }
+  .clear-btn:hover{border-color:var(--kelp);color:var(--kelp);}
+  #status{min-height:20px;font-size:12.5px;text-align:center;color:var(--kelp);}
+  #status.err{color:var(--danger);}
+  .current{background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--ink-dim);}
+  .current b{color:var(--ink);}
+</style>
+<h1>🌊 Ocean Conditions Simulator</h1>
+<div class="sub">Sets the "active scenario" the Command Deck sees. This does <b>not</b> alert any vessel by itself — an operator on the deck must click <b>"Ensure Safety Protocols"</b> to actually send it to the fleet.</div>
+
+<div class="card">
+  <div class="grid">
+    <button class="scenario" data-type="high_tide"><span class="emoji">🌊</span>High Tide</button>
+    <button class="scenario warn" data-type="rough_seas"><span class="emoji">💨</span>Rough Seas</button>
+    <button class="scenario critical" data-type="cyclone"><span class="emoji">🌀</span>Cyclone</button>
+    <button class="scenario critical" data-type="tsunami"><span class="emoji">🌊💥</span>Tsunami</button>
+  </div>
+  <button class="clear-btn" id="clear-btn">✓ Clear conditions (all normal)</button>
+  <div id="status"></div>
+  <div class="current" id="current">Loading current situation…</div>
+</div>
+
+<script>
+  var API = '';
+  function setStatus(text, isErr){
+    var el = document.getElementById('status');
+    el.textContent = text;
+    el.className = isErr ? 'err' : '';
+  }
+  function refreshCurrent(){
+    fetch(API + '/api/situation').then(function(r){ return r.json(); }).then(function(s){
+      var el = document.getElementById('current');
+      if (!s.active) { el.textContent = 'No active scenario — conditions normal.'; return; }
+      var sentPart = s.sent_at ? (' · sent to ' + s.sent_count + ' vessel(s)') : ' · NOT yet sent to fleet';
+      el.innerHTML = 'Active: <b></b>' + sentPart;
+      el.querySelector('b').textContent = s.label;
+    }).catch(function(){});
+  }
+  document.querySelectorAll('.scenario').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var type = btn.dataset.type;
+      setStatus('Setting scenario…');
+      fetch(API + '/api/scenario', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ type: type }),
+      }).then(function(r){ if (!r.ok) throw new Error('failed'); return r.json(); })
+        .then(function(s){ setStatus('Scenario set: ' + s.label + ' — now visible on Command Deck.'); refreshCurrent(); })
+        .catch(function(){ setStatus('Could not reach the backend.', true); });
+    });
+  });
+  document.getElementById('clear-btn').addEventListener('click', function(){
+    setStatus('Clearing…');
+    fetch(API + '/api/situation/clear', { method: 'POST' })
+      .then(function(r){ if (!r.ok) throw new Error('failed'); return r.json(); })
+      .then(function(){ setStatus('Conditions cleared.'); refreshCurrent(); })
+      .catch(function(){ setStatus('Could not reach the backend.', true); });
+  });
+  refreshCurrent();
+  setInterval(refreshCurrent, 4000);
+</script>
+</html>
