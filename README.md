@@ -19,6 +19,27 @@ run.bat        (Windows)
 This creates a venv, installs dependencies, seeds a SQLite database with 12 vessels off
 the Ratnagiri/Malvan coast, and starts one server.
 
+The Command Deck itself now requires signing in — demo credentials are
+**`arangan` / `Jalavita@2026`** (shown on the login page too). This is a hackathon-grade
+login (SHA-256 + an in-memory session, no rate limiting or password reset) gating only
+the dashboard's page load — the underlying API, the Wayfinder phone app, and the
+`/simulator` page are unaffected, since none of them go through this login.
+
+## Fleet-wide alerts and Captain KYC
+
+- **Emergency Protocol** (left rail) sends a CRITICAL alert to every vessel in one click
+  and takes over the Command Deck with a centered, blinking red modal.
+- **Ocean Scenario Simulator** (`/simulator`) lets you arm a hazard — High Tide, Rough
+  Seas, Cyclone, Tsunami — which only becomes visible on the deck (as a centered modal,
+  yellow for WARNING severity, red for CRITICAL) until an operator explicitly clicks
+  **"Ensure Safety Protocols"** to broadcast it to the fleet. Crisis mode, separately,
+  still only ever targets the one vessel it's built around.
+- **Field Assist → Captain KYC Verification** holds a per-vessel captain record (name,
+  ID type, a masked ID number — never a full one) with Verify/Reject actions and a
+  proof-of-ID upload, viewable only while signed in. This is a demo of the verification
+  *workflow*, not a real identity-verification integration — no real ID numbers should
+  ever be entered here.
+
 ## Native Android app (Wayfinder)
 
 `android/` holds the scripts used to package the Wayfinder PWA as an installable

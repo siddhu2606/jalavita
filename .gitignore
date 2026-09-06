@@ -2,6 +2,7 @@ backend/venv/
 __pycache__/
 *.pyc
 data/jalavita.db
+data/kyc_uploads/
 .DS_Store
 *.log
 sse_local.out

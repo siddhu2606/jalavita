@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<title>Jalavita Command Deck — Sign In</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --abyss:#070b12; --abyss-2:#0b1220; --panel-2:#0d1420;
+    --panel-line:rgba(122,204,214,.16); --panel-line-strong:rgba(122,204,214,.32);
+    --ink:#e7eef0; --ink-dim:#8ca0ac; --ink-faint:#4d5c67;
+    --bio:#2fe6c6; --bio-dim:rgba(47,230,198,.14);
+    --danger:#ff4d6d; --danger-dim:rgba(255,77,109,.16);
+  }
+  *{box-sizing:border-box;}
+  html{background:var(--abyss);}
+  body{
+    margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse 900px 600px at 20% -10%, rgba(47,230,198,.06), transparent 60%),
+               radial-gradient(ellipse 900px 700px at 90% 110%, rgba(90,169,255,.06), transparent 60%),
+               var(--abyss);
+    color:var(--ink);font:400 14px/1.5 'IBM Plex Sans',system-ui,sans-serif;padding:24px;
+  }
+  .card{
+    background:rgba(13,20,32,.85);border:1px solid var(--panel-line);border-radius:18px;
+    padding:36px 32px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:20px;
+  }
+  .brand{display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;}
+  .brand-mark{font-family:'Unbounded';font-weight:800;font-size:22px;letter-spacing:.03em;}
+  .brand-mark span{color:var(--bio);}
+  .brand-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);}
+  label{font-size:11.5px;color:var(--ink-dim);display:flex;flex-direction:column;gap:6px;}
+  input{
+    background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;color:var(--ink);
+    font-size:13.5px;padding:11px 12px;font-family:inherit;
+  }
+  input:focus{outline:none;border-color:var(--bio);}
+  button{
+    background:var(--bio);color:#062018;border:none;border-radius:9px;padding:12px;
+    font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;
+  }
+  button:hover{filter:brightness(1.08);}
+  button:disabled{opacity:.6;cursor:default;}
+  #err{color:var(--danger);font-size:12px;min-height:16px;text-align:center;}
+  .demo-note{
+    background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;
+    padding:10px 12px;font-size:11.5px;color:var(--ink-faint);text-align:center;line-height:1.6;
+  }
+  .demo-note b{color:var(--ink-dim);font-family:'IBM Plex Mono',monospace;}
+</style>
+<div class="card">
+  <div class="brand">
+    <div class="brand-mark">JALA<span>VITA</span></div>
+    <div class="brand-sub">Command Deck Access</div>
+  </div>
+  <form id="login-form" style="display:flex;flex-direction:column;gap:14px">
+    <label>Username <input id="username" autocomplete="username" required></label>
+    <label>Password <input id="password" type="password" autocomplete="current-password" required></label>
+    <button type="submit" id="submit-btn">Sign In</button>
+    <div id="err"></div>
+  </form>
+  <div class="demo-note">Demo credentials — <b>arangan</b> / <b>Jalavita@2026</b><br>Prototype login only, not production-grade auth.</div>
+</div>
+<script>
+  document.getElementById('login-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var btn = document.getElementById('submit-btn');
+    var err = document.getElementById('err');
+    var username = document.getElementById('username').value.trim();
+    var password = document.getElementById('password').value;
+    err.textContent = '';
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+    fetch('/api/auth/login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ username: username, password: password }),
+    }).then(function(r){
+      if (!r.ok) throw new Error('bad credentials');
+      return r.json();
+    }).then(function(){
+      window.location.href = '/';
+    }).catch(function(){
+      err.textContent = 'Invalid username or password.';
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    });
+  });
+</script>
+</html>

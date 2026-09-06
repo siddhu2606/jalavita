@@ -419,11 +419,11 @@
     <div class="rail-bottom">
       <button class="btn-emergency" id="btn-emergency-protocol"><svg class="icon"><use href="#i-flare"></use></svg>Emergency Protocol</button>
       <a class="rail-diag" href="#"><svg class="icon"><use href="#i-target"></use></svg>Diagnostics</a>
-      <div class="operator">
-        <span class="avatar">AR</span>
+      <div class="operator" id="operator-block" style="cursor:pointer" title="Click to sign out">
+        <span class="avatar" id="operator-avatar">AR</span>
         <div class="operator-meta">
-          <span class="operator-name">A. Rangan</span>
-          <span class="operator-role"><i class="dot online"></i>Watch Officer</span>
+          <span class="operator-name" id="operator-name">A. Rangan</span>
+          <span class="operator-role"><i class="dot online"></i><span id="operator-role">Watch Officer</span></span>
         </div>
       </div>
     </div>
@@ -994,6 +994,19 @@
           <div class="panel-sub" id="bc-status" style="min-height:14px"></div>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><svg class="icon"><use href="#i-target"></use></svg>Captain KYC Verification</div>
+          <span class="panel-sub" id="kyc-summary">Loading…</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Captain</th><th>Vessel</th><th>ID Type</th><th>ID Number</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+            <tbody id="kyc-body"><tr><td colspan="6" style="color:var(--ink-faint)">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <!-- CRISIS -->
@@ -1190,6 +1203,30 @@
   var lastStateOk = null;
   var lastStateAt = 0;
   var ORCA9_ID = 'MH-RTN-408';
+
+  // ---------- Operator session ----------
+  function initials(name){
+    return (name || '').split(/\s+/).map(function(p){ return p[0] || ''; }).join('').slice(0, 2).toUpperCase();
+  }
+  fetch(API + '/api/auth/me').then(function(r){
+    if (!r.ok) throw new Error('not logged in');
+    return r.json();
+  }).then(function(op){
+    var nameEl = document.getElementById('operator-name');
+    var roleEl = document.getElementById('operator-role');
+    var avatarEl = document.getElementById('operator-avatar');
+    if (nameEl) nameEl.textContent = op.display_name;
+    if (roleEl) roleEl.textContent = op.role;
+    if (avatarEl) avatarEl.textContent = initials(op.display_name);
+  }).catch(function(){ window.location.href = '/login.html'; });
+
+  var operatorBlock = document.getElementById('operator-block');
+  if (operatorBlock) {
+    operatorBlock.addEventListener('click', function(){
+      if (!confirm('Sign out of the Command Deck?')) return;
+      fetch(API + '/api/auth/logout', { method: 'POST' }).finally(function(){ window.location.href = '/login.html'; });
+    });
+  }
 
   function setConnected(ok){
     var pill = document.getElementById('conn-pill');
@@ -1584,6 +1621,88 @@
       });
     });
   }
+
+  // ---------- Captain KYC ----------
+  function kycChipClass(status){
+    if (status === 'VERIFIED') return 'chip-good';
+    if (status === 'REJECTED') return 'chip-bad';
+    return 'chip-warn';
+  }
+  function renderKyc(rows){
+    var body = document.getElementById('kyc-body');
+    var summary = document.getElementById('kyc-summary');
+    if (!body) return;
+    var verified = rows.filter(function(r){ return r.status === 'VERIFIED'; }).length;
+    if (summary) summary.textContent = verified + ' of ' + rows.length + ' captains verified';
+    body.innerHTML = '';
+    rows.forEach(function(r){
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td></td><td></td><td class="mono" style="font-size:11.5px"></td><td class="mono" style="font-size:11.5px;color:var(--ink-dim)"></td>' +
+        '<td><span class="chip ' + kycChipClass(r.status) + '"><i class="dot" style="background:currentColor"></i></span></td>' +
+        '<td style="text-align:right"></td>';
+      tr.children[0].textContent = r.captain_name;
+      tr.children[1].textContent = r.vessel_name + ' (' + r.vessel_id + ')';
+      tr.children[2].textContent = r.id_type;
+      tr.children[3].textContent = r.id_number_masked;
+      tr.children[4].querySelector('.chip').appendChild(document.createTextNode(r.status));
+
+      var actionCell = tr.children[5];
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap';
+
+      var fileInput = document.createElement('input');
+      fileInput.type = 'file'; fileInput.accept = 'image/*,.pdf'; fileInput.hidden = true;
+      fileInput.addEventListener('change', function(){
+        if (!fileInput.files[0]) return;
+        var fd = new FormData();
+        fd.append('file', fileInput.files[0]);
+        fetch(API + '/api/kyc/' + r.vessel_id + '/document', { method: 'POST', body: fd })
+          .then(fetchKyc).catch(function(){});
+      });
+      wrap.appendChild(fileInput);
+
+      var uploadBtn = document.createElement('button');
+      uploadBtn.className = 'btn'; uploadBtn.style.fontSize = '11px'; uploadBtn.style.padding = '6px 10px';
+      uploadBtn.textContent = r.has_document ? '📎 Replace' : '📎 Upload ID';
+      uploadBtn.addEventListener('click', function(){ fileInput.click(); });
+      wrap.appendChild(uploadBtn);
+
+      if (r.has_document) {
+        var viewBtn = document.createElement('button');
+        viewBtn.className = 'btn'; viewBtn.style.fontSize = '11px'; viewBtn.style.padding = '6px 10px';
+        viewBtn.textContent = '👁 View';
+        viewBtn.addEventListener('click', function(){ window.open(API + '/api/kyc/' + r.vessel_id + '/document', '_blank'); });
+        wrap.appendChild(viewBtn);
+      }
+
+      if (r.status !== 'VERIFIED') {
+        var verifyBtn = document.createElement('button');
+        verifyBtn.className = 'btn btn-solid'; verifyBtn.style.fontSize = '11px'; verifyBtn.style.padding = '6px 10px';
+        verifyBtn.textContent = 'Verify';
+        verifyBtn.addEventListener('click', function(){
+          fetch(API + '/api/kyc/' + r.vessel_id + '/verify', { method: 'POST' }).then(fetchKyc);
+        });
+        wrap.appendChild(verifyBtn);
+      }
+      if (r.status !== 'REJECTED') {
+        var rejectBtn = document.createElement('button');
+        rejectBtn.className = 'btn'; rejectBtn.style.fontSize = '11px'; rejectBtn.style.padding = '6px 10px'; rejectBtn.style.color = 'var(--danger)';
+        rejectBtn.textContent = 'Reject';
+        rejectBtn.addEventListener('click', function(){
+          fetch(API + '/api/kyc/' + r.vessel_id + '/reject', { method: 'POST' }).then(fetchKyc);
+        });
+        wrap.appendChild(rejectBtn);
+      }
+      actionCell.appendChild(wrap);
+      body.appendChild(tr);
+    });
+  }
+  function fetchKyc(){
+    fetch(API + '/api/kyc').then(function(r){ if (!r.ok) throw new Error('bad'); return r.json(); }).then(renderKyc).catch(function(){});
+  }
+  fetchKyc();
+  setInterval(fetchKyc, 8000);
 
   function renderCrisis(crisis){
     if (!crisis) return;

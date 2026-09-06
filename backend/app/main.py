@@ -2,14 +2,15 @@ from __future__ import annotations
 import asyncio
 import csv
 import os
+import secrets
 import uuid
 from datetime import datetime, timezone, timedelta
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
+from fastapi.responses import StreamingResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .db import db
+from .db import db, hash_password
 from .events import broadcaster
 from .rules import compute_advisory, compute_plan
 from .models import (
@@ -20,8 +21,27 @@ from .models import (
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 FRONTEND_DIR = os.path.join(ROOT, "frontend")
 SPECIES_CSV = os.path.join(ROOT, "data", "species_lexicon.csv")
+KYC_UPLOAD_DIR = os.path.join(ROOT, "data", "kyc_uploads")
 
 app = FastAPI(title="Jalavita API")
+
+# In-memory session store — fine for a single-process demo, not for production.
+SESSIONS: dict[str, dict] = {}
+SESSION_COOKIE = "jalavita_session"
+
+
+def get_current_operator(request: Request) -> dict | None:
+    token = request.cookies.get(SESSION_COOKIE)
+    if not token:
+        return None
+    return SESSIONS.get(token)
+
+
+def require_operator(request: Request) -> dict:
+    op = get_current_operator(request)
+    if not op:
+        raise HTTPException(401, "login required")
+    return op
 
 REQUEST_COUNTS = {"position": 0, "telemetry": 0, "background": 0}
 ORCA9_ID = "MH-RTN-408"
@@ -95,6 +115,39 @@ def health():
     return {"status": "ok", "time": now_utc().isoformat()}
 
 
+@app.post("/api/auth/login")
+async def login(request: Request):
+    body = await request.json()
+    username = (body.get("username") or "").strip().lower()
+    password = body.get("password") or ""
+    conn = db()
+    row = conn.execute("SELECT * FROM operators WHERE username=?", (username,)).fetchone()
+    if not row or row["password_hash"] != hash_password(password):
+        raise HTTPException(401, "invalid username or password")
+    token = secrets.token_urlsafe(24)
+    SESSIONS[token] = {"username": row["username"], "display_name": row["display_name"], "role": row["role"]}
+    resp = JSONResponse(SESSIONS[token])
+    resp.set_cookie(SESSION_COOKIE, token, httponly=True, samesite="lax", max_age=60 * 60 * 12)
+    audit(f"Operator {row['display_name']} logged in", kind="info")
+    return resp
+
+
+@app.post("/api/auth/logout")
+def logout(request: Request):
+    token = request.cookies.get(SESSION_COOKIE)
+    op = SESSIONS.pop(token, None) if token else None
+    resp = JSONResponse({"status": "ok"})
+    resp.delete_cookie(SESSION_COOKIE)
+    if op:
+        audit(f"Operator {op['display_name']} logged out", kind="info")
+    return resp
+
+
+@app.get("/api/auth/me")
+def auth_me(request: Request):
+    return require_operator(request)
+
+
 @app.get("/api/state")
 def get_state():
     conn = db()
@@ -132,6 +185,106 @@ def get_vessel(vessel_id: str):
     if not row:
         raise HTTPException(404, "vessel not found")
     return vessel_row_to_out(row).model_dump(mode="json")
+
+
+def _kyc_row_to_dict(r) -> dict:
+    return {
+        "vessel_id": r["vessel_id"], "captain_name": r["captain_name"], "id_type": r["id_type"],
+        "id_number_masked": r["id_number_masked"], "has_document": bool(r["id_document_filename"]),
+        "status": r["status"], "submitted_at": r["submitted_at"],
+        "reviewed_at": r["reviewed_at"], "reviewed_by": r["reviewed_by"],
+    }
+
+
+@app.get("/api/kyc")
+def list_kyc(request: Request):
+    require_operator(request)
+    conn = db()
+    rows = conn.execute(
+        "SELECT k.*, v.name AS vessel_name FROM captain_kyc k JOIN vessels v ON v.id = k.vessel_id ORDER BY v.id"
+    ).fetchall()
+    out = []
+    for r in rows:
+        d = _kyc_row_to_dict(r)
+        d["vessel_name"] = r["vessel_name"]
+        out.append(d)
+    return out
+
+
+@app.get("/api/kyc/{vessel_id}")
+def get_kyc(vessel_id: str, request: Request):
+    require_operator(request)
+    conn = db()
+    row = conn.execute("SELECT * FROM captain_kyc WHERE vessel_id=?", (vessel_id,)).fetchone()
+    if not row:
+        raise HTTPException(404, "no KYC record for this vessel")
+    return _kyc_row_to_dict(row)
+
+
+@app.post("/api/kyc/{vessel_id}/verify")
+def verify_kyc(vessel_id: str, request: Request):
+    op = require_operator(request)
+    conn = db()
+    now = now_utc().isoformat()
+    cur = conn.execute(
+        "UPDATE captain_kyc SET status='VERIFIED', reviewed_at=?, reviewed_by=? WHERE vessel_id=?",
+        (now, op["display_name"], vessel_id),
+    )
+    if cur.rowcount == 0:
+        raise HTTPException(404, "no KYC record for this vessel")
+    conn.commit()
+    audit(f"KYC verified for {vessel_id} by {op['display_name']}", kind="info")
+    return get_kyc(vessel_id, request)
+
+
+@app.post("/api/kyc/{vessel_id}/reject")
+def reject_kyc(vessel_id: str, request: Request):
+    op = require_operator(request)
+    conn = db()
+    now = now_utc().isoformat()
+    cur = conn.execute(
+        "UPDATE captain_kyc SET status='REJECTED', reviewed_at=?, reviewed_by=? WHERE vessel_id=?",
+        (now, op["display_name"], vessel_id),
+    )
+    if cur.rowcount == 0:
+        raise HTTPException(404, "no KYC record for this vessel")
+    conn.commit()
+    audit(f"KYC rejected for {vessel_id} by {op['display_name']}", kind="warn")
+    return get_kyc(vessel_id, request)
+
+
+@app.post("/api/kyc/{vessel_id}/document")
+async def upload_kyc_document(vessel_id: str, request: Request, file: UploadFile = File(...)):
+    op = require_operator(request)
+    conn = db()
+    row = conn.execute("SELECT * FROM captain_kyc WHERE vessel_id=?", (vessel_id,)).fetchone()
+    if not row:
+        raise HTTPException(404, "no KYC record for this vessel")
+    if not (file.content_type or "").startswith("image/") and (file.content_type or "") != "application/pdf":
+        raise HTTPException(400, "only image or PDF files are accepted")
+    os.makedirs(KYC_UPLOAD_DIR, exist_ok=True)
+    ext = os.path.splitext(file.filename or "")[1] or ".jpg"
+    filename = f"{vessel_id}_{uuid.uuid4().hex[:8]}{ext}"
+    data = await file.read()
+    with open(os.path.join(KYC_UPLOAD_DIR, filename), "wb") as f:
+        f.write(data)
+    conn.execute("UPDATE captain_kyc SET id_document_filename=? WHERE vessel_id=?", (filename, vessel_id))
+    conn.commit()
+    audit(f"Proof-of-ID document uploaded for {vessel_id} by {op['display_name']}", kind="info")
+    return get_kyc(vessel_id, request)
+
+
+@app.get("/api/kyc/{vessel_id}/document")
+def download_kyc_document(vessel_id: str, request: Request):
+    require_operator(request)
+    conn = db()
+    row = conn.execute("SELECT id_document_filename FROM captain_kyc WHERE vessel_id=?", (vessel_id,)).fetchone()
+    if not row or not row["id_document_filename"]:
+        raise HTTPException(404, "no document on file")
+    path = os.path.join(KYC_UPLOAD_DIR, row["id_document_filename"])
+    if not os.path.exists(path):
+        raise HTTPException(404, "document file missing on disk")
+    return FileResponse(path)
 
 
 @app.post("/api/vessel/{vessel_id}/position")
@@ -596,8 +749,17 @@ async def sse_events():
 
 @app.get("/simulator")
 def simulator_redirect():
-    from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/simulator.html")
+
+
+@app.get("/")
+def deck_root(request: Request):
+    # This gates only the dashboard's initial page load — the JSON API underneath
+    # stays open so the Wayfinder phone app and the simulator (neither of which
+    # go through this login) keep working exactly as before.
+    if not get_current_operator(request):
+        return RedirectResponse(url="/login.html")
+    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
 
 
 app.mount("/app", StaticFiles(directory=os.path.join(FRONTEND_DIR, "app"), html=True), name="wayfinder")

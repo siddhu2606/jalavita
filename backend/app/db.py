@@ -2,7 +2,16 @@ from __future__ import annotations
 import sqlite3
 import os
 import random
+import hashlib
 from datetime import datetime, timezone
+
+# Demo-grade only: a static salt with SHA-256 is fine for a hackathon login gate,
+# not for anything handling real credentials.
+_PASSWORD_SALT = "jalavita-demo-salt"
+
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256((_PASSWORD_SALT + password).encode("utf-8")).hexdigest()
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "jalavita.db")
 
@@ -62,6 +71,26 @@ CREATE TABLE IF NOT EXISTS catch_reports (
     lon REAL,
     note TEXT,
     synced INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS operators (
+    username TEXT PRIMARY KEY,
+    password_hash TEXT NOT NULL,
+    display_name TEXT NOT NULL,
+    role TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS captain_kyc (
+    vessel_id TEXT PRIMARY KEY,
+    captain_name TEXT NOT NULL,
+    id_type TEXT NOT NULL,
+    id_number_masked TEXT NOT NULL,
+    id_document_filename TEXT,
+    photo_filename TEXT,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    submitted_at TEXT NOT NULL,
+    reviewed_at TEXT,
+    reviewed_by TEXT
 );
 """
 
@@ -123,6 +152,24 @@ def _seed_if_empty(conn: sqlite3.Connection) -> None:
             (vid, NAMES[i], vclass, HOME_PORTS[i % len(HOME_PORTS)], OPERATORS[i], LANGS[i % len(LANGS)],
              lat, lon, heading, speed, now, "NORMAL"),
         )
+    conn.execute(
+        "INSERT INTO operators (username, password_hash, display_name, role) VALUES (?,?,?,?)",
+        ("arangan", hash_password("Jalavita@2026"), "A. Rangan", "Watch Officer"),
+    )
+
+    ID_TYPES = ["Fisheries Registration Card", "Boat License (Form II)", "Aadhaar (masked)"]
+    for i in range(12):
+        vid = f"MH-RTN-{400 + i * 4}"
+        id_type = ID_TYPES[i % len(ID_TYPES)]
+        masked = f"XXXX-XXXX-{1000 + i * 37 % 9000}"
+        status = "VERIFIED" if i % 3 != 0 else "PENDING"
+        conn.execute(
+            "INSERT INTO captain_kyc (vessel_id, captain_name, id_type, id_number_masked, status, submitted_at, reviewed_at, reviewed_by) "
+            "VALUES (?,?,?,?,?,?,?,?)",
+            (vid, OPERATORS[i], id_type, masked, status, now,
+             now if status == "VERIFIED" else None, "A. Rangan" if status == "VERIFIED" else None),
+        )
+
     conn.execute(
         "INSERT INTO audit_log (ts, text, kind) VALUES (?,?,?)",
         (now, "Jalavita backend initialized. 12 vessels seeded off Ratnagiri/Malvan.", "info"),
