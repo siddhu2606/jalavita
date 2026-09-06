@@ -490,6 +490,19 @@
         </div>
       </div>
 
+      <div class="card" id="tips-card" style="border-color:rgba(255,138,76,.3)">
+        <div class="card-head">
+          <div class="card-title" style="color:var(--flare)"><svg class="icon" style="color:var(--flare)"><use href="#i-alert"></use></svg>Fisherman Tips — Unverified</div>
+          <span class="panel-sub" id="tips-summary">Loading…</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Vessel</th><th>Reported</th><th>Note</th><th>When</th><th style="text-align:right">Action</th></tr></thead>
+            <tbody id="tips-body"><tr><td colspan="5" style="color:var(--ink-faint)">No pending tips.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="grid grid-3">
         <div class="card" style="min-height:380px">
           <div class="card-head">
@@ -1704,6 +1717,49 @@
   fetchKyc();
   setInterval(fetchKyc, 8000);
 
+  // ---------- Fisherman Tips (unverified — must be reviewed before anyone is alerted) ----------
+  function renderTips(rows){
+    var body = document.getElementById('tips-body');
+    var summary = document.getElementById('tips-summary');
+    if (!body) return;
+    if (summary) summary.textContent = rows.length + ' pending';
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="5" style="color:var(--ink-faint)">No pending tips.</td></tr>'; return; }
+    body.innerHTML = '';
+    rows.forEach(function(r){
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="mono" style="color:var(--bio)"></td><td></td><td style="color:var(--ink-dim);font-size:11.5px"></td>' +
+        '<td class="mono" style="font-size:11px;color:var(--ink-faint)"></td><td style="text-align:right"></td>';
+      tr.children[0].textContent = r.vessel_name + ' (' + r.vessel_id + ')';
+      tr.children[1].textContent = r.tip_label;
+      tr.children[2].textContent = r.note || '—';
+      tr.children[3].textContent = timeAgo(r.submitted_at);
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;gap:6px;justify-content:flex-end';
+      var escalateBtn = document.createElement('button');
+      escalateBtn.className = 'btn btn-solid'; escalateBtn.style.cssText = 'font-size:11px;padding:6px 10px;background:var(--flare);border-color:var(--flare);color:#20120a';
+      escalateBtn.textContent = 'Escalate as Scenario';
+      escalateBtn.addEventListener('click', function(){
+        fetch(API + '/api/tips/' + r.id + '/escalate', { method: 'POST' }).then(function(){ fetchTips(); fetchSituation(); fetchAudit(); });
+      });
+      var dismissBtn = document.createElement('button');
+      dismissBtn.className = 'btn'; dismissBtn.style.cssText = 'font-size:11px;padding:6px 10px';
+      dismissBtn.textContent = 'Dismiss';
+      dismissBtn.addEventListener('click', function(){
+        fetch(API + '/api/tips/' + r.id + '/dismiss', { method: 'POST' }).then(fetchTips);
+      });
+      wrap.appendChild(escalateBtn);
+      wrap.appendChild(dismissBtn);
+      tr.children[4].appendChild(wrap);
+      body.appendChild(tr);
+    });
+  }
+  function fetchTips(){
+    fetch(API + '/api/tips?status=PENDING').then(function(r){ if (!r.ok) throw new Error('bad'); return r.json(); }).then(renderTips).catch(function(){});
+  }
+  fetchTips();
+  setInterval(fetchTips, 6000);
+
   function renderCrisis(crisis){
     if (!crisis) return;
     var chipText = document.getElementById('crisis-chip-text');
@@ -1903,6 +1959,7 @@
       es.addEventListener('ack', function(){ fetchLedger(); fetchAudit(); });
       es.addEventListener('vessel_position', function(){ fetchState(); });
       es.addEventListener('situation', function(e){ renderSituation(JSON.parse(e.data)); });
+      es.addEventListener('tip', function(){ fetchTips(); fetchAudit(); });
       es.onerror = function(){ /* browser auto-reconnects; polling keeps data fresh meanwhile */ };
     } catch (e) { /* SSE unsupported — polling covers it */ }
   })();

@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .db import db, hash_password
 from .events import broadcaster
-from .rules import compute_advisory, compute_plan
+from .rules import compute_advisory, compute_plan, distance_to_coast
 from .models import (
     Evidence, Confidence, VesselOut, AlertIn, AlertOut, AckIn, AckOut,
     PlanRequest, SpeciesOut,
@@ -379,6 +379,18 @@ def trigger_emergency():
     return SITUATION
 
 
+def _arm_scenario(stype: str, label: str, message: str, severity: str, origin_note: str) -> dict:
+    now = now_utc()
+    SITUATION.update({
+        "active": True, "source": "scenario", "type": stype, "label": label,
+        "message": message, "severity": severity,
+        "set_at": now.isoformat(), "sent_at": None, "sent_count": 0,
+    })
+    broadcaster.publish("situation", SITUATION)
+    audit(f"{origin_note} set conditions to '{label}' — not yet sent to fleet", kind="warn")
+    return SITUATION
+
+
 @app.post("/api/scenario")
 async def set_scenario(request: Request):
     body = await request.json()
@@ -386,15 +398,7 @@ async def set_scenario(request: Request):
     tmpl = SCENARIO_TEMPLATES.get(stype)
     if not tmpl:
         raise HTTPException(400, f"unknown scenario type '{stype}'")
-    now = now_utc()
-    SITUATION.update({
-        "active": True, "source": "scenario", "type": stype, "label": tmpl["label"],
-        "message": tmpl["message"], "severity": tmpl["severity"],
-        "set_at": now.isoformat(), "sent_at": None, "sent_count": 0,
-    })
-    broadcaster.publish("situation", SITUATION)
-    audit(f"Scenario simulator set conditions to '{tmpl['label']}' — not yet sent to fleet", kind="warn")
-    return SITUATION
+    return _arm_scenario(stype, tmpl["label"], tmpl["message"], tmpl["severity"], "Scenario simulator")
 
 
 @app.post("/api/scenario/broadcast")
@@ -420,6 +424,107 @@ def clear_situation():
     broadcaster.publish("situation", SITUATION)
     audit("Situation cleared", kind="info")
     return SITUATION
+
+
+# Climate tips: a fisherman flags something they observed (e.g. unusual waves,
+# tsunami signs). This is a raw, UNVERIFIED report — it never becomes an alert
+# by itself. An operator must review it and explicitly escalate it into an
+# armed scenario, then separately click "Ensure Safety Protocols" to actually
+# notify the fleet, exactly like the scenario simulator's flow.
+TIP_TYPE_LABELS = {
+    "tsunami": "Tsunami Signs", "cyclone": "Storm / Cyclone Signs",
+    "rough_seas": "Rough Waves", "high_tide": "Rising Tide", "other": "Other",
+}
+
+
+@app.post("/api/tips")
+async def submit_tip(request: Request):
+    body = await request.json()
+    vessel_id = body.get("vessel_id")
+    tip_type = body.get("tip_type")
+    if tip_type not in TIP_TYPE_LABELS:
+        raise HTTPException(400, f"unknown tip_type '{tip_type}'")
+    conn = db()
+    vessel = conn.execute("SELECT id FROM vessels WHERE id=?", (vessel_id,)).fetchone()
+    if not vessel:
+        raise HTTPException(404, "vessel not found")
+    tip_id = str(uuid.uuid4())
+    now = now_utc().isoformat()
+    conn.execute(
+        "INSERT INTO climate_tips (id, vessel_id, tip_type, note, lat, lon, submitted_at, status) VALUES (?,?,?,?,?,?,?,?)",
+        (tip_id, vessel_id, tip_type, body.get("note"), body.get("lat"), body.get("lon"), now, "PENDING"),
+    )
+    conn.commit()
+    broadcaster.publish("tip", {"id": tip_id, "vessel_id": vessel_id})
+    audit(f"Climate tip received from {vessel_id}: {TIP_TYPE_LABELS[tip_type]} (unverified)", kind="warn")
+    return {"id": tip_id, "status": "PENDING"}
+
+
+def _tip_row_to_dict(r) -> dict:
+    return {
+        "id": r["id"], "vessel_id": r["vessel_id"], "vessel_name": r["vessel_name"],
+        "tip_type": r["tip_type"], "tip_label": TIP_TYPE_LABELS.get(r["tip_type"], r["tip_type"]),
+        "note": r["note"], "lat": r["lat"], "lon": r["lon"], "submitted_at": r["submitted_at"],
+        "status": r["status"], "reviewed_at": r["reviewed_at"], "reviewed_by": r["reviewed_by"],
+    }
+
+
+@app.get("/api/tips")
+def list_tips(request: Request, status: str | None = None):
+    require_operator(request)
+    conn = db()
+    q = "SELECT t.*, v.name AS vessel_name FROM climate_tips t JOIN vessels v ON v.id = t.vessel_id"
+    params: tuple = ()
+    if status:
+        q += " WHERE t.status = ?"
+        params = (status,)
+    q += " ORDER BY t.submitted_at DESC"
+    rows = conn.execute(q, params).fetchall()
+    return [_tip_row_to_dict(r) for r in rows]
+
+
+@app.post("/api/tips/{tip_id}/dismiss")
+def dismiss_tip(tip_id: str, request: Request):
+    op = require_operator(request)
+    conn = db()
+    now = now_utc().isoformat()
+    cur = conn.execute(
+        "UPDATE climate_tips SET status='DISMISSED', reviewed_at=?, reviewed_by=? WHERE id=?",
+        (now, op["display_name"], tip_id),
+    )
+    if cur.rowcount == 0:
+        raise HTTPException(404, "tip not found")
+    conn.commit()
+    audit(f"Climate tip {tip_id[:8]} dismissed by {op['display_name']}", kind="info")
+    return {"id": tip_id, "status": "DISMISSED"}
+
+
+@app.post("/api/tips/{tip_id}/escalate")
+def escalate_tip(tip_id: str, request: Request):
+    op = require_operator(request)
+    conn = db()
+    row = conn.execute("SELECT * FROM climate_tips WHERE id=?", (tip_id,)).fetchone()
+    if not row:
+        raise HTTPException(404, "tip not found")
+    tmpl = SCENARIO_TEMPLATES.get(row["tip_type"])
+    if tmpl:
+        situation = _arm_scenario(row["tip_type"], tmpl["label"], tmpl["message"], tmpl["severity"],
+                                   f"Fisherman tip from {row['vessel_id']} (reviewed by {op['display_name']})")
+    else:
+        label = TIP_TYPE_LABELS.get(row["tip_type"], "Reported Condition")
+        note = f" — \"{row['note']}\"" if row["note"] else ""
+        situation = _arm_scenario(
+            "tip_other", label,
+            f"रिपोर्ट केलेली स्थिती: {label}{note} — त्वरित सावधगिरी बाळगा. (Reported condition: {label}{note} — exercise caution.)",
+            "WARNING", f"Fisherman tip from {row['vessel_id']} (reviewed by {op['display_name']})",
+        )
+    now = now_utc().isoformat()
+    conn.execute(
+        "UPDATE climate_tips SET status='ESCALATED', reviewed_at=?, reviewed_by=? WHERE id=?",
+        (now, op["display_name"], tip_id),
+    )
+    conn.commit()
+    return situation
 
 
 @app.get("/api/alerts/latest")
@@ -681,11 +786,12 @@ def get_packet(vessel_id: str):
         "buffer_km": 8,
     }
     valid_until = (now + timedelta(hours=8)).isoformat()
+    coast = distance_to_coast(row["lat"], row["lon"], row["home_port"])
     return {
         "vessel_id": vessel_id,
         "generated_at": now.isoformat(),
         "valid_until": valid_until,
-        "position": {"lat": row["lat"], "lon": row["lon"]},
+        "position": {"lat": row["lat"], "lon": row["lon"], **coast},
         "advisory": advisory.model_dump(mode="json"),
         "hourly_forecast": hourly,
         "geofences": [geofence],

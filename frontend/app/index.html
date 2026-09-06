@@ -145,6 +145,20 @@
   .mini-marker{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--bio);box-shadow:0 0 10px var(--bio);}
   .mini-marker::after{content:"";position:absolute;inset:-6px;border-radius:50%;background:inherit;opacity:.4;animation:ring-pulse 1.8s ease-out infinite;}
   .coord-tag{position:absolute;bottom:8px;left:8px;background:var(--glass);border:1px solid var(--panel-line);border-radius:6px;padding:3px 7px;font-size:10px;}
+  .coast-info{font-size:11.5px;color:var(--ink-dim);}
+  .coast-info b{color:var(--bio);font-family:'IBM Plex Mono',monospace;}
+
+  .tip-box{background:var(--glass);border:1px solid var(--panel-line);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:10px;}
+  .tip-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin:0 -14px;padding-left:14px;padding-right:14px;}
+  .tip-chip{
+    flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;
+    background:var(--panel-2);border:1px solid var(--panel-line);border-radius:12px;padding:10px 12px;
+    font-size:10.5px;font-weight:600;color:var(--ink-dim);cursor:pointer;font-family:inherit;min-width:74px;
+  }
+  .tip-chip:hover{border-color:var(--flare);color:var(--flare);}
+  .tip-chip.warn:hover{border-color:var(--danger);color:var(--danger);}
+  .tip-chip:disabled{opacity:.5;cursor:default;}
+  .tip-status{font-size:11px;color:var(--ink-faint);min-height:14px;}
 
   .fab{
     position:absolute;left:18px;right:18px;bottom:90px;z-index:40;
@@ -225,12 +239,25 @@
           <div class="mini-marker" style="left:46%;top:52%"></div>
           <div class="coord-tag mono" id="coord-tag">--</div>
         </div>
+        <div class="coast-info" id="coast-info">--</div>
       </div>
 
       <div class="hero-status" id="hero-status">
         <svg class="icon-lg" id="hero-icon"><use href="#m-check"></use></svg>
         <h2 id="hero-heading">Loading…</h2>
         <div class="window mono" id="hero-window"></div>
+      </div>
+
+      <div class="tip-box">
+        <div class="section-label" data-i18n="tip.section_label">See something unusual? Send an unverified tip</div>
+        <div class="tip-chips">
+          <button class="tip-chip" data-tip="high_tide">🌊<span data-i18n="tip.high_tide">Rising Tide</span></button>
+          <button class="tip-chip" data-tip="rough_seas">💨<span data-i18n="tip.rough_seas">Rough Waves</span></button>
+          <button class="tip-chip" data-tip="cyclone">🌀<span data-i18n="tip.cyclone">Storm Signs</span></button>
+          <button class="tip-chip warn" data-tip="tsunami">🌊💥<span data-i18n="tip.tsunami">Tsunami Signs</span></button>
+          <button class="tip-chip" data-tip="other">⚠️<span data-i18n="tip.other">Other</span></button>
+        </div>
+        <div class="tip-status" id="tip-status"></div>
       </div>
 
       <div>

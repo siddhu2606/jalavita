@@ -12,6 +12,44 @@ SIMULATED_BOUNDARY = LineString([(73.55, 15.85), (73.65, 16.35), (73.75, 16.95)]
 
 KM_PER_DEGREE = 111.32
 
+# Approximate coordinates of the Konkan fishing harbours used as home ports.
+# Used as a stand-in reference for "distance to coast" — there is no real
+# coastline polygon in this prototype, so this is distance-to-nearest-known-harbour,
+# labelled honestly as such wherever it's shown.
+HOME_PORT_COORDS = {
+    "Ratnagiri": (16.9902, 73.3120),
+    "Malvan": (16.0667, 73.4667),
+    "Devgad": (16.3763, 73.3803),
+    "Sakhri Nate": (16.9333, 73.3167),
+    "Achra": (16.1333, 73.4333),
+    "Vengurla": (15.8667, 73.6333),
+}
+REGION_LABEL = "Konkan Coast, Maharashtra"
+
+
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    r = 6371.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dlambda / 2) ** 2
+    return r * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def distance_to_coast(lat: float, lon: float, home_port: str | None = None) -> dict:
+    """Distance to the nearest known harbour — a practical stand-in for
+    distance-to-shore given this prototype has no real coastline geometry."""
+    best_name, best_km = None, None
+    for name, (plat, plon) in HOME_PORT_COORDS.items():
+        d = haversine_km(lat, lon, plat, plon)
+        if best_km is None or d < best_km:
+            best_name, best_km = name, d
+    if home_port and home_port in HOME_PORT_COORDS:
+        plat, plon = HOME_PORT_COORDS[home_port]
+        home_km = haversine_km(lat, lon, plat, plon)
+        return {"distance_km": round(home_km, 1), "nearest_port": home_port, "region": REGION_LABEL}
+    return {"distance_km": round(best_km, 1), "nearest_port": best_name, "region": REGION_LABEL}
+
 
 def distance_to_boundary_km(lat: float, lon: float) -> float:
     p = Point(lon, lat)

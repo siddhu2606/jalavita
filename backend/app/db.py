@@ -73,6 +73,19 @@ CREATE TABLE IF NOT EXISTS catch_reports (
     synced INTEGER NOT NULL DEFAULT 1
 );
 
+CREATE TABLE IF NOT EXISTS climate_tips (
+    id TEXT PRIMARY KEY,
+    vessel_id TEXT NOT NULL,
+    tip_type TEXT NOT NULL,
+    note TEXT,
+    lat REAL,
+    lon REAL,
+    submitted_at TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    reviewed_at TEXT,
+    reviewed_by TEXT
+);
+
 CREATE TABLE IF NOT EXISTS operators (
     username TEXT PRIMARY KEY,
     password_hash TEXT NOT NULL,

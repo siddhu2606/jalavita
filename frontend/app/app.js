@@ -3,7 +3,7 @@
 
   var DEMO_VESSEL_ID = 'MH-RTN-408'; // ORCA-9 — the vessel the Crisis panel's demo scenario is built around
   var DB_NAME = 'jalavita';
-  var DB_VERSION = 1;
+  var DB_VERSION = 2;
   var API = '';
 
   // ---------------- IndexedDB ----------------
@@ -15,6 +15,7 @@
         if (!db.objectStoreNames.contains('packet')) db.createObjectStore('packet', { keyPath: 'vessel_id' });
         if (!db.objectStoreNames.contains('outbox_ack')) db.createObjectStore('outbox_ack', { keyPath: 'receipt_id' });
         if (!db.objectStoreNames.contains('outbox_catch')) db.createObjectStore('outbox_catch', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('outbox_tip')) db.createObjectStore('outbox_tip', { keyPath: 'id' });
         if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta', { keyPath: 'key' });
       };
       req.onsuccess = function () { resolve(req.result); };
@@ -338,11 +339,22 @@
 
   function renderPosition(packet) {
     var tag = document.getElementById('coord-tag');
+    var coastInfo = document.getElementById('coast-info');
     if (!tag) return;
     if (packet && packet.position) {
       tag.textContent = packet.position.lat.toFixed(2) + '°N ' + packet.position.lon.toFixed(2) + '°E';
+      if (coastInfo) {
+        var p = packet.position;
+        if (p.distance_km != null) {
+          coastInfo.innerHTML = '<b></b> from ' + p.nearest_port + ' · ' + p.region;
+          coastInfo.querySelector('b').textContent = '~' + p.distance_km + 'km';
+        } else {
+          coastInfo.textContent = '--';
+        }
+      }
     } else {
       tag.textContent = '--';
+      if (coastInfo) coastInfo.textContent = '--';
     }
   }
 
@@ -453,6 +465,41 @@
       if (speciesInput.value.trim()) runSpeciesSearch();
     });
   }
+
+  // ---------------- Climate tips (unverified — operator must review) ----------------
+  var tipStatusEl = document.getElementById('tip-status');
+  function sendOrQueueTip(record) {
+    if (!isOnline()) {
+      return idbPut('outbox_tip', record).then(function () {
+        if (tipStatusEl) tipStatusEl.textContent = t('tip.sent') + ' (' + t('conn.offline') + ' — ' + t('fab.queued', { n: 1 }) + ')';
+      });
+    }
+    return fetch(API + '/api/tips', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record),
+    }).then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); })
+      .then(function () { if (tipStatusEl) tipStatusEl.textContent = t('tip.sent'); })
+      .catch(function () {
+        return idbPut('outbox_tip', record).then(function () {
+          if (tipStatusEl) tipStatusEl.textContent = t('tip.sent') + ' (queued)';
+        });
+      });
+  }
+  document.querySelectorAll('.tip-chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      var pos = lastEval && lastEval.packet && lastEval.packet.position;
+      var record = {
+        id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()),
+        vessel_id: DEMO_VESSEL_ID, tip_type: chip.dataset.tip,
+        lat: pos ? pos.lat : null, lon: pos ? pos.lon : null, synced: false,
+      };
+      document.querySelectorAll('.tip-chip').forEach(function (c) { c.disabled = true; });
+      if (tipStatusEl) tipStatusEl.textContent = t('tip.sending');
+      sendOrQueueTip(record).finally(function () {
+        document.querySelectorAll('.tip-chip').forEach(function (c) { c.disabled = false; });
+      });
+    });
+  });
 
   // ---------------- FAB: hold-to-record catch report ----------------
   var fabBtn = document.getElementById('fab-report');
@@ -582,6 +629,16 @@
           body: JSON.stringify({ id: r.id, vessel_id: r.vessel_id, ts: r.ts, lat: r.lat, lon: r.lon, note: r.note }),
         }).then(function (res) {
           if (res.ok) { r.synced = true; idbPut('outbox_catch', r).then(updateFabBadge); }
+        }).catch(function () { /* stays queued */ });
+      });
+    });
+    idbGetAll('outbox_tip').then(function (rows) {
+      rows.filter(function (r) { return !r.synced; }).forEach(function (r) {
+        fetch(API + '/api/tips', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vessel_id: r.vessel_id, tip_type: r.tip_type, lat: r.lat, lon: r.lon }),
+        }).then(function (res) {
+          if (res.ok) idbDelete('outbox_tip', r.id);
         }).catch(function () { /* stays queued */ });
       });
     });
