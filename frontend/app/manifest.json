@@ -1,0 +1,14 @@
+{
+  "name": "Jalavita Wayfinder",
+  "short_name": "Jalavita",
+  "description": "Offline-first marine safety advisory for fishermen",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070b12",
+  "theme_color": "#070b12",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

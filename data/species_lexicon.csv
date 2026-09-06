@@ -1,0 +1,31 @@
+vernacular_name,language,region,scientific_name,sst_min_c,sst_max_c,depth_min_m,depth_max_m,note
+bangda,mr,Konkan,Rastrelliger kanagurta,24,29,20,90,
+bangda,hi,Maharashtra,Rastrelliger kanagurta,24,29,20,90,
+mackerel,en,Maharashtra,Rastrelliger kanagurta,24,29,20,90,
+surmai,mr,Konkan,Scomberomorus commerson,24,30,10,70,
+surmai,hi,Maharashtra,Scomberomorus commerson,24,30,10,70,
+seer fish,en,Maharashtra,Scomberomorus commerson,24,30,10,70,
+paplet,mr,Konkan,Pampus argenteus,22,28,10,60,
+pomfret,hi,Maharashtra,Pampus argenteus,22,28,10,60,
+silver pomfret,en,Maharashtra,Pampus argenteus,22,28,10,60,
+halwa,mr,Konkan,Parastromateus niger,23,29,15,60,
+black pomfret,hi,Maharashtra,Parastromateus niger,23,29,15,60,
+bombil,mr,Konkan,Harpadon nehereus,24,30,10,50,
+bummalo,hi,Maharashtra,Harpadon nehereus,24,30,10,50,
+bombay duck,en,Maharashtra,Harpadon nehereus,24,30,10,50,
+kolambi,mr,Konkan,Penaeus spp.,22,30,5,40,genus-level; species varies by catch season - TODO confirm dominant local species
+jhinga,hi,Maharashtra,Penaeus spp.,22,30,5,40,genus-level; species varies by catch season - TODO confirm dominant local species
+prawn,en,Maharashtra,Penaeus spp.,22,30,5,40,genus-level; species varies by catch season - TODO confirm dominant local species
+rawas,mr,Konkan,Eleutheronema tetradactylum,23,29,10,50,
+rawas,hi,Maharashtra,Eleutheronema tetradactylum,23,29,10,50,
+indian salmon,en,Maharashtra,Eleutheronema tetradactylum,23,29,10,50,
+karli,mr,Konkan,Trichiurus lepturus,23,29,20,100,
+ribbon fish,hi,Maharashtra,Trichiurus lepturus,23,29,20,100,
+tarli,mr,Konkan,Sardinella longiceps,24,29,10,60,
+oil sardine,hi,Maharashtra,Sardinella longiceps,24,29,10,60,
+mandeli,mr,Konkan,Stolephorus spp.,24,30,5,30,genus-level - TODO confirm exact anchovy species
+ghol,mr,Konkan,Protonibea diacanthus,23,29,15,70,high commercial value; catch reporting sensitive
+dhoma,mr,Konkan,Otolithes ruber,23,29,15,60,
+shingala,mr,Konkan,Arius spp.,22,29,5,40,genus-level - TODO confirm exact catfish species
+waam,mr,Konkan,Muraenesox cinereus,22,28,10,80,
+kane,mr,Konkan,Sillago sihama,23,29,5,30,TODO verify local usage vs Etroplus in other regions

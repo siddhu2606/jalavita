@@ -1,0 +1,1626 @@
+<!doctype html>
+<html lang="en">
+<title>Jalavita Command Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --abyss:#070b12;
+    --abyss-2:#0b1220;
+    --panel:#101826;
+    --panel-2:#0d1420;
+    --panel-line:rgba(122,204,214,.16);
+    --panel-line-strong:rgba(122,204,214,.32);
+    --glass:rgba(13,20,32,.78);
+    --ink:#e7eef0;
+    --ink-dim:#8ca0ac;
+    --ink-faint:#4d5c67;
+    --bio:#2fe6c6;
+    --bio-dim:rgba(47,230,198,.14);
+    --current:#5aa9ff;
+    --current-dim:rgba(90,169,255,.14);
+    --flare:#ff8a4c;
+    --flare-dim:rgba(255,138,76,.14);
+    --danger:#ff4d6d;
+    --danger-dim:rgba(255,77,109,.14);
+    --kelp:#38e29a;
+    --kelp-dim:rgba(56,226,154,.14);
+    --rail-w:238px;
+    --topbar-h:64px;
+    --radius:14px;
+    --radius-sm:9px;
+  }
+  *{box-sizing:border-box;}
+  html{background:var(--abyss);}
+  body{
+    margin:0;
+    background:var(--abyss);
+    color:var(--ink);
+    font:400 14px/1.5 'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--bio-dim);color:var(--bio);}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--panel-line-strong);border-radius:8px;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--bio);}
+  h1,h2,h3,.display{font-family:'Unbounded',system-ui,sans-serif;letter-spacing:-.01em;margin:0;text-wrap:balance;}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+  button{font-family:inherit;color:inherit;}
+  a{color:inherit;text-decoration:none;}
+  .icon{width:18px;height:18px;flex:0 0 auto;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .icon.fill{fill:currentColor;stroke:none;}
+
+  /* ---------- App shell ---------- */
+  .app{
+    display:grid;
+    grid-template-columns:var(--rail-w) 1fr;
+    grid-template-rows:var(--topbar-h) 1fr;
+    grid-template-areas:"rail topbar" "rail canvas";
+    min-height:100vh;
+  }
+  @media (max-width:920px){
+    .app{grid-template-columns:1fr;grid-template-areas:"topbar" "canvas";}
+    .rail{display:none;}
+  }
+
+  /* ---------- Rail ---------- */
+  .rail{
+    grid-area:rail;
+    background:linear-gradient(180deg,var(--abyss-2),var(--abyss));
+    border-right:1px solid var(--panel-line);
+    display:flex;
+    flex-direction:column;
+    padding:22px 16px;
+    gap:28px;
+  }
+  .rail-brand{display:flex;flex-direction:column;gap:4px;padding:0 6px;}
+  .brand-mark{font-family:'Unbounded';font-weight:700;font-size:19px;letter-spacing:.03em;color:var(--ink);}
+  .brand-mark span{color:var(--bio);}
+  .brand-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);}
+  .rail-nav{display:flex;flex-direction:column;gap:2px;}
+  .rail-link{
+    display:flex;align-items:center;gap:12px;
+    background:none;border:none;border-radius:var(--radius-sm);
+    padding:11px 12px;font-size:13.5px;font-weight:500;color:var(--ink-dim);
+    cursor:pointer;text-align:left;transition:background .15s,color .15s;
+  }
+  .rail-link .icon{color:var(--ink-faint);transition:color .15s;}
+  .rail-link:hover{background:rgba(122,204,214,.06);color:var(--ink);}
+  .rail-link:focus-visible{outline:2px solid var(--bio);outline-offset:1px;}
+  .rail-link.active{background:var(--bio-dim);color:var(--bio);}
+  .rail-link.active .icon{color:var(--bio);}
+  .rail-bottom{margin-top:auto;display:flex;flex-direction:column;gap:14px;}
+  .btn-emergency{
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    background:var(--flare);color:#20120a;font-weight:600;font-size:12.5px;
+    border:none;border-radius:var(--radius-sm);padding:12px;cursor:pointer;
+    letter-spacing:.03em;
+    transition:filter .15s;animation:flare-pulse 2.4s ease-in-out infinite;
+  }
+  .btn-emergency:hover{filter:brightness(1.08);}
+  .rail-diag{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:12.5px;color:var(--ink-faint);border-top:1px solid var(--panel-line);padding-top:14px;}
+  .rail-diag:hover{color:var(--ink-dim);}
+  .operator{display:flex;align-items:center;gap:10px;padding:2px 4px;}
+  .avatar{
+    width:34px;height:34px;border-radius:50%;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--bio),var(--current));
+    color:#062018;font-family:'Unbounded';font-weight:700;font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .operator-meta{display:flex;flex-direction:column;gap:2px;overflow:hidden;}
+  .operator-name{font-size:12.5px;font-weight:600;color:var(--ink);}
+  .operator-role{font-size:11px;color:var(--ink-faint);display:flex;align-items:center;gap:5px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);display:inline-block;position:relative;}
+  .dot::after{content:"";position:absolute;inset:-5px;border-radius:50%;background:inherit;opacity:.45;animation:ring-pulse 1.8s ease-out infinite;}
+  .dot.online{background:var(--kelp);box-shadow:0 0 6px var(--kelp);}
+  @keyframes ring-pulse{0%{transform:scale(.4);opacity:.55;}100%{transform:scale(2.6);opacity:0;}}
+  @keyframes radar-spin{to{transform:rotate(360deg);}}
+  @keyframes dash-flow{to{stroke-dashoffset:-40;}}
+  @keyframes flare-pulse{0%,100%{box-shadow:0 0 14px -4px rgba(255,138,76,.55);}50%{box-shadow:0 0 28px 2px rgba(255,138,76,.9);}}
+  .flow-line{stroke-dasharray:6 6;animation:dash-flow 1s linear infinite;}
+  .flow-line-slow{animation-duration:2.2s;}
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    grid-area:topbar;
+    display:flex;align-items:center;gap:20px;
+    padding:0 24px;
+    background:var(--abyss-2);
+    border-bottom:1px solid var(--panel-line);
+  }
+  .topbar-context{display:flex;align-items:center;gap:12px;min-width:0;}
+  .ctx-sector{font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:11px;font-weight:500;letter-spacing:.03em;
+    padding:4px 10px;border-radius:99px;white-space:nowrap;
+  }
+  .pill-good{background:var(--kelp-dim);color:var(--kelp);}
+  .pill-warn{background:var(--flare-dim);color:var(--flare);}
+  .pill-bad{background:var(--danger-dim);color:var(--danger);}
+  .pill .dot{background:currentColor;box-shadow:0 0 6px currentColor;}
+  .topbar-search{
+    flex:1;max-width:420px;display:flex;align-items:center;gap:9px;
+    background:var(--panel-2);border:1px solid var(--panel-line);border-radius:99px;
+    padding:8px 14px;color:var(--ink-faint);
+  }
+  .topbar-search input{
+    flex:1;background:none;border:none;color:var(--ink);font-size:13px;font-family:inherit;
+  }
+  .topbar-search input::placeholder{color:var(--ink-faint);}
+  .topbar-search input:focus{outline:none;}
+  .topbar-search:focus-within{border-color:var(--bio);color:var(--bio);}
+  .topbar-actions{display:flex;align-items:center;gap:14px;margin-left:auto;}
+  .clock{font-size:12px;color:var(--ink-dim);white-space:nowrap;}
+  .icon-btn{
+    background:none;border:1px solid transparent;border-radius:9px;padding:7px;
+    color:var(--ink-dim);cursor:pointer;display:flex;
+  }
+  .icon-btn:hover{background:rgba(122,204,214,.08);color:var(--ink);}
+
+  /* ---------- Canvas / panels ---------- */
+  .canvas{grid-area:canvas;padding:24px;overflow:auto;}
+  .panel{display:flex;flex-direction:column;gap:18px;max-width:1440px;margin:0 auto;}
+  .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .panel-head h2{font-size:21px;font-weight:600;}
+  .panel-sub{font-size:12.5px;color:var(--ink-faint);}
+
+  .grid{display:grid;gap:18px;}
+  .grid-4{grid-template-columns:repeat(4,1fr);}
+  .grid-3{grid-template-columns:2fr 1.1fr;}
+  .grid-split{grid-template-columns:2fr 1fr;}
+  .grid-3col{grid-template-columns:1fr 1.4fr 1fr;}
+  @media (max-width:1180px){.grid-4{grid-template-columns:repeat(2,1fr);} .grid-3,.grid-split,.grid-3col{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--glass);
+    backdrop-filter:blur(14px);
+    border:1px solid var(--panel-line);
+    border-radius:var(--radius);
+    padding:18px;
+    display:flex;flex-direction:column;gap:14px;
+    min-width:0;transition:border-color .2s;
+  }
+  .card:hover{border-color:var(--panel-line-strong);}
+  .card-head{display:flex;align-items:center;justify-content:between;justify-content:space-between;gap:10px;}
+  .card-title{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);}
+  .card-title .icon{color:var(--bio);}
+
+  /* metric cards */
+  .metric-card .metric-value{font-family:'Unbounded';font-size:30px;font-weight:700;line-height:1;}
+  .metric-delta{font-size:11.5px;font-weight:500;display:flex;align-items:center;gap:4px;}
+  .metric-delta.up{color:var(--kelp);}
+  .metric-delta.warn{color:var(--flare);}
+  .metric-delta.bad{color:var(--danger);}
+  .sparkline{width:100%;height:34px;display:block;}
+
+  /* status chips */
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:99px;}
+  .chip-good{background:var(--kelp-dim);color:var(--kelp);}
+  .chip-warn{background:var(--flare-dim);color:var(--flare);}
+  .chip-bad{background:var(--danger-dim);color:var(--danger);}
+  .chip-info{background:var(--current-dim);color:var(--current);}
+
+  .bar-track{height:6px;border-radius:99px;background:rgba(140,160,172,.14);overflow:hidden;}
+  .bar-fill{height:100%;border-radius:99px;}
+
+  /* buttons */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border-radius:9px;padding:9px 16px;font-size:12.5px;font-weight:600;letter-spacing:.02em;
+    cursor:pointer;border:1px solid var(--panel-line-strong);background:transparent;color:var(--ink);
+    transition:border-color .15s,background .15s;
+  }
+  .btn:hover{border-color:var(--bio);color:var(--bio);}
+  .btn-solid{background:var(--bio);color:#062018;border-color:var(--bio);}
+  .btn-solid:hover{filter:brightness(1.08);color:#062018;}
+  .btn-block{width:100%;}
+  select,.field{
+    background:var(--panel-2);border:1px solid var(--panel-line);border-radius:8px;
+    color:var(--ink);font-size:12.5px;padding:8px 10px;font-family:inherit;
+  }
+  select:focus,.field:focus{outline:none;border-color:var(--bio);}
+
+  /* map / instrument surfaces */
+  .instrument-surface{
+    position:relative;border-radius:10px;overflow:hidden;background:
+      radial-gradient(ellipse at 30% 20%,rgba(47,230,198,.08),transparent 55%),
+      radial-gradient(ellipse at 75% 70%,rgba(90,169,255,.08),transparent 55%),
+      var(--abyss-2);
+    min-height:280px;flex:1;
+  }
+  .instrument-surface::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+    background:conic-gradient(from 0deg, transparent 0deg 300deg, rgba(47,230,198,.18) 360deg);
+    animation:radar-spin 6s linear infinite;mix-blend-mode:screen;}
+  .grid-overlay{position:absolute;inset:0;background-image:
+      linear-gradient(var(--panel-line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--panel-line) 1px,transparent 1px);
+    background-size:32px 32px;opacity:.5;
+  }
+  .surface-stat{
+    position:absolute;background:var(--glass);border:1px solid var(--panel-line);
+    border-radius:8px;padding:8px 12px;font-size:11px;
+  }
+  .surface-controls{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;gap:6px;}
+  .surface-controls button{
+    width:30px;height:30px;border-radius:8px;background:var(--glass);border:1px solid var(--panel-line);
+    color:var(--ink-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .surface-controls button:hover{color:var(--bio);border-color:var(--bio);}
+  .node-dot{position:absolute;width:11px;height:11px;border-radius:50%;transform:translate(-50%,-50%);z-index:2;}
+  .node-dot::after{content:"";position:absolute;inset:-6px;border-radius:50%;opacity:.35;background:inherit;animation:ring-pulse 1.8s ease-out infinite;}
+  .node-label{position:absolute;transform:translate(-50%,10px);font-size:10px;white-space:nowrap;background:var(--glass);border:1px solid var(--panel-line);border-radius:6px;padding:2px 6px;}
+
+  /* feed / timeline */
+  .feed{display:flex;flex-direction:column;gap:14px;overflow:auto;}
+  .feed-item{display:flex;gap:11px;}
+  .feed-dot{width:26px;height:26px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;}
+  .feed-body{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .feed-title{font-size:12.5px;font-weight:600;}
+  .feed-text{font-size:12px;color:var(--ink-dim);}
+  .feed-time{font-size:10.5px;color:var(--ink-faint);margin-left:auto;white-space:nowrap;}
+
+  /* table */
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px;}
+  thead th{text-align:left;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;padding:0 10px 10px;border-bottom:1px solid var(--panel-line);}
+  tbody td{padding:11px 10px;border-bottom:1px solid var(--panel-line);}
+  tbody tr:hover{background:rgba(122,204,214,.05);}
+  tbody tr:last-child td{border-bottom:none;}
+
+  .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .kv{background:var(--panel-2);border:1px solid var(--panel-line);border-radius:8px;padding:10px 12px;}
+  .kv-label{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);}
+  .kv-value{font-family:'IBM Plex Mono';font-size:17px;font-weight:600;margin-top:2px;}
+  .kv-value span{font-size:11px;color:var(--bio);font-weight:500;margin-left:2px;}
+
+  .code-block{
+    background:var(--abyss-2);border:1px solid var(--panel-line);border-radius:8px;padding:12px;
+    font-family:'IBM Plex Mono';font-size:11.5px;line-height:1.7;color:var(--current);overflow-x:auto;
+  }
+  .code-block .k{color:var(--ink-faint);}
+  .code-block .v{color:var(--bio);}
+
+  .donut-wrap{position:relative;width:150px;height:150px;margin:0 auto;}
+  .donut-wrap svg{transform:rotate(-90deg);}
+  .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .donut-center b{font-family:'Unbounded';font-size:28px;font-weight:700;}
+  .donut-center span{font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.06em;}
+
+  .seg-tabs{display:flex;gap:4px;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:99px;padding:3px;}
+  .seg-tabs button{border:none;background:none;color:var(--ink-faint);font-size:11px;font-weight:600;padding:6px 12px;border-radius:99px;cursor:pointer;}
+  .seg-tabs button.active{background:var(--bio-dim);color:var(--bio);}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--ink-dim);}
+  .legend-item{display:flex;align-items:center;gap:6px;}
+  .legend-swatch{width:10px;height:10px;border-radius:3px;}
+  .checkbox{width:15px;height:15px;accent-color:var(--bio);}
+
+  /* ---------- Agents / DAG / Log ---------- */
+  .agent-row{display:flex;align-items:center;gap:12px;background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;padding:10px 14px;transition:border-color .15s;}
+  .agent-row:hover{border-color:var(--panel-line-strong);}
+  .agent-icon{width:34px;height:34px;border-radius:8px;background:var(--bio-dim);color:var(--bio);display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .agent-icon .icon{width:16px;height:16px;}
+  .agent-meta{display:flex;flex-direction:column;gap:1px;min-width:0;}
+  .agent-name{font-size:13px;font-weight:600;}
+  .agent-stats{font-size:11px;color:var(--ink-faint);}
+  .query-bubble{background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;padding:6px 12px;font-size:11.5px;color:var(--bio);white-space:nowrap;}
+  .dag{display:flex;flex-direction:column;align-items:center;padding:16px 10px 6px;overflow-x:auto;}
+  .dag-connector{width:1.5px;height:22px;background:var(--panel-line-strong);}
+  .dag-node{padding:10px 20px;border-radius:99px;font-size:12.5px;font-weight:600;background:var(--bio-dim);color:var(--bio);border:1px solid rgba(47,230,198,.35);white-space:nowrap;}
+  .dag-row{display:flex;gap:28px;margin:4px 0;flex-wrap:wrap;justify-content:center;}
+  .dag-t{border-radius:10px;background:var(--panel-2);color:var(--ink);border:1px solid var(--panel-line);padding:9px 16px;display:flex;flex-direction:column;gap:2px;font-size:12px;text-align:center;min-width:100px;}
+  .dag-t span{font-size:10.5px;color:var(--ink-faint);}
+  .dag-award{border-radius:10px;background:var(--flare-dim);color:var(--ink);border:1.5px solid var(--flare);padding:12px 22px;font-weight:600;font-size:13px;text-align:center;display:flex;flex-direction:column;gap:3px;white-space:nowrap;}
+  .dag-award span{font-size:11px;color:var(--flare);font-weight:500;}
+  .audit-line{display:flex;gap:10px;font-size:12px;padding:6px 0;border-bottom:1px solid var(--panel-line);}
+  .audit-line:last-child{border-bottom:none;}
+  .audit-time{color:var(--ink-faint);flex:0 0 auto;}
+  .log-entry{background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;padding:11px 13px;transition:border-color .15s,background .15s;}
+  .log-entry[style*="cursor:pointer"]:hover{border-color:var(--panel-line-strong);background:var(--panel);}
+  .log-entry p{margin:4px 0 0;font-size:11.5px;color:var(--ink-dim);}
+  .log-head{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;}
+  .log-bad{border-color:rgba(255,77,109,.35);background:var(--danger-dim);}
+  .log-bad .log-head{color:var(--danger);}
+  .log-info{border-color:rgba(90,169,255,.35);background:var(--current-dim);}
+  .log-info .log-head{color:var(--current);}
+
+  /* ---------- Sliders ---------- */
+  .slider-group{display:flex;flex-direction:column;gap:6px;}
+  .slider-label{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-dim);}
+  .slider-ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-faint);}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:99px;background:var(--panel-2);outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--bio);box-shadow:0 0 8px var(--bio);cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--bio);box-shadow:0 0 8px var(--bio);border:none;cursor:pointer;}
+  .grid-planner{display:grid;gap:18px;grid-template-columns:300px 1.6fr 320px;}
+  @media (max-width:1180px){.grid-planner{grid-template-columns:1fr;}}
+
+  /* ---------- Radar sweep hand + chart tooltip ---------- */
+  .radar-hand{position:absolute;left:50%;top:50%;width:46%;height:1.5px;background:linear-gradient(90deg, var(--bio), transparent);transform-origin:0 50%;animation:radar-spin 4s linear infinite;z-index:1;}
+  .chart-tooltip{position:absolute;display:none;background:var(--panel-2);border:1px solid var(--panel-line-strong);border-radius:6px;padding:6px 10px;font-size:10.5px;pointer-events:none;z-index:30;white-space:nowrap;}
+
+  /* ---------- Crisis ---------- */
+  .imbl-boundary{position:absolute;top:16%;left:56%;width:2px;height:74%;background:repeating-linear-gradient(180deg,var(--danger) 0 8px, transparent 8px 14px);background-size:100% 28px;transform:rotate(18deg);animation:imbl-flow-v 1s linear infinite;box-shadow:0 0 10px rgba(255,77,109,.5);}
+  @keyframes imbl-flow-v{to{background-position:0 28px;}}
+  .imbl-tag{position:absolute;top:12%;left:64%;background:var(--danger-dim);border:1px solid var(--danger);color:var(--danger);font-size:10px;padding:3px 8px;border-radius:99px;z-index:2;}
+  .danger-ring2{position:absolute;left:55%;top:50%;width:70px;height:70px;transform:translate(-50%,-50%);border:2px solid var(--danger);border-radius:50%;background:rgba(255,77,109,.08);animation:danger-expand 2s ease-out infinite;}
+  @keyframes danger-expand{0%{transform:translate(-50%,-50%) scale(.4);opacity:.8;}100%{transform:translate(-50%,-50%) scale(2.3);opacity:0;}}
+
+  [hidden]{display:none!important;}
+  .reveal-scale{transition:opacity .2s ease;}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+
+<div class="app">
+  <nav class="rail" aria-label="Primary">
+    <div class="rail-brand">
+      <div class="brand-mark">JALA<span>VITA</span></div>
+      <div class="brand-eyebrow">Command Deck</div>
+    </div>
+    <div class="rail-nav" role="tablist">
+      <button class="rail-link active" data-panel="command"><svg class="icon"><use href="#i-compass"></use></svg>Command</button>
+      <button class="rail-link" data-panel="sensors"><svg class="icon"><use href="#i-pulse"></use></svg>Sensors</button>
+      <button class="rail-link" data-panel="network"><svg class="icon"><use href="#i-hub"></use></svg>Network</button>
+      <button class="rail-link" data-panel="forecast"><svg class="icon"><use href="#i-wave"></use></svg>Analytics</button>
+      <button class="rail-link" data-panel="archive"><svg class="icon"><use href="#i-archive"></use></svg>Archive</button>
+      <button class="rail-link" data-panel="field"><svg class="icon"><use href="#i-boat"></use></svg>Field Assist</button>
+      <button class="rail-link" data-panel="crisis"><svg class="icon"><use href="#i-alert"></use></svg>Crisis</button>
+      <button class="rail-link" data-panel="planner"><svg class="icon"><use href="#i-route"></use></svg>Trip Planner</button>
+    </div>
+    <div class="rail-bottom">
+      <button class="btn-emergency"><svg class="icon"><use href="#i-flare"></use></svg>Emergency Protocol</button>
+      <a class="rail-diag" href="#"><svg class="icon"><use href="#i-target"></use></svg>Diagnostics</a>
+      <div class="operator">
+        <span class="avatar">AR</span>
+        <div class="operator-meta">
+          <span class="operator-name">A. Rangan</span>
+          <span class="operator-role"><i class="dot online"></i>Watch Officer</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <header class="topbar">
+    <div class="topbar-context">
+      <span class="ctx-sector">Sector 7G · Arabian Sea Basin</span>
+      <span class="pill pill-good" id="conn-pill"><i class="dot"></i><span id="conn-text">System Nominal</span></span>
+    </div>
+    <div class="topbar-search">
+      <svg class="icon"><use href="#i-search"></use></svg>
+      <input placeholder="Search vessel ID, coordinates, or log entry…" />
+    </div>
+    <div class="topbar-actions">
+      <span class="clock mono" id="clock">--:--:-- UTC</span>
+      <button class="icon-btn" aria-label="Notifications"><svg class="icon"><use href="#i-bell"></use></svg></button>
+      <button class="icon-btn" aria-label="Settings"><svg class="icon"><use href="#i-gear"></use></svg></button>
+    </div>
+  </header>
+
+  <main class="canvas">
+
+    <!-- COMMAND -->
+    <section id="panel-command" class="panel">
+      <div class="panel-head">
+        <h2>Command</h2>
+        <span class="panel-sub">Basin-wide status · updated <span class="mono" id="cmd-updated">12s</span> ago</span>
+      </div>
+
+      <div class="grid grid-4">
+        <div class="card metric-card">
+          <div class="card-title"><svg class="icon"><use href="#i-boat"></use></svg>Active Vessels</div>
+          <div class="metric-value mono" id="v-vessels">3,492</div>
+          <div class="metric-delta up"><svg class="icon" style="width:12px;height:12px"><use href="#i-chev-up"></use></svg>+12% this week</div>
+          <svg class="sparkline" viewBox="0 0 200 34" preserveAspectRatio="none">
+            <polyline points="0,26 25,24 50,20 75,22 100,14 125,16 150,8 175,10 200,4" fill="none" stroke="var(--kelp)" stroke-width="2"/>
+            <polygon points="0,26 25,24 50,20 75,22 100,14 125,16 150,8 175,10 200,4 200,34 0,34" fill="var(--kelp)" opacity=".12"/>
+          </svg>
+        </div>
+        <div class="card metric-card">
+          <div class="card-title"><svg class="icon"><use href="#i-wave"></use></svg>Active PFZ Zones</div>
+          <div class="metric-value mono">148</div>
+          <div class="metric-delta" style="color:var(--ink-dim)">42 high-yield · 106 standard</div>
+          <svg class="sparkline" viewBox="0 0 200 34" preserveAspectRatio="none">
+            <polyline points="0,20 25,18 50,22 75,12 100,16 125,10 150,14 175,8 200,10" fill="none" stroke="var(--bio)" stroke-width="2"/>
+            <polygon points="0,20 25,18 50,22 75,12 100,16 125,10 150,14 175,8 200,10 200,34 0,34" fill="var(--bio)" opacity=".12"/>
+          </svg>
+        </div>
+        <div class="card metric-card">
+          <div class="card-title"><svg class="icon"><use href="#i-alert"></use></svg>Severe Weather Alerts</div>
+          <div class="metric-value mono" style="color:var(--danger)">07</div>
+          <div class="metric-delta bad"><svg class="icon" style="width:12px;height:12px"><use href="#i-alert"></use></svg>Critical — review now</div>
+          <svg class="sparkline" viewBox="0 0 200 34" preserveAspectRatio="none">
+            <polyline points="0,30 25,28 50,26 75,20 100,18 125,10 150,12 175,4 200,6" fill="none" stroke="var(--danger)" stroke-width="2"/>
+            <polygon points="0,30 25,28 50,26 75,20 100,18 125,10 150,12 175,4 200,6 200,34 0,34" fill="var(--danger)" opacity=".12"/>
+          </svg>
+        </div>
+        <div class="card metric-card">
+          <div class="card-title"><svg class="icon"><use href="#i-hub"></use></svg>Network Resilience</div>
+          <div class="metric-value mono">94<span style="font-size:15px;color:var(--ink-faint)">/100</span></div>
+          <div class="metric-delta" style="color:var(--ink-dim)">All uplinks nominal</div>
+          <div class="bar-track"><div class="bar-fill" style="width:94%;background:var(--bio)"></div></div>
+        </div>
+      </div>
+
+      <div class="grid grid-3">
+        <div class="card" style="min-height:380px">
+          <div class="card-head">
+            <div class="card-title"><svg class="icon"><use href="#i-compass"></use></svg>Global Telemetry</div>
+            <span class="chip chip-info"><i class="dot" style="background:currentColor"></i>Live</span>
+          </div>
+          <div class="instrument-surface">
+            <div class="grid-overlay"></div>
+            <svg width="100%" height="100%" viewBox="0 0 600 320" style="position:absolute;inset:0">
+              <circle cx="230" cy="140" r="60" fill="var(--bio)" opacity=".14"/>
+              <circle cx="230" cy="140" r="8" fill="var(--bio)"/>
+              <circle cx="230" cy="140" r="14" fill="none" stroke="var(--bio)" stroke-width="1.5" opacity=".6">
+                <animate attributeName="r" values="14;34;14" dur="2.4s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values=".6;0;.6" dur="2.4s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="370" cy="200" r="42" fill="var(--kelp)" opacity=".12"/>
+              <circle cx="370" cy="200" r="6" fill="var(--kelp)"/>
+              <circle cx="440" cy="90" r="30" fill="var(--current)" opacity=".14"/>
+              <circle cx="440" cy="90" r="6" fill="var(--current)"/>
+              <circle cx="150" cy="230" r="5" fill="var(--flare)"/>
+              <circle cx="150" cy="230" r="10" fill="none" stroke="var(--flare)" stroke-width="1.5">
+                <animate attributeName="r" values="10;24;10" dur="1.8s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values=".8;0;.8" dur="1.8s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+            <div class="surface-stat" style="top:14px;left:14px">
+              <div style="font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em">Sector Boundary</div>
+              <div class="mono" style="font-size:12px">14.2°N · 71.6°E</div>
+            </div>
+            <div class="surface-controls">
+              <button aria-label="Zoom in"><svg class="icon" style="width:14px;height:14px"><use href="#i-plus"></use></svg></button>
+              <button aria-label="Zoom out"><svg class="icon" style="width:14px;height:14px"><use href="#i-minus"></use></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="min-height:380px">
+          <div class="card-head">
+            <div class="card-title"><svg class="icon"><use href="#i-pulse"></use></svg>Signal Feed</div>
+          </div>
+          <div class="feed">
+            <div class="feed-item">
+              <div class="feed-dot" style="background:var(--bio-dim);color:var(--bio)"><svg class="icon" style="width:13px;height:13px"><use href="#i-boat"></use></svg></div>
+              <div class="feed-body">
+                <span class="feed-title">Catch Report · V-902</span>
+                <span class="feed-text">High-yield yellowfin in Zone Alpha-7</span>
+              </div>
+              <span class="feed-time mono">now</span>
+            </div>
+            <div class="feed-item">
+              <div class="feed-dot" style="background:var(--danger-dim);color:var(--danger)"><svg class="icon" style="width:13px;height:13px"><use href="#i-alert"></use></svg></div>
+              <div class="feed-body">
+                <span class="feed-title">Squall Warning</span>
+                <span class="feed-text">Rapid pressure drop, Sector 4 — 12 vessels notified</span>
+              </div>
+              <span class="feed-time mono">12m</span>
+            </div>
+            <div class="feed-item">
+              <div class="feed-dot" style="background:var(--kelp-dim);color:var(--kelp)"><svg class="icon" style="width:13px;height:13px"><use href="#i-check"></use></svg></div>
+              <div class="feed-body">
+                <span class="feed-title">Calibration Complete</span>
+                <span class="feed-text">Buoy network reset — accuracy +4%</span>
+              </div>
+              <span class="feed-time mono">45m</span>
+            </div>
+            <div class="feed-item">
+              <div class="feed-dot" style="background:var(--current-dim);color:var(--current)"><svg class="icon" style="width:13px;height:13px"><use href="#i-boat"></use></svg></div>
+              <div class="feed-body">
+                <span class="feed-title">Fleet Movement</span>
+                <span class="feed-text">Convoy Bravo returning to port</span>
+              </div>
+              <span class="feed-time mono">2h</span>
+            </div>
+            <div class="feed-item">
+              <div class="feed-dot" style="background:var(--panel-2);color:var(--ink-dim)"><svg class="icon" style="width:13px;height:13px"><use href="#i-satellite"></use></svg></div>
+              <div class="feed-body">
+                <span class="feed-title">Uplink Handshake</span>
+                <span class="feed-text">Oceansat-3 relay confirmed</span>
+              </div>
+              <span class="feed-time mono">3h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><svg class="icon"><use href="#i-hub"></use></svg>Specialist Agents</div>
+          <span class="chip chip-bad"><i class="dot" style="background:currentColor"></i>Orchestrator Active</span>
+        </div>
+        <div class="grid grid-4" style="grid-template-columns:repeat(2,1fr)">
+          <div class="agent-row">
+            <div class="agent-icon"><svg class="icon"><use href="#i-route"></use></svg></div>
+            <div class="agent-meta"><span class="agent-name">Planner</span><span class="agent-stats mono">120ms · Brier 0.05</span></div>
+            <i class="dot online" style="margin-left:auto"></i>
+          </div>
+          <div class="agent-row">
+            <div class="agent-icon"><svg class="icon"><use href="#i-wave"></use></svg></div>
+            <div class="agent-meta"><span class="agent-name">Ocean Analytics</span><span class="agent-stats mono">210ms · Brier 0.12</span></div>
+            <i class="dot online" style="margin-left:auto"></i>
+          </div>
+          <div class="agent-row">
+            <div class="agent-icon" style="background:var(--flare-dim);color:var(--flare)"><svg class="icon"><use href="#i-alert"></use></svg></div>
+            <div class="agent-meta"><span class="agent-name">Weather &amp; Hazard</span><span class="agent-stats mono">340ms · Brier 0.45</span></div>
+            <i class="dot" style="background:var(--flare);box-shadow:0 0 6px var(--flare);margin-left:auto"></i>
+          </div>
+          <div class="agent-row">
+            <div class="agent-icon" style="background:var(--panel-line);color:var(--ink-faint)"><svg class="icon"><use href="#i-compass"></use></svg></div>
+            <div class="agent-meta"><span class="agent-name">Geospatial Risk</span><span class="agent-stats mono">idle</span></div>
+            <i class="dot" style="margin-left:auto"></i>
+          </div>
+          <div class="agent-row">
+            <div class="agent-icon"><svg class="icon"><use href="#i-hub"></use></svg></div>
+            <div class="agent-meta"><span class="agent-name">Trip Twin</span><span class="agent-stats mono">180ms · Brier 0.08</span></div>
+            <i class="dot online" style="margin-left:auto"></i>
+          </div>
+          <div class="agent-row">
+            <div class="agent-icon"><svg class="icon"><use href="#i-chev-up"></use></svg></div>
+            <div class="agent-meta"><span class="agent-name">Causal &amp; Trend</span><span class="agent-stats mono">410ms · Brier 0.15</span></div>
+            <i class="dot online" style="margin-left:auto"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><svg class="icon"><use href="#i-target"></use></svg>Live Compiled Task DAG</div>
+          <span class="query-bubble mono">"Safe to go 40km off Malvan at 05:00?"</span>
+        </div>
+        <div class="dag">
+          <div class="dag-node">L1 · Intent Resolution</div>
+          <div class="dag-connector"></div>
+          <div class="dag-node">L2 · Context Resolution</div>
+          <div class="dag-connector"></div>
+          <div class="dag-row">
+            <div class="dag-t"><b>T3 · Wave</b><span>INCOIS</span></div>
+            <div class="dag-t"><b>T4 · Weather</b><span style="color:var(--flare)">Damini</span></div>
+            <div class="dag-t"><b>T5 · Geo</b><span>PostGIS</span></div>
+          </div>
+          <div class="dag-connector"></div>
+          <div class="dag-award">L4 · Contract-Net Bidding Box<span>Awarded to ORCA Agent</span></div>
+          <div class="dag-connector"></div>
+          <div class="dag-node">L5 · T9 Guardrail</div>
+        </div>
+      </div>
+
+      <div class="grid grid-split">
+        <div class="card">
+          <div class="card-title"><svg class="icon"><use href="#i-archive"></use></svg>Provenance Inspector</div>
+          <div class="code-block">
+{<br>
+&nbsp;&nbsp;<span class="k">"node"</span>: <span class="v">"MOSDAC_SST_L4"</span>,<br>
+&nbsp;&nbsp;<span class="k">"source"</span>: <span class="v">"ISRO-MOS-23-A"</span>,<br>
+&nbsp;&nbsp;<span class="k">"confidence"</span>: <span class="v">0.94</span>,<br>
+&nbsp;&nbsp;<span class="k">"timestamp"</span>: <span class="v">"2026-08-31T14:00Z"</span><br>
+}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><svg class="icon"><use href="#i-refresh"></use></svg>Live Audit Feed</div>
+          <div id="audit-feed" style="max-height:190px;overflow-y:auto">
+            <div class="audit-line"><span class="audit-time mono">14:02:11</span><span>Agent planner initiated contract bid.</span></div>
+            <div class="audit-line"><span class="audit-time mono">14:02:15</span><span style="color:var(--bio)">Received payload from INCOIS node.</span></div>
+            <div class="audit-line"><span class="audit-time mono">14:02:18</span><span style="color:var(--flare)">Guardrail check passed. Validating schema.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SENSORS -->
+    <section id="panel-sensors" class="panel" hidden>
+      <div class="panel-head">
+        <h2>Sensors</h2>
+        <span class="panel-sub">4 arrays online · Grid Ref Alpha-7</span>
+      </div>
+
+      <div class="grid grid-3col">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><svg class="icon"><use href="#i-pulse"></use></svg>Active Arrays</div>
+            <span class="chip chip-good">4 online</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;padding:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px"><i class="dot online"></i>Oceansat-3</span>
+                <span class="mono" style="font-size:10.5px;color:var(--ink-faint)">SAT-L3</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-dim);margin-bottom:6px">
+                <span>Uplink <b class="mono" style="color:var(--bio)">99.8%</b></span>
+                <span>Power <b class="mono">85%</b></span>
+              </div>
+              <svg class="sparkline" viewBox="0 0 200 30" preserveAspectRatio="none"><polyline points="0,22 20,18 40,20 60,8 80,12 100,4 120,10 140,6 160,14 180,10 200,16" fill="none" stroke="var(--bio)" stroke-width="1.8"/></svg>
+            </div>
+            <div style="background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;padding:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px"><i class="dot" style="background:var(--flare);box-shadow:0 0 6px var(--flare)"></i>Wave Buoy #442</span>
+                <span class="mono" style="font-size:10.5px;color:var(--ink-faint)">BUOY-S</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-dim);margin-bottom:6px">
+                <span>Uplink <b class="mono" style="color:var(--flare)">82.1%</b></span>
+                <span>Power <b class="mono" style="color:var(--flare)">35%</b></span>
+              </div>
+              <svg class="sparkline" viewBox="0 0 200 30" preserveAspectRatio="none"><polyline points="0,10 20,14 40,6 60,20 80,4 100,18 120,10 140,24 160,10 180,16 200,6" fill="none" stroke="var(--flare)" stroke-width="1.8"/></svg>
+            </div>
+            <div style="background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;padding:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px"><i class="dot online"></i>AIS Receiver Alpha</span>
+                <span class="mono" style="font-size:10.5px;color:var(--ink-faint)">VHF-RX</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-dim)">
+                <span>Uplink <b class="mono" style="color:var(--bio)">100%</b></span>
+                <span class="mono" style="color:var(--bio)">HARDLINE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="min-height:420px">
+          <div class="card-head">
+            <div class="card-title"><svg class="icon"><use href="#i-compass"></use></svg>Spatial Coverage</div>
+          </div>
+          <div class="instrument-surface">
+            <div class="grid-overlay"></div>
+            <div class="radar-hand"></div>
+            <div class="node-dot" style="left:34%;top:38%;background:var(--bio);box-shadow:0 0 10px var(--bio)"></div>
+            <div class="node-label" style="left:34%;top:38%">Oceansat-3</div>
+            <div class="node-dot" style="left:58%;top:64%;background:var(--flare);box-shadow:0 0 10px var(--flare)"></div>
+            <div class="node-label" style="left:58%;top:64%">Buoy #442</div>
+            <div class="node-dot" style="left:72%;top:30%;background:var(--bio);box-shadow:0 0 10px var(--bio)"></div>
+            <div class="node-label" style="left:72%;top:30%">AIS Alpha</div>
+            <div class="surface-stat" style="bottom:14px;left:14px;display:flex;gap:16px">
+              <div><div style="font-size:10px;color:var(--ink-faint);text-transform:uppercase">Active Nodes</div><div class="mono" style="color:var(--bio);font-size:15px">1,248</div></div>
+              <div><div style="font-size:10px;color:var(--ink-faint);text-transform:uppercase">Coverage</div><div class="mono" style="font-size:15px">84,000 km²</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><svg class="icon"><use href="#i-target"></use></svg>Telemetry Detail</div>
+            <span class="mono" style="font-size:10.5px;color:var(--ink-faint)">Oceansat-3</span>
+          </div>
+          <div class="kv-grid">
+            <div class="kv"><div class="kv-label">Signal</div><div class="kv-value"><span id="v-signal">-42</span><span>dBm</span></div></div>
+            <div class="kv"><div class="kv-label">Packet Loss</div><div class="kv-value"><span id="v-loss">0.02</span><span>%</span></div></div>
+            <div class="kv"><div class="kv-label">Latency</div><div class="kv-value"><span id="v-latency">124</span><span>ms</span></div></div>
+            <div class="kv"><div class="kv-label">Temp (int)</div><div class="kv-value"><span id="v-temp">14.2</span><span>°C</span></div></div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">SNR — 24h trend</div>
+            <div style="position:relative">
+              <div id="snr-bars" style="display:flex;align-items:flex-end;gap:4px;height:64px">
+                <div class="snr-bar" data-t="00:00" style="flex:1;background:var(--bio);opacity:.35;height:55%;border-radius:2px 2px 0 0;transition:height .6s ease"></div>
+                <div class="snr-bar" data-t="04:00" style="flex:1;background:var(--bio);opacity:.4;height:62%;border-radius:2px 2px 0 0;transition:height .6s ease"></div>
+                <div class="snr-bar" data-t="08:00" style="flex:1;background:var(--bio);opacity:.5;height:48%;border-radius:2px 2px 0 0;transition:height .6s ease"></div>
+                <div class="snr-bar" data-t="12:00" style="flex:1;background:var(--bio);opacity:.6;height:70%;border-radius:2px 2px 0 0;transition:height .6s ease"></div>
+                <div class="snr-bar" data-t="16:00" style="flex:1;background:var(--bio);opacity:.75;height:85%;border-radius:2px 2px 0 0;transition:height .6s ease"></div>
+                <div class="snr-bar" data-t="20:00" style="flex:1;background:var(--bio);opacity:.9;height:78%;border-radius:2px 2px 0 0;transition:height .6s ease"></div>
+                <div class="snr-bar" data-t="NOW" style="flex:1;background:var(--bio);height:98%;border-radius:2px 2px 0 0;box-shadow:0 0 10px var(--bio);transition:height .6s ease"></div>
+              </div>
+              <div id="snr-tooltip" class="chart-tooltip mono"></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Frequency Spectrum</div>
+            <svg viewBox="0 0 300 50" style="width:100%;height:50px">
+              <path fill="none" stroke="var(--bio)" stroke-width="1.5" d="M0,25 Q15,5 30,25 T60,25 T90,10 T120,40 T150,25 T180,25 T210,15 T240,30 T270,25 T300,25">
+                <animate attributeName="d" dur="3s" repeatCount="indefinite" values="
+                  M0,25 Q15,5 30,25 T60,25 T90,10 T120,40 T150,25 T180,25 T210,15 T240,30 T270,25 T300,25;
+                  M0,25 Q15,40 30,25 T60,25 T90,35 T120,10 T150,25 T180,25 T210,35 T240,15 T270,25 T300,25;
+                  M0,25 Q15,5 30,25 T60,25 T90,10 T120,40 T150,25 T180,25 T210,15 T240,30 T270,25 T300,25"/>
+              </path>
+            </svg>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-block"><svg class="icon" style="width:14px;height:14px"><use href="#i-refresh"></use></svg>Run Diagnostic</button>
+            <button class="btn btn-block"><svg class="icon" style="width:14px;height:14px"><use href="#i-target"></use></svg>Force Recalibrate</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NETWORK -->
+    <section id="panel-network" class="panel" hidden>
+      <div class="panel-head">
+        <h2>Network</h2>
+        <span class="panel-sub">Satellite &amp; terrestrial mesh</span>
+      </div>
+
+      <div class="grid grid-3">
+        <div class="card" style="min-height:400px">
+          <div class="card-head">
+            <div class="card-title"><svg class="icon"><use href="#i-hub"></use></svg>Mesh Topology</div>
+            <button class="btn"><svg class="icon" style="width:13px;height:13px"><use href="#i-refresh"></use></svg>Refresh</button>
+          </div>
+          <div class="instrument-surface">
+            <div class="grid-overlay"></div>
+            <svg width="100%" height="100%" viewBox="0 0 600 300" style="position:absolute;inset:0">
+              <path class="flow-line" d="M90,150 C220,150 220,80 340,80" fill="none" stroke="var(--bio)" stroke-width="2" opacity=".8"/>
+              <path class="flow-line flow-line-slow" d="M340,80 C440,80 440,190 500,190" fill="none" stroke="var(--flare)" stroke-width="2"/>
+            </svg>
+            <div class="node-dot" style="left:15%;top:50%;width:16px;height:16px;background:var(--bio);box-shadow:0 0 12px var(--bio)"></div>
+            <div class="node-label" style="left:15%;top:50%">Command HQ</div>
+            <div class="node-dot" style="left:57%;top:27%;width:14px;height:14px;background:var(--current);box-shadow:0 0 12px var(--current)"></div>
+            <div class="node-label" style="left:57%;top:27%">Satellite Relay</div>
+            <div class="node-dot" style="left:83%;top:63%;width:14px;height:14px;background:var(--flare);box-shadow:0 0 12px var(--flare)"></div>
+            <div class="node-label" style="left:83%;top:63%">TFA Vanguard</div>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><i class="legend-swatch" style="background:var(--bio)"></i>Stable link</span>
+            <span class="legend-item"><i class="legend-swatch" style="background:var(--flare)"></i>Degraded</span>
+            <span class="legend-item"><i class="legend-swatch" style="background:var(--danger)"></i>Lost</span>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <div class="card">
+            <div class="card-title"><svg class="icon"><use href="#i-target"></use></svg>Bandwidth Allocation</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span>Tactical Comms</span><span class="mono" style="color:var(--bio)">75%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:75%;background:var(--bio)"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span>Sensor Telemetry</span><span class="mono">15%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--current)"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span>Background Sync</span><span class="mono" style="color:var(--flare)">10%</span></div>
+                <div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--flare)"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><svg class="icon"><use href="#i-hub"></use></svg>IPsec Tunnels</div>
+            <table>
+              <thead><tr><th>ID</th><th>Status</th><th style="text-align:right">Uptime</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">TUN-A1</td><td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Established</span></td><td class="mono" style="text-align:right">45:12:00</td></tr>
+                <tr><td class="mono">TUN-B2</td><td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Established</span></td><td class="mono" style="text-align:right">12:04:33</td></tr>
+                <tr><td class="mono">TUN-C3</td><td><span class="chip chip-warn"><i class="dot" style="background:currentColor"></i>Rekeying</span></td><td class="mono" style="text-align:right">00:00:15</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FORECAST -->
+    <section id="panel-forecast" class="panel" hidden>
+      <div class="panel-head">
+        <h2>Analytics</h2>
+        <span class="panel-sub">Causal inference &amp; kinematics</span>
+      </div>
+
+      <div class="grid grid-3col">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><svg class="icon"><use href="#i-alert"></use></svg>Causal Inference</div>
+            <span class="panel-sub" style="font-size:10.5px">12h trend</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="log-entry" style="cursor:pointer">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span class="chip chip-bad"><i class="dot" style="background:currentColor"></i>Critical</span><span class="mono" style="font-size:11px;color:var(--flare)">88%</span>
+              </div>
+              <div style="font-size:12.5px;font-weight:500;margin-bottom:2px">Predicted Squall Onset</div>
+              <div style="font-size:10.5px;color:var(--ink-faint);margin-bottom:8px">Est. 14:00Z · Sector Alpha-9</div>
+              <svg class="sparkline" viewBox="0 0 200 34" preserveAspectRatio="none">
+                <polyline points="0,28 25,25 50,26 75,18 100,20 125,10 150,12 175,4 200,2" fill="none" stroke="var(--danger)" stroke-width="2"/>
+                <polygon points="0,28 25,25 50,26 75,18 100,20 125,10 150,12 175,4 200,2 200,34 0,34" fill="var(--danger)" opacity=".12"/>
+              </svg>
+              <div class="bar-track" style="margin-top:6px"><div class="bar-fill" style="width:88%;background:var(--danger)"></div></div>
+            </div>
+            <div class="log-entry" style="cursor:pointer">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span class="chip chip-warn"><i class="dot" style="background:currentColor"></i>Warning</span><span class="mono" style="font-size:11px;color:var(--flare)">64%</span>
+              </div>
+              <div style="font-size:12.5px;font-weight:500;margin-bottom:2px">Rogue Wave Spike</div>
+              <div style="font-size:10.5px;color:var(--ink-faint);margin-bottom:8px">45.9°N, 12.4°W</div>
+              <svg class="sparkline" viewBox="0 0 200 34" preserveAspectRatio="none">
+                <polyline points="0,20 25,24 50,16 75,20 100,12 125,18 150,8 175,14 200,6" fill="none" stroke="var(--flare)" stroke-width="2"/>
+                <polygon points="0,20 25,24 50,16 75,20 100,12 125,18 150,8 175,14 200,6 200,34 0,34" fill="var(--flare)" opacity=".12"/>
+              </svg>
+              <div class="bar-track" style="margin-top:6px"><div class="bar-fill" style="width:64%;background:var(--flare)"></div></div>
+            </div>
+            <div class="log-entry" style="cursor:pointer;opacity:.85">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Normal</span><span class="mono" style="font-size:11px;color:var(--kelp)">12%</span>
+              </div>
+              <div style="font-size:12.5px;font-weight:500;margin-bottom:2px">Thermal Layer Inversion</div>
+              <div style="font-size:10.5px;color:var(--ink-faint);margin-bottom:8px">Depth 150–200m</div>
+              <svg class="sparkline" viewBox="0 0 200 34" preserveAspectRatio="none">
+                <polyline points="0,10 25,14 50,10 75,16 100,12 125,20 150,16 175,22 200,24" fill="none" stroke="var(--kelp)" stroke-width="2"/>
+                <polygon points="0,10 25,14 50,10 75,16 100,12 125,20 150,16 175,22 200,24 200,34 0,34" fill="var(--kelp)" opacity=".12"/>
+              </svg>
+              <div class="bar-track" style="margin-top:6px"><div class="bar-fill" style="width:12%;background:var(--kelp)"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><svg class="icon"><use href="#i-wave"></use></svg>Kinematics — 48h</div>
+            <div class="seg-tabs">
+              <button class="active">SST</button><button>Wave</button><button>Wind</button>
+            </div>
+          </div>
+          <div style="position:relative">
+            <svg id="fc-svg" viewBox="0 0 400 200" preserveAspectRatio="none" style="width:100%;height:220px;cursor:crosshair">
+              <line x1="30" y1="10" x2="30" y2="170" stroke="var(--panel-line)"/>
+              <line x1="30" y1="170" x2="390" y2="170" stroke="var(--panel-line)"/>
+              <path d="M30,140 Q100,120 160,90 T290,60 T380,30" fill="none" stroke="var(--bio)" stroke-width="2.2"/>
+              <path d="M30,140 Q100,120 160,90 T290,60 T380,30 L380,170 L30,170 Z" fill="var(--bio)" opacity=".1"/>
+              <path class="flow-line" d="M30,160 Q120,150 190,130 T340,120 T380,132" fill="none" stroke="var(--current)" stroke-width="1.6"/>
+              <circle cx="290" cy="60" r="4.5" fill="var(--bio)"/>
+              <circle cx="290" cy="60" r="4.5" fill="none" stroke="var(--bio)" stroke-width="1.4" opacity=".8">
+                <animate attributeName="r" values="4.5;15;4.5" dur="2s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values=".8;0;.8" dur="2s" repeatCount="indefinite"/>
+              </circle>
+              <text x="298" y="52" fill="var(--ink)" font-size="10" font-family="IBM Plex Mono">21.4°C</text>
+              <text x="26" y="185" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">T-48</text>
+              <text x="370" y="185" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">NOW</text>
+              <line id="fc-crosshair" x1="30" y1="10" x2="30" y2="170" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+              <circle id="fc-dot" r="5" fill="var(--current)" opacity="0" style="filter:drop-shadow(0 0 5px var(--current))"/>
+            </svg>
+            <div id="fc-tooltip" class="chart-tooltip mono"></div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <div class="card">
+            <div class="card-title"><svg class="icon"><use href="#i-target"></use></svg>Model Confidence</div>
+            <div class="donut-wrap">
+              <svg viewBox="0 0 120 120" width="150" height="150">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--panel-2)" stroke-width="10"/>
+                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bio)" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="35"/>
+              </svg>
+              <div class="donut-center"><b class="mono">89%</b><span>Confidence</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:11.5px">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-dim)">Inference Engine α</span><span class="mono" style="color:var(--bio)">0.92</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-dim)">Kinematic Module β</span><span class="mono" style="color:var(--current)">0.85</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-dim)">Data Integrity</span><span class="mono" style="color:var(--kelp)">HIGH</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="font-size:10.5px">YoY Thermal Anomaly</div>
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <span class="metric-value mono" style="font-size:24px;color:var(--danger)">+2.4°C</span>
+              <span style="font-size:11px;color:var(--ink-faint)">vs 2023 avg</span>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:3px;height:28px">
+              <div style="flex:1;background:rgba(255,138,76,.25);height:30%;border-radius:2px 2px 0 0"></div>
+              <div style="flex:1;background:rgba(255,138,76,.35);height:40%;border-radius:2px 2px 0 0"></div>
+              <div style="flex:1;background:rgba(255,138,76,.5);height:35%;border-radius:2px 2px 0 0"></div>
+              <div style="flex:1;background:rgba(255,77,109,.7);height:65%;border-radius:2px 2px 0 0"></div>
+              <div style="flex:1;background:var(--danger);height:100%;border-radius:2px 2px 0 0;box-shadow:0 0 8px var(--danger)"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="font-size:10.5px"><svg class="icon" style="width:14px;height:14px"><use href="#i-compass"></use></svg>Species Tracking</div>
+            <svg viewBox="0 0 200 50" style="width:100%;height:50px">
+              <path d="M0,25 C40,5 60,45 100,25 S160,5 200,25" fill="none" stroke="var(--current)" stroke-width="1.6" opacity=".8"/>
+              <path d="M0,35 C40,15 60,55 100,35 S160,15 200,35" fill="none" stroke="var(--bio)" stroke-width="1.6" opacity=".6"/>
+            </svg>
+            <div style="font-size:11.5px;color:var(--ink-dim)">Pelagic shift detected: <b style="color:var(--current)">45NM North</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="flex-direction:row;flex-wrap:wrap;align-items:center;gap:24px">
+        <div style="display:flex;align-items:center;gap:10px;min-width:220px">
+          <svg class="icon" style="color:var(--bio)"><use href="#i-refresh"></use></svg>
+          <div>
+            <div style="font-size:13px;font-weight:600">Model Confidence &amp; Brier Scores</div>
+            <div style="font-size:11px;color:var(--ink-faint)">Active Ensemble: Aegis-Net v4.2</div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;gap:24px;flex-wrap:wrap;min-width:280px">
+          <div style="flex:1;min-width:150px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--ink-dim)">Kinematic Engine</span><span class="chip chip-good">Excellent</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><span class="mono" style="font-size:15px;font-weight:600">0.12</span><div class="bar-track" style="flex:1"><div class="bar-fill" style="width:88%;background:var(--bio)"></div></div></div>
+          </div>
+          <div style="flex:1;min-width:150px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--ink-dim)">Thermal Prediction</span><span class="chip chip-info">Nominal</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><span class="mono" style="font-size:15px;font-weight:600">0.24</span><div class="bar-track" style="flex:1"><div class="bar-fill" style="width:66%;background:var(--current)"></div></div></div>
+          </div>
+          <div style="flex:1;min-width:150px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--ink-dim)">Anomaly Detect</span><span class="chip chip-warn">Recalibrating</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><span class="mono" style="font-size:15px;font-weight:600;color:var(--flare)">0.41</span><div class="bar-track" style="flex:1"><div class="bar-fill" style="width:41%;background:var(--flare)"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHIVE -->
+    <section id="panel-archive" class="panel" hidden>
+      <div class="panel-head">
+        <h2>Archive</h2>
+        <span class="panel-sub">Immutable telemetry &amp; provenance logs</span>
+      </div>
+
+      <div class="card" style="flex-direction:row;flex-wrap:wrap;align-items:center;gap:12px">
+        <svg class="icon" style="color:var(--ink-faint)"><use href="#i-filter"></use></svg>
+        <select><option>Last 7 Days</option><option>Last 30 Days</option><option>Custom Range…</option></select>
+        <select><option>All Sensors</option><option>Sonar Array</option><option>AIS Transceiver</option></select>
+        <select><option>All Outcomes</option><option>Resolved</option><option>Escalated</option></select>
+        <button class="btn btn-solid" style="margin-left:auto"><svg class="icon" style="width:14px;height:14px"><use href="#i-download"></use></svg>Export Selected</button>
+      </div>
+
+      <div class="grid grid-split">
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th></th><th>Timestamp (UTC)</th><th>Vessel ID</th><th>Incident Type</th><th style="text-align:right">Size</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr style="background:rgba(47,230,198,.06)">
+                  <td><input class="checkbox" type="checkbox" checked></td>
+                  <td class="mono">2024-03-15 14:32:01</td>
+                  <td class="mono" style="color:var(--bio)">MMSI-987654</td>
+                  <td>IMBL Breach (Zone 4)</td>
+                  <td class="mono" style="text-align:right">45 MB</td>
+                  <td><span class="chip chip-bad"><i class="dot" style="background:currentColor"></i>Critical</span></td>
+                </tr>
+                <tr>
+                  <td><input class="checkbox" type="checkbox"></td>
+                  <td class="mono">2024-03-15 12:15:44</td>
+                  <td class="mono" style="color:var(--bio)">V-UNKN-882</td>
+                  <td>Severe Squall Detection</td>
+                  <td class="mono" style="text-align:right">1.2 GB</td>
+                  <td><span class="chip chip-warn"><i class="dot" style="background:currentColor"></i>Warning</span></td>
+                </tr>
+                <tr>
+                  <td><input class="checkbox" type="checkbox"></td>
+                  <td class="mono">2024-03-14 23:01:10</td>
+                  <td class="mono" style="color:var(--bio)">MMSI-112233</td>
+                  <td>Routine Patrol Log</td>
+                  <td class="mono" style="text-align:right">8 MB</td>
+                  <td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Normal</span></td>
+                </tr>
+                <tr>
+                  <td><input class="checkbox" type="checkbox"></td>
+                  <td class="mono">2024-03-14 18:44:02</td>
+                  <td class="mono" style="color:var(--bio)">MMSI-556781</td>
+                  <td>Sonar Ping Sequence</td>
+                  <td class="mono" style="text-align:right">4 KB</td>
+                  <td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Normal</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><svg class="icon"><use href="#i-archive"></use></svg>Entry Preview</div>
+          <div style="font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em">Coordinates</div>
+          <div class="mono" style="font-size:13px;color:var(--bio)">12.45°N · 114.12°E</div>
+          <div class="code-block">
+{<br>
+&nbsp;&nbsp;<span class="k">"log_id"</span>: <span class="v">"L-99827-A"</span>,<br>
+&nbsp;&nbsp;<span class="k">"source"</span>: <span class="v">"Sonar_Array_B"</span>,<br>
+&nbsp;&nbsp;<span class="k">"confidence"</span>: <span class="v">0.94</span>,<br>
+&nbsp;&nbsp;<span class="k">"operator"</span>: <span class="v">"CMD-04"</span><br>
+}
+          </div>
+          <div class="kv-grid">
+            <div class="kv"><div class="kv-label">Duration</div><div class="kv-value" style="font-size:14px">14m 22s</div></div>
+            <div class="kv"><div class="kv-label">Vessel Type</div><div class="kv-value" style="font-size:14px">Cargo</div></div>
+          </div>
+          <button class="btn btn-solid btn-block">View Full Dossier</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title"><svg class="icon"><use href="#i-hub"></use></svg>Delivery Ledger</div>
+          <span class="chip chip-info" id="ledger-rate">Warned &amp; acknowledged rate — …</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Vessel</th><th>Message</th><th>Sent</th><th>Status</th></tr></thead>
+            <tbody id="ledger-body"><tr><td colspan="4" style="color:var(--ink-faint)">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- FIELD ASSIST -->
+    <section id="panel-field" class="panel" hidden>
+      <div class="panel-head">
+        <h2>Field Assist</h2>
+        <span class="panel-sub">Direct vessel advisories &amp; comms relay</span>
+      </div>
+      <div class="grid grid-split">
+        <div class="card">
+          <div class="card-title"><svg class="icon"><use href="#i-boat"></use></svg>Active Vessel Roster</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Vessel</th><th>Operator</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="mono" style="color:var(--bio)">ORCA-9</td>
+                  <td>K. Naik</td>
+                  <td><span class="chip chip-bad"><i class="dot" style="background:currentColor"></i>Critical</span></td>
+                  <td style="text-align:right"><button class="btn"><svg class="icon" style="width:13px;height:13px"><use href="#i-bell"></use></svg>Relay</button></td>
+                </tr>
+                <tr>
+                  <td class="mono" style="color:var(--bio)">TFA Vanguard</td>
+                  <td>R. Salvi</td>
+                  <td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Normal</span></td>
+                  <td style="text-align:right"><button class="btn"><svg class="icon" style="width:13px;height:13px"><use href="#i-bell"></use></svg>Relay</button></td>
+                </tr>
+                <tr>
+                  <td class="mono" style="color:var(--bio)">V-UNKN-882</td>
+                  <td>Unregistered</td>
+                  <td><span class="chip chip-warn"><i class="dot" style="background:currentColor"></i>Warning</span></td>
+                  <td style="text-align:right"><button class="btn"><svg class="icon" style="width:13px;height:13px"><use href="#i-bell"></use></svg>Relay</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><svg class="icon"><use href="#i-bell"></use></svg>Broadcast Advisory</div>
+          <select id="bc-vessel"><option value="ALL">All vessels — Sector 7G</option></select>
+          <select id="bc-lang"><option value="mr">Language: Marathi</option><option value="hi">Language: Hindi</option><option value="en">Language: English</option></select>
+          <div class="code-block" id="bc-message" style="min-height:60px;color:var(--ink-dim)" contenteditable="true">"Maintain 240° SW heading — 2.8m squall swell ahead. Acknowledge on receipt."</div>
+          <button class="btn btn-solid btn-block" id="bc-send"><svg class="icon" style="width:14px;height:14px"><use href="#i-bell"></use></svg>Send Broadcast</button>
+          <div class="panel-sub" id="bc-status" style="min-height:14px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CRISIS -->
+    <section id="panel-crisis" class="panel" hidden>
+      <div class="panel-head">
+        <h2>Crisis Monitor</h2>
+        <span class="panel-sub" style="color:var(--danger)">IMBL proximity · Vessel ORCA-9</span>
+      </div>
+      <div class="grid grid-3">
+        <div class="card" style="min-height:440px;border-color:rgba(255,77,109,.3)">
+          <div class="card-head">
+            <div class="card-title" style="color:var(--danger)"><svg class="icon" style="color:var(--danger)"><use href="#i-alert"></use></svg>Boundary Radar</div>
+            <span class="chip chip-bad"><i class="dot" style="background:currentColor"></i>Intercept in 00:03:42</span>
+          </div>
+          <div class="instrument-surface" style="min-height:360px;background:radial-gradient(ellipse at 50% 50%,rgba(255,77,109,.08),transparent 60%),var(--abyss-2)">
+            <div class="grid-overlay"></div>
+            <div class="imbl-boundary"></div>
+            <span class="imbl-tag mono">IMBL — 3.8km</span>
+            <div class="danger-ring2"></div>
+            <div class="node-dot" style="left:55%;top:50%;width:14px;height:14px;background:var(--flare);box-shadow:0 0 12px var(--flare)"></div>
+            <div class="node-label" style="left:55%;top:50%">ORCA-9 · 14kt · 142°</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <div class="card" style="border-color:rgba(255,77,109,.3)">
+            <div class="card-title" style="color:var(--danger)">Intervention Required</div>
+            <p style="font-size:12.5px;color:var(--ink-dim);margin:0">Vessel ORCA-9 is critically close to the International Maritime Boundary Line. Immediate action mandated.</p>
+          </div>
+          <div class="card" style="flex:1">
+            <div class="card-title">Protocols</div>
+            <button class="btn btn-block" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:8px"><svg class="icon" style="width:14px;height:14px"><use href="#i-bell"></use></svg>Automated Voice Call</span><svg class="icon" style="width:14px;height:14px"><use href="#i-chev-up"></use></svg></button>
+            <button class="btn btn-block" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:8px"><svg class="icon" style="width:14px;height:14px"><use href="#i-satellite"></use></svg>Push NavIC Delta Sync</span><svg class="icon" style="width:14px;height:14px"><use href="#i-chev-up"></use></svg></button>
+            <button class="btn btn-block" id="crisis-escalate" style="margin-top:auto;background:var(--danger);border-color:var(--danger);color:#2a0008;font-size:13px;padding:14px"><svg class="icon" style="width:16px;height:16px"><use href="#i-flare"></use></svg>Escalate to Coast Guard</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRIP PLANNER -->
+    <section id="panel-planner" class="panel" hidden>
+      <div class="panel-head">
+        <h2>Trip Planner</h2>
+        <span class="panel-sub">4D spatiotemporal route synthesis</span>
+      </div>
+      <div class="grid-planner">
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title"><svg class="icon"><use href="#i-target"></use></svg>Mission Parameters</div>
+            <span class="chip chip-info"><i class="dot" style="background:currentColor"></i>Synced</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="slider-group">
+              <div class="slider-label"><span>Departure Window</span><span class="mono" id="val-departure">06:00</span></div>
+              <input type="range" min="4" max="12" step="0.5" value="6" id="sl-departure">
+              <div class="slider-ticks"><span>04:00</span><span>08:00</span><span>12:00</span></div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Cruise Speed (kts)</span><span class="mono" id="val-speed">12.5</span></div>
+              <input type="range" min="6" max="14" step="0.5" value="12.5" id="sl-speed">
+              <div class="slider-ticks"><span>6.0</span><span>10.0</span><span>14.0</span></div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Operation Duration (hrs)</span><span class="mono" id="val-duration">4.5</span></div>
+              <input type="range" min="2" max="8" step="0.5" value="4.5" id="sl-duration">
+              <div class="slider-ticks"><span>2.0</span><span>5.0</span><span>8.0</span></div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Fuel Tank Limit (L)</span></div>
+              <input class="field" type="number" value="50" style="width:100%">
+            </div>
+            <button class="btn btn-solid btn-block" id="btn-recalc" style="background:var(--flare);border-color:var(--flare);color:#20120a"><svg class="icon" style="width:14px;height:14px"><use href="#i-refresh"></use></svg>Recalculate Spatiotemporal Twin</button>
+          </div>
+        </div>
+
+        <div class="card" style="min-height:420px">
+          <div class="card-title"><svg class="icon"><use href="#i-wave"></use></svg>4D Trajectory &amp; Hazard Analysis</div>
+          <div style="position:relative">
+            <svg id="tp-svg" viewBox="0 0 420 260" preserveAspectRatio="none" style="width:100%;height:260px;cursor:crosshair">
+              <line x1="34" y1="10" x2="34" y2="220" stroke="var(--panel-line)"/>
+              <line x1="34" y1="220" x2="410" y2="220" stroke="var(--panel-line)"/>
+              <polygon points="230,10 280,10 260,220 210,220" fill="var(--flare)" opacity=".08"/>
+              <path class="flow-line" d="M50,210 C110,190 150,90 210,60 C230,45 250,60 260,60 C280,60 320,180 380,210" fill="none" stroke="var(--flare)" stroke-width="2"/>
+              <path d="M55,215 C100,180 130,110 170,95 C200,85 240,55 280,90 C320,120 350,190 385,215" fill="none" stroke="var(--bio)" stroke-width="2.2"/>
+              <circle cx="245" cy="58" r="4" fill="var(--flare)">
+                <animate attributeName="r" values="4;11;4" dur="1.6s" repeatCount="indefinite"/>
+              </circle>
+              <text x="252" y="50" fill="var(--flare)" font-size="9" font-family="IBM Plex Mono">13:30 INTERSECT</text>
+              <text x="8" y="14" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">60km</text>
+              <text x="8" y="120" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">30km</text>
+              <text x="14" y="234" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">0km</text>
+              <text x="40" y="240" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">04:00</text>
+              <text x="180" y="240" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">12:00</text>
+              <text x="368" y="240" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">18:00</text>
+              <line id="tp-crosshair" x1="55" y1="10" x2="55" y2="220" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+              <circle id="tp-dot" r="5" fill="var(--bio)" opacity="0" style="filter:drop-shadow(0 0 5px var(--bio))"/>
+            </svg>
+            <div id="tp-tooltip" class="chart-tooltip mono"></div>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><i class="legend-swatch" style="background:var(--bio)"></i>Optimal Route</span>
+            <span class="legend-item"><i class="legend-swatch" style="background:var(--flare)"></i>Hazard Conflict</span>
+          </div>
+          <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+            <div class="kv"><div class="kv-label">Fuel Consumption</div><div class="kv-value" id="pl-fuel" style="color:var(--flare)">38<span>/50L</span></div><div class="bar-track" style="margin-top:6px"><div class="bar-fill" id="pl-fuel-bar" style="width:76%;background:var(--flare)"></div></div></div>
+            <div class="kv"><div class="kv-label" style="display:flex;align-items:center;gap:5px">Point of No Return<i class="dot" style="background:var(--flare)"></i></div><div class="kv-value" id="pl-nrp">11:15</div><div style="font-size:9.5px;color:var(--flare);margin-top:4px" id="pl-nrp-note">LIMITED MARGIN</div></div>
+            <div class="kv"><div class="kv-label">Offshore Wave Margin</div><div class="kv-value" id="pl-wave">1.8<span>m max</span></div><div style="font-size:9.5px;color:var(--kelp);margin-top:4px" id="pl-wave-note">✓ WITHIN LIMITS</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><svg class="icon"><use href="#i-filter"></use></svg>Route Explainability Log</div>
+          <div style="display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto">
+            <div class="log-entry log-bad">
+              <div class="log-head"><svg class="icon" style="width:14px;height:14px"><use href="#i-alert"></use></svg>Direct Route Rejected</div>
+              <p>Crosses predicted 2.8m swell anomaly at [42.3, -71.1] during 13:00–14:30.</p>
+            </div>
+            <div class="log-entry log-bad">
+              <div class="log-head"><svg class="icon" style="width:14px;height:14px"><use href="#i-alert"></use></svg>South Ground Rejected</div>
+              <p>Exceeds hard fuel limit — projected 54L against a 50L cap.</p>
+            </div>
+            <div class="log-entry log-info">
+              <div class="log-head"><svg class="icon" style="width:14px;height:14px"><use href="#i-check"></use></svg>Alternative Generated</div>
+              <p>Dog-leg North route avoids the squall line and stays within fuel limits (est. 42L).</p>
+              <button class="btn btn-solid btn-block" style="margin-top:8px">Apply Route</button>
+            </div>
+            <div class="log-entry" style="opacity:.6">
+              <div class="log-head" style="color:var(--ink-dim)"><svg class="icon" style="width:14px;height:14px"><use href="#i-refresh"></use></svg>Previous Iteration</div>
+              <p>Calculation at 08:42Z rejected — outdated buoy telemetry.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+<defs>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5 12 12l-2.5 2.5L12 12z" class="fill"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><polyline points="2,14 7,14 9,6 13,19 16,10 18,14 22,14"/></symbol>
+  <symbol id="i-hub" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><circle cx="4" cy="6" r="2"/><circle cx="20" cy="6" r="2"/><circle cx="12" cy="20" r="2"/><line x1="9.8" y1="10.6" x2="5.4" y2="7.2"/><line x1="14.2" y1="10.6" x2="18.6" y2="7.2"/><line x1="12" y1="14.4" x2="12" y2="18"/></symbol>
+  <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 15c1.5 1.5 3.5 1.5 5 0s3.5-1.5 5 0 3.5 1.5 5 0 3.5-1.5 5 0"/><path d="M2 9c1.5 1.5 3.5 1.5 5 0s3.5-1.5 5 0 3.5 1.5 5 0 3.5-1.5 5 0" opacity=".5"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="4" y="8" width="16" height="12" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/></symbol>
+  <symbol id="i-flare" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z" class="fill"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8" class="fill"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 10a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+  <symbol id="i-boat" viewBox="0 0 24 24"><path d="M4 15h16l-2 4H6z"/><path d="M12 15V5"/><path d="M12 6l6 5H12z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r=".9" class="fill"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="8,12.5 11,15.5 16,9.5"/></symbol>
+  <symbol id="i-satellite" viewBox="0 0 24 24"><rect x="9" y="9" width="6" height="6" rx="1" transform="rotate(45 12 12)"/><line x1="4" y1="4" x2="7.5" y2="7.5"/><line x1="20" y1="4" x2="16.5" y2="7.5"/><path d="M12 15v6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7,11 12,16 17,11"/><line x1="4" y1="20" x2="20" y2="20"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><polygon points="3,4 21,4 14,12 14,19 10,17 10,12"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><polyline points="20,4 20,9 15,9"/></symbol>
+  <symbol id="i-chev-up" viewBox="0 0 24 24"><polyline points="6,15 12,9 18,15"/></symbol>
+  <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M6 17c0-8 12-4 12-10"/></symbol>
+</defs>
+</svg>
+
+<script>
+  var links = document.querySelectorAll('.rail-link');
+  links.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      links.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      document.querySelectorAll('.panel').forEach(function(p){ p.hidden = true; });
+      var target = document.getElementById('panel-' + btn.dataset.panel);
+      if (target) target.hidden = false;
+    });
+  });
+  var segTabs = document.querySelectorAll('.seg-tabs');
+  segTabs.forEach(function(group){
+    group.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        group.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+      });
+    });
+  });
+  function tick(){
+    var d = new Date();
+    var el = document.getElementById('clock');
+    if (el) el.textContent = d.toISOString().slice(11,19) + ' UTC';
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // ---------- Live backend wiring ----------
+  var API = '';
+  var lastStateOk = null;
+  var lastStateAt = 0;
+  var ORCA9_ID = 'MH-RTN-408';
+
+  function setConnected(ok){
+    var pill = document.getElementById('conn-pill');
+    var text = document.getElementById('conn-text');
+    if (!pill || !text) return;
+    if (ok === lastStateOk) return;
+    lastStateOk = ok;
+    pill.classList.remove('pill-good','pill-bad');
+    pill.classList.add(ok ? 'pill-good' : 'pill-bad');
+    text.textContent = ok ? 'System Nominal' : 'DISCONNECTED — showing last known values';
+  }
+
+  function fmtAgo(){
+    if (!lastStateAt) return '--';
+    return Math.round((Date.now() - lastStateAt) / 1000) + 's';
+  }
+  setInterval(function(){
+    var el = document.getElementById('cmd-updated');
+    if (el) el.textContent = fmtAgo();
+  }, 1000);
+
+  async function fetchState(){
+    try {
+      var res = await fetch(API + '/api/state');
+      if (!res.ok) throw new Error('bad status');
+      var s = await res.json();
+      setConnected(true);
+      lastStateAt = Date.now();
+      var vSignal = document.getElementById('v-signal');
+      var vLoss = document.getElementById('v-loss');
+      var vLatency = document.getElementById('v-latency');
+      var vTemp = document.getElementById('v-temp');
+      var vVessels = document.getElementById('v-vessels');
+      if (vSignal && s.signal_dbm.value != null) vSignal.textContent = s.signal_dbm.value.toFixed(0);
+      if (vLoss && s.packet_loss_pct.value != null) vLoss.textContent = s.packet_loss_pct.value.toFixed(2);
+      if (vLatency && s.latency_ms.value != null) vLatency.textContent = Math.round(s.latency_ms.value);
+      if (vTemp && s.internal_temp_c.value != null) vTemp.textContent = s.internal_temp_c.value.toFixed(1);
+      if (vVessels && s.active_vessels.value != null) vVessels.textContent = s.active_vessels.value.toLocaleString('en-US');
+    } catch (e) {
+      setConnected(false);
+    }
+  }
+  fetchState();
+  setInterval(fetchState, 3000);
+
+  function auditColor(kind){
+    if (kind === 'bad') return 'var(--danger)';
+    if (kind === 'warn') return 'var(--flare)';
+    if (kind === 'info') return 'var(--bio)';
+    return '';
+  }
+  function renderAudit(entries){
+    var auditFeed = document.getElementById('audit-feed');
+    if (!auditFeed) return;
+    auditFeed.innerHTML = '';
+    entries.slice(0, 6).forEach(function(e){
+      var d = new Date(e.ts);
+      var hh = String(d.getUTCHours()).padStart(2,'0'), mm = String(d.getUTCMinutes()).padStart(2,'0'), ss = String(d.getUTCSeconds()).padStart(2,'0');
+      var line = document.createElement('div');
+      line.className = 'audit-line';
+      var color = auditColor(e.kind);
+      line.innerHTML = '<span class="audit-time mono">' + hh + ':' + mm + ':' + ss + '</span><span' + (color ? ' style="color:' + color + '"' : '') + '></span>';
+      line.querySelector('span:last-child').textContent = e.text;
+      auditFeed.appendChild(line);
+    });
+  }
+  async function fetchAudit(){
+    try {
+      var res = await fetch(API + '/api/audit?limit=8');
+      if (!res.ok) throw new Error('bad status');
+      renderAudit(await res.json());
+    } catch (e) { /* leave last-known feed showing */ }
+  }
+  fetchAudit();
+  setInterval(fetchAudit, 3500);
+
+  function statusChipClass(status){
+    if (status === 'ACKNOWLEDGED') return 'chip-good';
+    if (status === 'DELIVERED') return 'chip-warn';
+    return 'chip-info';
+  }
+  async function fetchLedger(){
+    try {
+      var res = await fetch(API + '/api/ledger?limit=8');
+      if (!res.ok) throw new Error('bad');
+      var rows = await res.json();
+      var body = document.getElementById('ledger-body');
+      if (body) {
+        body.innerHTML = '';
+        if (!rows.length) {
+          body.innerHTML = '<tr><td colspan="4" style="color:var(--ink-faint)">No alerts issued yet.</td></tr>';
+        }
+        rows.forEach(function(r){
+          var tr = document.createElement('tr');
+          var sent = new Date(r.sent_at).toISOString().slice(11,19) + ' UTC';
+          tr.innerHTML =
+            '<td class="mono" style="color:var(--bio)"></td>' +
+            '<td></td>' +
+            '<td class="mono"></td>' +
+            '<td><span class="chip ' + statusChipClass(r.status) + '"><i class="dot" style="background:currentColor"></i></span></td>';
+          tr.children[0].textContent = r.vessel_id;
+          tr.children[1].textContent = (r.message || '').slice(0, 48);
+          tr.children[2].textContent = sent;
+          tr.children[3].querySelector('.chip').lastChild.textContent = '';
+          tr.children[3].querySelector('.chip').appendChild(document.createTextNode((r.late ? 'LATE · ' : '') + r.status));
+          body.appendChild(tr);
+        });
+      }
+      var rateRes = await fetch(API + '/api/stats/ack-rate');
+      if (rateRes.ok) {
+        var rate = await rateRes.json();
+        var el = document.getElementById('ledger-rate');
+        if (el) el.textContent = 'Warned & acknowledged (24h): ' + (rate.rate_pct == null ? 'n/a' : rate.rate_pct + '%') + ' (' + rate.acknowledged + '/' + rate.total + ')';
+      }
+    } catch (e) { /* keep stale ledger visible */ }
+  }
+  fetchLedger();
+  setInterval(fetchLedger, 4000);
+
+  async function populateVesselSelect(){
+    try {
+      var res = await fetch(API + '/api/vessels');
+      if (!res.ok) throw new Error('bad');
+      var vessels = await res.json();
+      var sel = document.getElementById('bc-vessel');
+      if (sel) {
+        vessels.forEach(function(v){
+          var opt = document.createElement('option');
+          opt.value = v.id;
+          opt.textContent = v.name + ' (' + v.id + ')';
+          sel.appendChild(opt);
+        });
+      }
+    } catch (e) { /* offline — keep ALL only */ }
+  }
+  populateVesselSelect();
+
+  var bcSend = document.getElementById('bc-send');
+  if (bcSend) {
+    bcSend.addEventListener('click', async function(){
+      var vesselSel = document.getElementById('bc-vessel');
+      var langSel = document.getElementById('bc-lang');
+      var msgEl = document.getElementById('bc-message');
+      var statusEl = document.getElementById('bc-status');
+      var target = vesselSel ? vesselSel.value : 'ALL';
+      var message = (msgEl ? msgEl.textContent : '').replace(/^"|"$/g, '').trim();
+      var lang = langSel ? langSel.value : 'en';
+      var targets = [target];
+      if (target === 'ALL') {
+        var opts = Array.from(vesselSel.options).map(function(o){ return o.value; }).filter(function(v){ return v !== 'ALL'; });
+        targets = opts;
+      }
+      if (statusEl) statusEl.textContent = 'Sending…';
+      var ok = 0;
+      for (var i = 0; i < targets.length; i++) {
+        try {
+          var res = await fetch(API + '/api/alert', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ vessel_id: targets[i], severity: 'WARNING', message: message, language: lang })
+          });
+          if (res.ok) ok++;
+        } catch (e) {}
+      }
+      if (statusEl) statusEl.textContent = 'Sent to ' + ok + ' of ' + targets.length + ' vessel(s).';
+      fetchLedger();
+    });
+  }
+
+  var crisisBtn = document.getElementById('crisis-escalate');
+  if (crisisBtn) {
+    crisisBtn.addEventListener('click', async function(){
+      var original = crisisBtn.innerHTML;
+      crisisBtn.style.opacity = '.7';
+      try {
+        await fetch(API + '/api/alert', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ vessel_id: ORCA9_ID, severity: 'CRITICAL', message: 'IMBL proximity — escalate to Coast Guard. Immediate intervention required.', language: 'mr' })
+        });
+      } catch (e) {}
+      crisisBtn.innerHTML = 'Escalation sent';
+      setTimeout(function(){ crisisBtn.innerHTML = original; crisisBtn.style.opacity = '1'; }, 1800);
+      fetchLedger();
+    });
+  }
+
+  // ---------- SSE (fast path) — polling above remains as fallback ----------
+  (function connectSSE(){
+    try {
+      var es = new EventSource(API + '/api/events');
+      es.addEventListener('audit', function(){ fetchAudit(); });
+      es.addEventListener('alert', function(){ fetchLedger(); fetchAudit(); });
+      es.addEventListener('ack', function(){ fetchLedger(); fetchAudit(); });
+      es.addEventListener('vessel_position', function(){ fetchState(); });
+      es.onerror = function(){ /* browser auto-reconnects; polling keeps data fresh meanwhile */ };
+    } catch (e) { /* SSE unsupported — polling covers it */ }
+  })();
+
+  // ---------- Trip planner ----------
+  function wireSlider(sliderId, outId, suffix){
+    var slider = document.getElementById(sliderId);
+    var out = document.getElementById(outId);
+    if (!slider || !out) return;
+    slider.addEventListener('input', function(){
+      if (sliderId === 'sl-departure') {
+        var h = Math.floor(slider.value);
+        var m = (slider.value % 1) ? '30' : '00';
+        out.textContent = String(h).padStart(2,'0') + ':' + m;
+      } else {
+        out.textContent = parseFloat(slider.value).toFixed(1) + (suffix || '');
+      }
+    });
+  }
+  wireSlider('sl-departure', 'val-departure');
+  wireSlider('sl-speed', 'val-speed');
+  wireSlider('sl-duration', 'val-duration');
+
+  async function recalcPlan(){
+    var departure = parseFloat(document.getElementById('sl-departure').value);
+    var duration = parseFloat(document.getElementById('sl-duration').value);
+    var speed = parseFloat(document.getElementById('sl-speed').value);
+    var fuelInput = document.querySelector('#panel-planner input[type=number]');
+    var fuel = fuelInput ? parseFloat(fuelInput.value) : 50;
+    try {
+      var res = await fetch(API + '/api/plan', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ departure_hour: departure, duration_hours: duration, cruise_speed_kt: speed, fuel_limit_l: fuel })
+      });
+      if (!res.ok) throw new Error('bad');
+      var plan = await res.json();
+      var fuelEl = document.getElementById('pl-fuel');
+      var fuelBar = document.getElementById('pl-fuel-bar');
+      var nrpEl = document.getElementById('pl-nrp');
+      var nrpNote = document.getElementById('pl-nrp-note');
+      var waveEl = document.getElementById('pl-wave');
+      var waveNote = document.getElementById('pl-wave-note');
+      var color = plan.verdict === 'UNSAFE' ? 'var(--danger)' : (plan.verdict === 'CAUTION' ? 'var(--flare)' : 'var(--kelp)');
+      if (fuelEl) { fuelEl.innerHTML = plan.fuel_estimate_l + '<span>/' + fuel + 'L</span>'; fuelEl.style.color = color; }
+      if (fuelBar) { fuelBar.style.width = Math.min(100, Math.round(100 * plan.fuel_estimate_l / fuel)) + '%'; fuelBar.style.background = color; }
+      if (nrpEl) nrpEl.textContent = plan.point_of_no_return;
+      if (nrpNote) { nrpNote.textContent = plan.verdict === 'SAFE' ? 'HEALTHY MARGIN' : (plan.verdict === 'CAUTION' ? 'LIMITED MARGIN' : 'INSUFFICIENT MARGIN'); nrpNote.style.color = color; }
+      if (waveEl) waveEl.innerHTML = plan.max_offshore_wave_m.value + '<span>m max</span>';
+      if (waveNote) { waveNote.textContent = (plan.verdict === 'UNSAFE' ? '✗ ' : '✓ ') + plan.reasons.join('; '); waveNote.style.color = plan.verdict === 'SAFE' ? 'var(--kelp)' : color; }
+    } catch (e) { /* backend unreachable — leave last computed values visible */ }
+  }
+  ['sl-departure','sl-speed','sl-duration'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', recalcPlan);
+  });
+
+  var recalcBtn = document.getElementById('btn-recalc');
+  if (recalcBtn) {
+    recalcBtn.addEventListener('click', function(){
+      var original = recalcBtn.innerHTML;
+      recalcBtn.style.opacity = '.7';
+      recalcBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px"><use href="#i-refresh"></use></svg>Recalculating…';
+      recalcPlan().finally(function(){
+        recalcBtn.style.opacity = '1';
+        recalcBtn.innerHTML = original;
+      });
+    });
+    recalcPlan();
+  }
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduceMotion) {
+    var snrBars = document.querySelectorAll('#snr-bars .snr-bar');
+    setInterval(function(){
+      snrBars.forEach(function(bar, i){
+        var base = 50 + i * 6;
+        var jitter = Math.random() * 30 - 15;
+        var h = Math.max(20, Math.min(100, base + jitter));
+        bar.style.height = h + '%';
+      });
+    }, 1400);
+  }
+
+  function wireChartHover(svgId, points, crosshairId, dotId, tooltipId, vbW, vbH, fmt){
+    var svg = document.getElementById(svgId);
+    var crosshair = document.getElementById(crosshairId);
+    var dot = document.getElementById(dotId);
+    var tooltip = document.getElementById(tooltipId);
+    if (!svg || !tooltip) return;
+    svg.addEventListener('mousemove', function(e){
+      var rect = svg.getBoundingClientRect();
+      var mx = (e.clientX - rect.left) * (vbW / rect.width);
+      var nearest = points[0], minDist = Infinity;
+      points.forEach(function(p){
+        var d = Math.abs(p.x - mx);
+        if (d < minDist) { minDist = d; nearest = p; }
+      });
+      if (crosshair) {
+        crosshair.setAttribute('x1', nearest.x);
+        crosshair.setAttribute('x2', nearest.x);
+        crosshair.style.opacity = 1;
+      }
+      if (dot) {
+        dot.setAttribute('cx', nearest.x);
+        dot.setAttribute('cy', nearest.y);
+        dot.style.opacity = 1;
+      }
+      tooltip.style.display = 'block';
+      tooltip.textContent = fmt(nearest);
+      var px = nearest.x * (rect.width / vbW);
+      var py = nearest.y * (rect.height / vbH);
+      tooltip.style.left = Math.min(rect.width - 90, Math.max(0, px - 40)) + 'px';
+      tooltip.style.top = Math.max(0, py - 34) + 'px';
+    });
+    svg.addEventListener('mouseleave', function(){
+      if (crosshair) crosshair.style.opacity = 0;
+      if (dot) dot.style.opacity = 0;
+      tooltip.style.display = 'none';
+    });
+  }
+  wireChartHover('fc-svg', [
+    {x:30,y:140,t:'T-48',v:'19.1°C'},
+    {x:100,y:120,t:'T-40',v:'19.8°C'},
+    {x:160,y:90,t:'T-32',v:'20.4°C'},
+    {x:220,y:75,t:'T-24',v:'20.9°C'},
+    {x:290,y:60,t:'T-12',v:'21.4°C'},
+    {x:340,y:42,t:'T-4',v:'21.9°C'},
+    {x:380,y:30,t:'NOW',v:'22.3°C'}
+  ], 'fc-crosshair', 'fc-dot', 'fc-tooltip', 400, 200, function(p){ return p.t + ' — ' + p.v; });
+
+  wireChartHover('tp-svg', [
+    {x:55,y:215,t:'04:00',km:'2km offshore'},
+    {x:100,y:180,t:'06:00',km:'14km offshore'},
+    {x:170,y:95,t:'10:00',km:'38km offshore'},
+    {x:245,y:58,t:'13:30',km:'52km · squall peak'},
+    {x:320,y:120,t:'16:00',km:'22km offshore'},
+    {x:385,y:215,t:'18:00',km:'3km offshore'}
+  ], 'tp-crosshair', 'tp-dot', 'tp-tooltip', 420, 260, function(p){ return p.t + ' — ' + p.km; });
+
+  var snrTooltip = document.getElementById('snr-tooltip');
+  var snrWrap = document.getElementById('snr-bars');
+  if (snrTooltip && snrWrap) {
+    snrWrap.querySelectorAll('.snr-bar').forEach(function(bar){
+      bar.addEventListener('mousemove', function(e){
+        var wrapRect = snrWrap.parentElement.getBoundingClientRect();
+        var barRect = bar.getBoundingClientRect();
+        var val = (parseFloat(bar.style.height) * 0.9).toFixed(1);
+        snrTooltip.textContent = bar.dataset.t + ' — ' + val + ' dB';
+        snrTooltip.style.left = (barRect.left - wrapRect.left) + 'px';
+        snrTooltip.style.top = '-28px';
+        snrTooltip.style.display = 'block';
+      });
+      bar.addEventListener('mouseleave', function(){
+        snrTooltip.style.display = 'none';
+      });
+    });
+  }
+</script>
+</html>
