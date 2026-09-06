@@ -1,11 +1,19 @@
 # Jalavita
 
-Marine safety advisory system for Indian fishermen — a Command Deck for operators and
-an offline-first Wayfinder mobile app for vessels, backed by one FastAPI service.
+<p align="left">
+  <img alt="Python" src="https://img.shields.io/badge/python-3.12-2fe6c6?style=flat-square">
+  <img alt="FastAPI" src="https://img.shields.io/badge/backend-FastAPI-0d1420?style=flat-square">
+  <img alt="Offline-first" src="https://img.shields.io/badge/wayfinder-offline--first%20PWA-0d1420?style=flat-square">
+  <img alt="Hackathon" src="https://img.shields.io/badge/SIH-26176-ffb547?style=flat-square">
+</p>
 
-Built for a hackathon in four passes: a real backend behind the Command Deck, an
-offline-first PWA for the Wayfinder, live two-way sync between them, and Hindi/Marathi
-localization.
+Marine safety advisory system for Indian fishermen — a Command Deck for coastal operators
+and an offline-first Wayfinder app for vessels, both backed by one FastAPI service, plus
+a plain-SMS gateway for boats with no data plan at all.
+
+**[→ Project site & live demo links](https://siddhu2606.github.io/jalavita/)**
+Built for Smart India Hackathon SIH26176 — *"ORCA: Marine Ecosystem Reasoning with
+Collaborative Agents"* — Team V/Slash, VIT Pune.
 
 ## Run it
 
@@ -19,33 +27,79 @@ run.bat        (Windows)
 This creates a venv, installs dependencies, seeds a SQLite database with 12 vessels off
 the Ratnagiri/Malvan coast, and starts one server.
 
-The Command Deck itself now requires signing in — demo credentials are
-**`ihalbe` / `Jalavita@251`** (shown on the login page too). This is a hackathon-grade
-login (SHA-256 + an in-memory session, no rate limiting or password reset) gating only
-the dashboard's page load — the underlying API, the Wayfinder phone app, and the
-`/simulator` page are unaffected, since none of them go through this login.
+- Command Deck (operator dashboard): http://localhost:8000
+- Wayfinder (fisherman's app): http://localhost:8000/app
+- Install Wayfinder via QR (works on any phone on the same network): http://localhost:8000/install
+- Ocean Scenario Simulator + offline-SMS simulator: http://localhost:8000/simulator
 
-## Fleet-wide alerts and Captain KYC
+The Command Deck requires signing in — demo credentials are **`ihalbe` / `Jalavita@251`**
+(shown on the login page too). This is a hackathon-grade login (SHA-256 + an in-memory
+session, no rate limiting or password reset) gating only the dashboard's page load — the
+underlying API, the Wayfinder phone app, and the `/simulator` page are unaffected, since
+none of them go through this login.
 
-- **Emergency Protocol** (left rail) sends a CRITICAL alert to every vessel in one click
-  and takes over the Command Deck with a centered, blinking red modal.
+To try the Wayfinder on a phone on the same wifi, open `http://<your-computer-ip>:8000/app`
+or scan the QR at `/install`. Note: the mic (catch report) and MediaRecorder need a secure
+context, so most mobile browsers only allow this over `https://` or `localhost` — it will
+work on the same machine, but may be blocked on a real phone unless you tunnel it through
+https (e.g. `ngrok http 8000` or a Cloudflare quick tunnel).
+
+<details>
+<summary><b>Optional: enable real SMS (Twilio)</b></summary>
+
+Everything above works with zero external accounts — SMS sends are logged as
+`SIMULATED` and the pipeline is fully demoable via `/simulator`. To send/receive real
+text messages:
+
+1. Copy `backend/.env.example` to `backend/.env`.
+2. Fill in `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` from
+   [console.twilio.com](https://console.twilio.com).
+3. On a trial account, add any phone you want to actually receive alerts on under
+   **Phone Numbers → Manage → Verified Caller IDs**.
+4. Restart the server — `GET /api/sms/status` should report `"configured": true`.
+
+`backend/.env` is gitignored; credentials never need to touch git history or chat.
+</details>
+
+## What's built
+
+- **Emergency Protocol** (left rail) sends a CRITICAL alert to every vessel in one click —
+  takes over the Command Deck with a centered, blinking red modal, and fires a real SMS to
+  any vessel with a phone number on file.
 - **Ocean Scenario Simulator** (`/simulator`) lets you arm a hazard — High Tide, Rough
   Seas, Cyclone, Tsunami — which only becomes visible on the deck (as a centered modal,
   yellow for WARNING severity, red for CRITICAL) until an operator explicitly clicks
   **"Ensure Safety Protocols"** to broadcast it to the fleet. Crisis mode, separately,
   still only ever targets the one vessel it's built around.
-- **Field Assist → Captain KYC Verification** holds a per-vessel captain record (name,
-  ID type, a masked ID number — never a full one) with Verify/Reject actions and a
-  proof-of-ID upload, viewable only while signed in. This is a demo of the verification
-  *workflow*, not a real identity-verification integration — no real ID numbers should
-  ever be entered here.
+- **Fisherman Tips** — a tip (rising tide, storm signs, tsunami signs) from the app *or*
+  by SMS lands as an unverified report with three explicit review actions: **Verify**,
+  **Ensure Safety Protocol**, **Clear**. The deck can't tell which channel a tip arrived
+  on, because it doesn't need to.
+- **SMS Gateway** (Twilio) — every fleet alert also attempts a real SMS to each vessel's
+  registered number, logged `SENT`/`FAILED`/`SIMULATED` (never silently faked). Inbound
+  SMS from an offline fisherman is parsed, matched to a vessel, keyword-classified, and
+  fed into the same tip pipeline above.
+- **Twin Trip Planner** — departure time, duration, and speed sync live between the
+  Command Deck and the Wayfinder in either direction (SSE + polling fallback, with a
+  short anti-flicker window so a live slider drag doesn't fight a same-moment refresh).
+- **Field Assist → Captain KYC** holds a per-vessel captain record (name, ID type, a
+  masked ID number — never a full one) with Verify/Reject actions and a proof-of-ID
+  upload, viewable only while signed in. This is a demo of the verification *workflow*,
+  not a real identity-verification integration — no real ID numbers should ever be
+  entered here.
+- **Install-by-QR** (`/install`) — scanning it opens the Wayfinder in the phone's own
+  browser and prompts a standard PWA install (Add to Home Screen). No APK, no "allow
+  unknown sources," works fully offline immediately after first load.
+- **CSV export gated by a security code**, live toast notifications for new tips, and an
+  honestly-labeled Analytics panel (real fleet telemetry vs. explicitly marked
+  illustrative charts).
 
 ## Native Android app (Wayfinder)
 
-`android/` holds the scripts used to package the Wayfinder PWA as an installable
-Android app via a Trusted Web Activity (the same technique Twitter Lite/Starbucks use —
-no rewrite, same offline code, just a native wrapper). The heavy generated pieces
-(a portable JDK 17 and the built Gradle project, including the signing keystore) are
+`android/` holds the scripts used to package the Wayfinder PWA as an installable Android
+app via a Trusted Web Activity (the same technique Twitter Lite/Starbucks use — no
+rewrite, same offline code, just a native wrapper). The heavy generated pieces (a
+portable JDK 17 and the built Gradle project, including the signing keystore) are
 gitignored — rebuild them with:
 
 ```
@@ -57,16 +111,9 @@ adb install -r app-release-signed.apk
 ```
 
 `bw-init.js` hardcodes the manifest URL it wraps — point it at wherever `/app/manifest.json`
-is actually being served before rebuilding.
-
-- Command Deck (operator dashboard): http://localhost:8000
-- Wayfinder (fisherman's app):        http://localhost:8000/app
-
-To try the Wayfinder on a phone on the same wifi, open `http://<your-computer-ip>:8000/app`.
-Note: the mic (catch report) and MediaRecorder need a secure context, so most mobile
-browsers only allow this over `https://` or `localhost` — it will work on the same
-machine, but may be blocked on a real phone unless you tunnel it through https (e.g.
-`ngrok http 8000`).
+is actually being served before rebuilding. For most demos, `/install`'s QR-to-PWA flow
+above is the faster path — no APK signing, no `adb`, works on any phone that can scan a
+code.
 
 ## Architecture
 
@@ -74,13 +121,19 @@ machine, but may be blocked on a real phone unless you tunnel it through https (
 backend/app/
   models.py   — Pydantic contract: Evidence objects, AdvisoryAnswer, Alert, Ack, Plan…
   db.py       — SQLite schema + seed data (12 vessels, deterministic)
-  rules.py    — advisory verdicts, trip-plan risk, geofence distance (shapely)
+  rules.py    — advisory verdicts, trip-plan risk, geofence distance, distance-to-coast
   events.py   — in-process pub/sub used for the SSE stream
-  main.py     — all API routes, static file mounts
+  main.py     — all API routes: advisory, alerts, tips, trip plans, KYC, SMS gateway
 
 frontend/
-  index.html  — Command Deck (unchanged visual design, now wired to the API)
-  app/        — Wayfinder PWA (manifest, service worker, IndexedDB, i18n)
+  index.html    — Command Deck (dashboard, KYC, SMS gateway, analytics)
+  login.html    — Command Deck sign-in
+  install.html  — QR install page for the Wayfinder PWA
+  simulator.html— Ocean Scenario Simulator + offline-SMS simulator
+  app/          — Wayfinder PWA (manifest, service worker, IndexedDB, i18n)
+
+docs/
+  index.html  — public project site (GitHub Pages)
 
 data/
   jalavita.db            — generated on first run
@@ -118,39 +171,44 @@ re-evaluates the cached packet locally and walks a five-state degradation ladder
 
 **The rule that matters:** absence of a signal is never treated as safety. Missing or
 expired data always degrades toward a warning, never toward "all clear" — enforced in
-`evaluateOffline()` in `app.js`.
+`evaluateOffline()` in `app.js`. The SMS gateway extends this same principle to boats with
+no app at all: a fleet alert reaches a bare phone over plain cellular signal, no data
+connection required.
 
 ## Manual test checklist
+
+<details>
+<summary>9 steps to verify the whole system end-to-end</summary>
 
 1. **Basic run** — `run.bat`, open both URLs, confirm the dashboard telemetry (`Signal`,
    `Packet Loss`, `Latency`, active vessel count) changes every ~3s and comes from
    `GET /api/state`, not `Math.random()`.
 2. **Disconnected state** — stop the backend (Ctrl+C) with the dashboard open; the top
    pill should flip to "DISCONNECTED — showing last known values" within ~3s.
-3. **Trip planner** — on the Command Deck, move the sliders and click *Recalculate*;
-   fuel/point-of-no-return/wave-margin values should update from a real `POST /api/plan`.
+3. **Trip planner sync** — move the sliders on the Command Deck; open the Wayfinder's
+   Chart tab for the same vessel and confirm the mini sliders update within a few seconds,
+   and vice versa.
 4. **Offline Wayfinder** — open `/app`, then in DevTools → Network, switch to *Offline*.
    Reload: the app still opens (service worker shell) and shows **CACHED** with the
    packet's actual `valid_until` time.
-5. **Expired packet** — in DevTools console: `window.__jalavita_debug` exposes
-   `render()`/`evaluateOffline()` for manual testing; or just wait past the packet's
-   `valid_until` (8h) — the banner moves to **EXPIRED** and the headline refuses to say
-   "safe".
-6. **Crisis round-trip** — on the Command Deck, Crisis panel → *Escalate to Coast Guard*
-   (targets vessel `MH-RTN-408`) or Field Assist → *Send Broadcast* to any vessel. If the
-   Wayfinder is open (as `MH-RTN-400` by default — change `DEMO_VESSEL_ID` in `app.js` to
-   match) and online, it jumps to the Crisis view and speaks the alert aloud.
-   Tap *Acknowledge* — the Command Deck's Archive → Delivery Ledger shows
-   `ACKNOWLEDGED` within a few seconds.
-7. **Offline ack** — put the Wayfinder offline, tap *Acknowledge* (it queues locally in
-   IndexedDB), go back online — the receipt flushes automatically within 20s and appears
-   in the ledger exactly once (idempotent via a client-generated UUID).
-8. **Language** — tap the `EN`/`हि`/`मर` pill in the Wayfinder status strip; all visible
-   strings switch, including offline (no network call is made for translation — the three
-   locale files are precached by the service worker).
-9. **Species lookup** — type `bangda` in the Advisory view's species box; it resolves to
-   Indian mackerel with its thermal/depth range, online or offline (the lexicon ships
-   inside the packet).
+5. **Fisherman tip → deck → back** — submit a tip from the Wayfinder (or via
+   `/simulator`'s SMS panel); confirm it appears under Field Assist → Fisherman Tips with
+   Verify/Ensure Safety Protocol/Clear actions, and that Verify arms the scenario modal.
+6. **Emergency Protocol** — click it on the deck; confirm every vessel gets a CRITICAL
+   alert, the centered red modal appears, and (if Twilio is configured) a real SMS lands
+   on any vessel with a real phone number attached.
+7. **Crisis round-trip** — Command Deck Crisis panel → *Escalate to Coast Guard* (targets
+   `MH-RTN-408` by default). If the Wayfinder is open as that vessel and online, it jumps
+   to the Crisis view and speaks the alert aloud; tapping *Acknowledge* shows up in the
+   deck's Delivery Ledger within a few seconds.
+8. **Language** — use the language dropdown in the Wayfinder status strip; all visible
+   strings switch, including offline (no network call — the three locale files are
+   precached by the service worker).
+9. **Install by QR** — open `/install` on a laptop, scan it with a phone, confirm Chrome
+   offers to install as a home-screen app, and that it still opens after switching the
+   phone to airplane mode.
+
+</details>
 
 ## Known scope cuts (being upfront about them)
 
@@ -163,5 +221,11 @@ expired data always degrades toward a warning, never toward "all clear" — enfo
   so a machine with zero Devanagari font support would show tofu boxes when fully
   offline on first-ever load. This is a reasonable bet for a hackathon demo, not a
   guarantee.
-- `POST /api/vessel/{id}/position`, alerts, and ack are open (no auth) — fine for a demo
-  on a local network, not for production.
+- `POST /api/vessel/{id}/position` and vessel telemetry endpoints are open (no auth) —
+  fine for a demo on a local network, not for production.
+- Twilio SMS to Indian numbers is outbound-only by carrier design (the sender ID gets
+  stripped in transit), so a real inbound text can't round-trip on a trial account — the
+  `/simulator` SMS panel exercises the identical backend code path a real carrier webhook
+  would hit, so the pipeline is provably real without needing that round-trip.
+- **Sagar Sentinel** (the radio-beacon concept on the [project site](https://siddhu2606.github.io/jalavita/))
+  is a Phase 2 roadmap visualization — no hardware has been built or tested.
