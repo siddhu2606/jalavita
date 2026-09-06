@@ -75,6 +75,15 @@
     padding:5px 10px;font-size:10.5px;font-weight:600;color:var(--ink-dim);cursor:pointer;
     display:flex;align-items:center;gap:5px;white-space:nowrap;
   }
+  .lang-select{
+    -webkit-appearance:none;appearance:none;
+    background:var(--bio-dim) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%232fe6c6" stroke-width="2.4" stroke-linecap="round"><polyline points="6,9 12,15 18,9"/></svg>') no-repeat right 7px center;
+    background-size:12px;border:1px solid var(--bio);border-radius:99px;
+    padding:6px 24px 6px 12px;font-size:11.5px;font-weight:700;color:var(--bio);cursor:pointer;
+    font-family:inherit;white-space:nowrap;
+  }
+  .lang-select:focus{outline:none;}
+  .lang-select option{background:var(--panel-2);color:var(--ink);}
   .conn-badge.online{color:var(--kelp);border-color:rgba(56,226,154,.35);}
   .conn-badge.offline{color:var(--flare);border-color:rgba(255,138,76,.35);}
 
@@ -242,7 +251,11 @@
     <div class="status-strip">
       <div class="loc"><b id="loc-port">Malvan Harbour</b><span id="loc-sub">—</span></div>
       <div class="right">
-        <button class="lang-btn" id="lang-switch">EN</button>
+        <select class="lang-select" id="lang-switch" aria-label="Language / भाषा / भाषा">
+          <option value="mr">मराठी</option>
+          <option value="hi">हिन्दी</option>
+          <option value="en">English</option>
+        </select>
         <span class="conn-badge offline" id="conn-badge">●</span>
         <span class="avatar">DV</span>
       </div>

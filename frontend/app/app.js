@@ -71,7 +71,7 @@
 
   // ---------------- i18n ----------------
   var STRINGS = {};
-  var CURRENT_LANG = localStorage.getItem('jalavita_lang') || 'en';
+  var CURRENT_LANG = localStorage.getItem('jalavita_lang') || 'mr'; // most Konkan fishermen read Marathi, not English
 
   var EMBEDDED_FALLBACK_EN = {
     'status.nodata__SAFETY': 'I cannot advise. Contact your harbour officer.',
@@ -94,8 +94,8 @@
       el.textContent = t(key);
     });
     document.documentElement.lang = CURRENT_LANG;
-    var langBtn = document.getElementById('lang-switch');
-    if (langBtn) langBtn.textContent = CURRENT_LANG.toUpperCase();
+    var langSelect = document.getElementById('lang-switch');
+    if (langSelect) langSelect.value = CURRENT_LANG;
   }
 
   function loadLocale(lang) {
@@ -467,13 +467,11 @@
   }
 
   // ---------------- Language switcher ----------------
-  var LANGS = ['en', 'hi', 'mr'];
-  var langBtn = document.getElementById('lang-switch');
-  if (langBtn) {
-    langBtn.addEventListener('click', function () {
-      var idx = LANGS.indexOf(CURRENT_LANG);
-      var next = LANGS[(idx + 1) % LANGS.length];
-      setLang(next);
+  var langSelect = document.getElementById('lang-switch');
+  if (langSelect) {
+    langSelect.value = CURRENT_LANG;
+    langSelect.addEventListener('change', function () {
+      setLang(langSelect.value);
     });
   }
 
