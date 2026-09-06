@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'jalavita-shell-v7';
+const CACHE_VERSION = 'jalavita-shell-v8';
 const SHELL_FILES = [
   './',
   './index.html',
