@@ -34,6 +34,7 @@
   "crisis.relay_button": "बंदरगाह नियंत्रण को सूचित करें",
   "crisis.acknowledged": "स्वीकृत — वेपॉइंट सेट किया गया",
   "crisis.distance_to_boundary": "सीमा से {km} किमी दूर",
+  "species.lookup_label": "मछली प्रजाति खोजें",
   "species.not_found": "प्रजाति पहचानी नहीं गई",
   "species.envelope": "{name} ({sci}) · {sstmin}–{sstmax}°C · {depthmin}–{depthmax}मी",
   "lang.switch": "भाषा",

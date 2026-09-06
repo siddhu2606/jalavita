@@ -483,47 +483,8 @@
           <div class="card-head">
             <div class="card-title"><svg class="icon"><use href="#i-pulse"></use></svg>Signal Feed</div>
           </div>
-          <div class="feed">
-            <div class="feed-item">
-              <div class="feed-dot" style="background:var(--bio-dim);color:var(--bio)"><svg class="icon" style="width:13px;height:13px"><use href="#i-boat"></use></svg></div>
-              <div class="feed-body">
-                <span class="feed-title">Catch Report · V-902</span>
-                <span class="feed-text">High-yield yellowfin in Zone Alpha-7</span>
-              </div>
-              <span class="feed-time mono">now</span>
-            </div>
-            <div class="feed-item">
-              <div class="feed-dot" style="background:var(--danger-dim);color:var(--danger)"><svg class="icon" style="width:13px;height:13px"><use href="#i-alert"></use></svg></div>
-              <div class="feed-body">
-                <span class="feed-title">Squall Warning</span>
-                <span class="feed-text">Rapid pressure drop, Sector 4 — 12 vessels notified</span>
-              </div>
-              <span class="feed-time mono">12m</span>
-            </div>
-            <div class="feed-item">
-              <div class="feed-dot" style="background:var(--kelp-dim);color:var(--kelp)"><svg class="icon" style="width:13px;height:13px"><use href="#i-check"></use></svg></div>
-              <div class="feed-body">
-                <span class="feed-title">Calibration Complete</span>
-                <span class="feed-text">Buoy network reset — accuracy +4%</span>
-              </div>
-              <span class="feed-time mono">45m</span>
-            </div>
-            <div class="feed-item">
-              <div class="feed-dot" style="background:var(--current-dim);color:var(--current)"><svg class="icon" style="width:13px;height:13px"><use href="#i-boat"></use></svg></div>
-              <div class="feed-body">
-                <span class="feed-title">Fleet Movement</span>
-                <span class="feed-text">Convoy Bravo returning to port</span>
-              </div>
-              <span class="feed-time mono">2h</span>
-            </div>
-            <div class="feed-item">
-              <div class="feed-dot" style="background:var(--panel-2);color:var(--ink-dim)"><svg class="icon" style="width:13px;height:13px"><use href="#i-satellite"></use></svg></div>
-              <div class="feed-body">
-                <span class="feed-title">Uplink Handshake</span>
-                <span class="feed-text">Oceansat-3 relay confirmed</span>
-              </div>
-              <span class="feed-time mono">3h</span>
-            </div>
+          <div class="feed" id="signal-feed">
+            <div class="feed-item"><div class="feed-body"><span class="feed-text" style="color:var(--ink-faint)">Loading…</span></div></div>
           </div>
         </div>
       </div>
@@ -536,33 +497,33 @@
         <div class="grid grid-4" style="grid-template-columns:repeat(2,1fr)">
           <div class="agent-row">
             <div class="agent-icon"><svg class="icon"><use href="#i-route"></use></svg></div>
-            <div class="agent-meta"><span class="agent-name">Planner</span><span class="agent-stats mono">120ms · Brier 0.05</span></div>
-            <i class="dot online" style="margin-left:auto"></i>
+            <div class="agent-meta"><span class="agent-name">Planner</span><span class="agent-stats mono" id="agent-0-stats">--</span></div>
+            <i class="dot online" id="agent-0-dot" style="margin-left:auto"></i>
           </div>
           <div class="agent-row">
             <div class="agent-icon"><svg class="icon"><use href="#i-wave"></use></svg></div>
-            <div class="agent-meta"><span class="agent-name">Ocean Analytics</span><span class="agent-stats mono">210ms · Brier 0.12</span></div>
-            <i class="dot online" style="margin-left:auto"></i>
+            <div class="agent-meta"><span class="agent-name">Ocean Analytics</span><span class="agent-stats mono" id="agent-1-stats">--</span></div>
+            <i class="dot online" id="agent-1-dot" style="margin-left:auto"></i>
           </div>
           <div class="agent-row">
             <div class="agent-icon" style="background:var(--flare-dim);color:var(--flare)"><svg class="icon"><use href="#i-alert"></use></svg></div>
-            <div class="agent-meta"><span class="agent-name">Weather &amp; Hazard</span><span class="agent-stats mono">340ms · Brier 0.45</span></div>
-            <i class="dot" style="background:var(--flare);box-shadow:0 0 6px var(--flare);margin-left:auto"></i>
+            <div class="agent-meta"><span class="agent-name">Weather &amp; Hazard</span><span class="agent-stats mono" id="agent-2-stats">--</span></div>
+            <i class="dot" id="agent-2-dot" style="background:var(--flare);box-shadow:0 0 6px var(--flare);margin-left:auto"></i>
           </div>
           <div class="agent-row">
             <div class="agent-icon" style="background:var(--panel-line);color:var(--ink-faint)"><svg class="icon"><use href="#i-compass"></use></svg></div>
-            <div class="agent-meta"><span class="agent-name">Geospatial Risk</span><span class="agent-stats mono">idle</span></div>
-            <i class="dot" style="margin-left:auto"></i>
+            <div class="agent-meta"><span class="agent-name">Geospatial Risk</span><span class="agent-stats mono" id="agent-3-stats">idle</span></div>
+            <i class="dot" id="agent-3-dot" style="margin-left:auto"></i>
           </div>
           <div class="agent-row">
             <div class="agent-icon"><svg class="icon"><use href="#i-hub"></use></svg></div>
-            <div class="agent-meta"><span class="agent-name">Trip Twin</span><span class="agent-stats mono">180ms · Brier 0.08</span></div>
-            <i class="dot online" style="margin-left:auto"></i>
+            <div class="agent-meta"><span class="agent-name">Trip Twin</span><span class="agent-stats mono" id="agent-4-stats">--</span></div>
+            <i class="dot online" id="agent-4-dot" style="margin-left:auto"></i>
           </div>
           <div class="agent-row">
             <div class="agent-icon"><svg class="icon"><use href="#i-chev-up"></use></svg></div>
-            <div class="agent-meta"><span class="agent-name">Causal &amp; Trend</span><span class="agent-stats mono">410ms · Brier 0.15</span></div>
-            <i class="dot online" style="margin-left:auto"></i>
+            <div class="agent-meta"><span class="agent-name">Causal &amp; Trend</span><span class="agent-stats mono" id="agent-5-stats">--</span></div>
+            <i class="dot online" id="agent-5-dot" style="margin-left:auto"></i>
           </div>
         </div>
       </div>
@@ -625,36 +586,36 @@
             <div class="card-title"><svg class="icon"><use href="#i-pulse"></use></svg>Active Arrays</div>
             <span class="chip chip-good">4 online</span>
           </div>
-          <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:10px" id="sensor-arrays">
             <div style="background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;padding:12px">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <span style="font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px"><i class="dot online"></i>Oceansat-3</span>
+                <span style="font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px"><i class="dot online" id="arr-0-dot"></i>Oceansat-3</span>
                 <span class="mono" style="font-size:10.5px;color:var(--ink-faint)">SAT-L3</span>
               </div>
               <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-dim);margin-bottom:6px">
-                <span>Uplink <b class="mono" style="color:var(--bio)">99.8%</b></span>
-                <span>Power <b class="mono">85%</b></span>
+                <span>Uplink <b class="mono" id="arr-0-uplink" style="color:var(--bio)">99.8%</b></span>
+                <span>Power <b class="mono" id="arr-0-power">85%</b></span>
               </div>
               <svg class="sparkline" viewBox="0 0 200 30" preserveAspectRatio="none"><polyline points="0,22 20,18 40,20 60,8 80,12 100,4 120,10 140,6 160,14 180,10 200,16" fill="none" stroke="var(--bio)" stroke-width="1.8"/></svg>
             </div>
             <div style="background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;padding:12px">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <span style="font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px"><i class="dot" style="background:var(--flare);box-shadow:0 0 6px var(--flare)"></i>Wave Buoy #442</span>
+                <span style="font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px"><i class="dot" id="arr-1-dot" style="background:var(--flare);box-shadow:0 0 6px var(--flare)"></i>Wave Buoy #442</span>
                 <span class="mono" style="font-size:10.5px;color:var(--ink-faint)">BUOY-S</span>
               </div>
               <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-dim);margin-bottom:6px">
-                <span>Uplink <b class="mono" style="color:var(--flare)">82.1%</b></span>
-                <span>Power <b class="mono" style="color:var(--flare)">35%</b></span>
+                <span>Uplink <b class="mono" id="arr-1-uplink" style="color:var(--flare)">82.1%</b></span>
+                <span>Power <b class="mono" id="arr-1-power" style="color:var(--flare)">35%</b></span>
               </div>
               <svg class="sparkline" viewBox="0 0 200 30" preserveAspectRatio="none"><polyline points="0,10 20,14 40,6 60,20 80,4 100,18 120,10 140,24 160,10 180,16 200,6" fill="none" stroke="var(--flare)" stroke-width="1.8"/></svg>
             </div>
             <div style="background:var(--panel-2);border:1px solid var(--panel-line);border-radius:9px;padding:12px">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <span style="font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px"><i class="dot online"></i>AIS Receiver Alpha</span>
+                <span style="font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px"><i class="dot online" id="arr-2-dot"></i>AIS Receiver Alpha</span>
                 <span class="mono" style="font-size:10.5px;color:var(--ink-faint)">VHF-RX</span>
               </div>
               <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-dim)">
-                <span>Uplink <b class="mono" style="color:var(--bio)">100%</b></span>
+                <span>Uplink <b class="mono" id="arr-2-uplink" style="color:var(--bio)">100%</b></span>
                 <span class="mono" style="color:var(--bio)">HARDLINE</span>
               </div>
             </div>
@@ -675,8 +636,8 @@
             <div class="node-dot" style="left:72%;top:30%;background:var(--bio);box-shadow:0 0 10px var(--bio)"></div>
             <div class="node-label" style="left:72%;top:30%">AIS Alpha</div>
             <div class="surface-stat" style="bottom:14px;left:14px;display:flex;gap:16px">
-              <div><div style="font-size:10px;color:var(--ink-faint);text-transform:uppercase">Active Nodes</div><div class="mono" style="color:var(--bio);font-size:15px">1,248</div></div>
-              <div><div style="font-size:10px;color:var(--ink-faint);text-transform:uppercase">Coverage</div><div class="mono" style="font-size:15px">84,000 km²</div></div>
+              <div><div style="font-size:10px;color:var(--ink-faint);text-transform:uppercase">Active Nodes</div><div class="mono" id="sens-nodes" style="color:var(--bio);font-size:15px">1,248</div></div>
+              <div><div style="font-size:10px;color:var(--ink-faint);text-transform:uppercase">Coverage</div><div class="mono" id="sens-coverage" style="font-size:15px">84,000 km²</div></div>
             </div>
           </div>
         </div>
@@ -764,28 +725,25 @@
             <div class="card-title"><svg class="icon"><use href="#i-target"></use></svg>Bandwidth Allocation</div>
             <div style="display:flex;flex-direction:column;gap:12px">
               <div>
-                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span>Tactical Comms</span><span class="mono" style="color:var(--bio)">75%</span></div>
-                <div class="bar-track"><div class="bar-fill" style="width:75%;background:var(--bio)"></div></div>
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span>Tactical Comms</span><span class="mono" id="bw-tactical-pct" style="color:var(--bio)">75%</span></div>
+                <div class="bar-track"><div class="bar-fill" id="bw-tactical-bar" style="width:75%;background:var(--bio)"></div></div>
               </div>
               <div>
-                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span>Sensor Telemetry</span><span class="mono">15%</span></div>
-                <div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--current)"></div></div>
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span>Sensor Telemetry</span><span class="mono" id="bw-telemetry-pct">15%</span></div>
+                <div class="bar-track"><div class="bar-fill" id="bw-telemetry-bar" style="width:15%;background:var(--current)"></div></div>
               </div>
               <div>
-                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span>Background Sync</span><span class="mono" style="color:var(--flare)">10%</span></div>
-                <div class="bar-track"><div class="bar-fill" style="width:10%;background:var(--flare)"></div></div>
+                <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px"><span>Background Sync</span><span class="mono" id="bw-background-pct" style="color:var(--flare)">10%</span></div>
+                <div class="bar-track"><div class="bar-fill" id="bw-background-bar" style="width:10%;background:var(--flare)"></div></div>
               </div>
             </div>
           </div>
           <div class="card">
-            <div class="card-title"><svg class="icon"><use href="#i-hub"></use></svg>IPsec Tunnels</div>
+            <div class="card-title"><svg class="icon"><use href="#i-hub"></use></svg>Live SSE Connections</div>
+            <div class="panel-sub" style="margin-bottom:6px">Each row is a real, currently-open Server-Sent-Events stream to this backend.</div>
             <table>
               <thead><tr><th>ID</th><th>Status</th><th style="text-align:right">Uptime</th></tr></thead>
-              <tbody>
-                <tr><td class="mono">TUN-A1</td><td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Established</span></td><td class="mono" style="text-align:right">45:12:00</td></tr>
-                <tr><td class="mono">TUN-B2</td><td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Established</span></td><td class="mono" style="text-align:right">12:04:33</td></tr>
-                <tr><td class="mono">TUN-C3</td><td><span class="chip chip-warn"><i class="dot" style="background:currentColor"></i>Rekeying</span></td><td class="mono" style="text-align:right">00:00:15</td></tr>
-              </tbody>
+              <tbody id="tunnels-body"><tr><td colspan="3" style="color:var(--ink-faint)">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -805,66 +763,30 @@
             <div class="card-title"><svg class="icon"><use href="#i-alert"></use></svg>Causal Inference</div>
             <span class="panel-sub" style="font-size:10.5px">12h trend</span>
           </div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div class="log-entry" style="cursor:pointer">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                <span class="chip chip-bad"><i class="dot" style="background:currentColor"></i>Critical</span><span class="mono" style="font-size:11px;color:var(--flare)">88%</span>
-              </div>
-              <div style="font-size:12.5px;font-weight:500;margin-bottom:2px">Predicted Squall Onset</div>
-              <div style="font-size:10.5px;color:var(--ink-faint);margin-bottom:8px">Est. 14:00Z · Sector Alpha-9</div>
-              <svg class="sparkline" viewBox="0 0 200 34" preserveAspectRatio="none">
-                <polyline points="0,28 25,25 50,26 75,18 100,20 125,10 150,12 175,4 200,2" fill="none" stroke="var(--danger)" stroke-width="2"/>
-                <polygon points="0,28 25,25 50,26 75,18 100,20 125,10 150,12 175,4 200,2 200,34 0,34" fill="var(--danger)" opacity=".12"/>
-              </svg>
-              <div class="bar-track" style="margin-top:6px"><div class="bar-fill" style="width:88%;background:var(--danger)"></div></div>
-            </div>
-            <div class="log-entry" style="cursor:pointer">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                <span class="chip chip-warn"><i class="dot" style="background:currentColor"></i>Warning</span><span class="mono" style="font-size:11px;color:var(--flare)">64%</span>
-              </div>
-              <div style="font-size:12.5px;font-weight:500;margin-bottom:2px">Rogue Wave Spike</div>
-              <div style="font-size:10.5px;color:var(--ink-faint);margin-bottom:8px">45.9°N, 12.4°W</div>
-              <svg class="sparkline" viewBox="0 0 200 34" preserveAspectRatio="none">
-                <polyline points="0,20 25,24 50,16 75,20 100,12 125,18 150,8 175,14 200,6" fill="none" stroke="var(--flare)" stroke-width="2"/>
-                <polygon points="0,20 25,24 50,16 75,20 100,12 125,18 150,8 175,14 200,6 200,34 0,34" fill="var(--flare)" opacity=".12"/>
-              </svg>
-              <div class="bar-track" style="margin-top:6px"><div class="bar-fill" style="width:64%;background:var(--flare)"></div></div>
-            </div>
-            <div class="log-entry" style="cursor:pointer;opacity:.85">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                <span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Normal</span><span class="mono" style="font-size:11px;color:var(--kelp)">12%</span>
-              </div>
-              <div style="font-size:12.5px;font-weight:500;margin-bottom:2px">Thermal Layer Inversion</div>
-              <div style="font-size:10.5px;color:var(--ink-faint);margin-bottom:8px">Depth 150–200m</div>
-              <svg class="sparkline" viewBox="0 0 200 34" preserveAspectRatio="none">
-                <polyline points="0,10 25,14 50,10 75,16 100,12 125,20 150,16 175,22 200,24" fill="none" stroke="var(--kelp)" stroke-width="2"/>
-                <polygon points="0,10 25,14 50,10 75,16 100,12 125,20 150,16 175,22 200,24 200,34 0,34" fill="var(--kelp)" opacity=".12"/>
-              </svg>
-              <div class="bar-track" style="margin-top:6px"><div class="bar-fill" style="width:12%;background:var(--kelp)"></div></div>
-            </div>
+          <div style="display:flex;flex-direction:column;gap:10px" id="causal-list">
+            <div class="log-entry" style="color:var(--ink-faint)">Loading…</div>
           </div>
         </div>
 
         <div class="card">
           <div class="card-head">
             <div class="card-title"><svg class="icon"><use href="#i-wave"></use></svg>Kinematics — 48h</div>
-            <div class="seg-tabs">
-              <button class="active">SST</button><button>Wave</button><button>Wind</button>
+            <div class="seg-tabs" id="kin-seg-tabs">
+              <button class="active" data-series="sst">SST</button><button data-series="wave">Wave</button><button data-series="wind">Wind</button>
             </div>
           </div>
           <div style="position:relative">
             <svg id="fc-svg" viewBox="0 0 400 200" preserveAspectRatio="none" style="width:100%;height:220px;cursor:crosshair">
               <line x1="30" y1="10" x2="30" y2="170" stroke="var(--panel-line)"/>
               <line x1="30" y1="170" x2="390" y2="170" stroke="var(--panel-line)"/>
-              <path d="M30,140 Q100,120 160,90 T290,60 T380,30" fill="none" stroke="var(--bio)" stroke-width="2.2"/>
-              <path d="M30,140 Q100,120 160,90 T290,60 T380,30 L380,170 L30,170 Z" fill="var(--bio)" opacity=".1"/>
-              <path class="flow-line" d="M30,160 Q120,150 190,130 T340,120 T380,132" fill="none" stroke="var(--current)" stroke-width="1.6"/>
-              <circle cx="290" cy="60" r="4.5" fill="var(--bio)"/>
-              <circle cx="290" cy="60" r="4.5" fill="none" stroke="var(--bio)" stroke-width="1.4" opacity=".8">
+              <path id="fc-path-line" d="M30,140 Q100,120 160,90 T290,60 T380,30" fill="none" stroke="var(--bio)" stroke-width="2.2"/>
+              <path id="fc-path-fill" d="M30,140 Q100,120 160,90 T290,60 T380,30 L380,170 L30,170 Z" fill="var(--bio)" opacity=".1"/>
+              <circle id="fc-now-dot" cx="380" cy="30" r="4.5" fill="var(--bio)"/>
+              <circle cx="380" cy="30" r="4.5" fill="none" stroke="var(--bio)" stroke-width="1.4" opacity=".8">
                 <animate attributeName="r" values="4.5;15;4.5" dur="2s" repeatCount="indefinite"/>
                 <animate attributeName="opacity" values=".8;0;.8" dur="2s" repeatCount="indefinite"/>
               </circle>
-              <text x="298" y="52" fill="var(--ink)" font-size="10" font-family="IBM Plex Mono">21.4°C</text>
+              <text id="fc-now-label" x="388" y="24" text-anchor="end" fill="var(--ink)" font-size="10" font-family="IBM Plex Mono">--</text>
               <text x="26" y="185" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">T-48</text>
               <text x="370" y="185" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">NOW</text>
               <line id="fc-crosshair" x1="30" y1="10" x2="30" y2="170" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
@@ -877,24 +799,25 @@
         <div style="display:flex;flex-direction:column;gap:18px">
           <div class="card">
             <div class="card-title"><svg class="icon"><use href="#i-target"></use></svg>Model Confidence</div>
+            <div class="panel-sub" style="font-size:10px;margin-top:-6px">Share of current fleet readings tagged HIGH confidence</div>
             <div class="donut-wrap">
               <svg viewBox="0 0 120 120" width="150" height="150">
                 <circle cx="60" cy="60" r="50" fill="none" stroke="var(--panel-2)" stroke-width="10"/>
-                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bio)" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="35"/>
+                <circle id="mc-donut-circle" cx="60" cy="60" r="50" fill="none" stroke="var(--bio)" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="35"/>
               </svg>
-              <div class="donut-center"><b class="mono">89%</b><span>Confidence</span></div>
+              <div class="donut-center"><b class="mono" id="mc-donut-value">--%</b><span>Confidence</span></div>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;font-size:11.5px">
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-dim)">Inference Engine α</span><span class="mono" style="color:var(--bio)">0.92</span></div>
-              <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-dim)">Kinematic Module β</span><span class="mono" style="color:var(--current)">0.85</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-dim)">Fleet vessels tracked</span><span class="mono" id="mc-fleet-count" style="color:var(--bio)">--</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-dim)">Readings this cycle</span><span class="mono" id="mc-reading-count" style="color:var(--current)">--</span></div>
               <div style="display:flex;justify-content:space-between"><span style="color:var(--ink-dim)">Data Integrity</span><span class="mono" style="color:var(--kelp)">HIGH</span></div>
             </div>
           </div>
           <div class="card">
-            <div class="card-title" style="font-size:10.5px">YoY Thermal Anomaly</div>
+            <div class="card-title" style="font-size:10.5px">SST vs Fleet Baseline</div>
             <div style="display:flex;align-items:baseline;gap:8px">
-              <span class="metric-value mono" style="font-size:24px;color:var(--danger)">+2.4°C</span>
-              <span style="font-size:11px;color:var(--ink-faint)">vs 2023 avg</span>
+              <span class="metric-value mono" id="thermal-value" style="font-size:24px;color:var(--danger)">--°C</span>
+              <span style="font-size:11px;color:var(--ink-faint)">vs 26.5°C reference</span>
             </div>
             <div style="display:flex;align-items:flex-end;gap:3px;height:28px">
               <div style="flex:1;background:rgba(255,138,76,.25);height:30%;border-radius:2px 2px 0 0"></div>
@@ -905,7 +828,7 @@
             </div>
           </div>
           <div class="card">
-            <div class="card-title" style="font-size:10.5px"><svg class="icon" style="width:14px;height:14px"><use href="#i-compass"></use></svg>Species Tracking</div>
+            <div class="card-title" style="font-size:10.5px"><svg class="icon" style="width:14px;height:14px"><use href="#i-compass"></use></svg>Species Tracking <span style="font-weight:400;color:var(--ink-faint);text-transform:none;letter-spacing:0">(illustrative — no live migration feed)</span></div>
             <svg viewBox="0 0 200 50" style="width:100%;height:50px">
               <path d="M0,25 C40,5 60,45 100,25 S160,5 200,25" fill="none" stroke="var(--current)" stroke-width="1.6" opacity=".8"/>
               <path d="M0,35 C40,15 60,55 100,35 S160,15 200,35" fill="none" stroke="var(--bio)" stroke-width="1.6" opacity=".6"/>
@@ -925,16 +848,16 @@
         </div>
         <div style="flex:1;display:flex;gap:24px;flex-wrap:wrap;min-width:280px">
           <div style="flex:1;min-width:150px">
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--ink-dim)">Kinematic Engine</span><span class="chip chip-good">Excellent</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span class="mono" style="font-size:15px;font-weight:600">0.12</span><div class="bar-track" style="flex:1"><div class="bar-fill" style="width:88%;background:var(--bio)"></div></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--ink-dim)">Trip Twin (kinematics)</span><span class="chip chip-good" id="brier-kinematic-chip">—</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><span class="mono" id="brier-kinematic-val" style="font-size:15px;font-weight:600">--</span><div class="bar-track" style="flex:1"><div class="bar-fill" id="brier-kinematic-bar" style="width:0%;background:var(--bio)"></div></div></div>
           </div>
           <div style="flex:1;min-width:150px">
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--ink-dim)">Thermal Prediction</span><span class="chip chip-info">Nominal</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span class="mono" style="font-size:15px;font-weight:600">0.24</span><div class="bar-track" style="flex:1"><div class="bar-fill" style="width:66%;background:var(--current)"></div></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--ink-dim)">Ocean Analytics (thermal)</span><span class="chip chip-info" id="brier-thermal-chip">—</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><span class="mono" id="brier-thermal-val" style="font-size:15px;font-weight:600">--</span><div class="bar-track" style="flex:1"><div class="bar-fill" id="brier-thermal-bar" style="width:0%;background:var(--current)"></div></div></div>
           </div>
           <div style="flex:1;min-width:150px">
-            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--ink-dim)">Anomaly Detect</span><span class="chip chip-warn">Recalibrating</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span class="mono" style="font-size:15px;font-weight:600;color:var(--flare)">0.41</span><div class="bar-track" style="flex:1"><div class="bar-fill" style="width:41%;background:var(--flare)"></div></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px"><span style="color:var(--ink-dim)">Causal &amp; Trend (anomaly)</span><span class="chip chip-warn" id="brier-anomaly-chip">—</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><span class="mono" id="brier-anomaly-val" style="font-size:15px;font-weight:600;color:var(--flare)">--</span><div class="bar-track" style="flex:1"><div class="bar-fill" id="brier-anomaly-bar" style="width:0%;background:var(--flare)"></div></div></div>
           </div>
         </div>
       </div>
@@ -959,41 +882,8 @@
         <div class="card">
           <div class="table-wrap">
             <table>
-              <thead><tr><th></th><th>Timestamp (UTC)</th><th>Vessel ID</th><th>Incident Type</th><th style="text-align:right">Size</th><th>Status</th></tr></thead>
-              <tbody>
-                <tr style="background:rgba(47,230,198,.06)">
-                  <td><input class="checkbox" type="checkbox" checked></td>
-                  <td class="mono">2024-03-15 14:32:01</td>
-                  <td class="mono" style="color:var(--bio)">MMSI-987654</td>
-                  <td>IMBL Breach (Zone 4)</td>
-                  <td class="mono" style="text-align:right">45 MB</td>
-                  <td><span class="chip chip-bad"><i class="dot" style="background:currentColor"></i>Critical</span></td>
-                </tr>
-                <tr>
-                  <td><input class="checkbox" type="checkbox"></td>
-                  <td class="mono">2024-03-15 12:15:44</td>
-                  <td class="mono" style="color:var(--bio)">V-UNKN-882</td>
-                  <td>Severe Squall Detection</td>
-                  <td class="mono" style="text-align:right">1.2 GB</td>
-                  <td><span class="chip chip-warn"><i class="dot" style="background:currentColor"></i>Warning</span></td>
-                </tr>
-                <tr>
-                  <td><input class="checkbox" type="checkbox"></td>
-                  <td class="mono">2024-03-14 23:01:10</td>
-                  <td class="mono" style="color:var(--bio)">MMSI-112233</td>
-                  <td>Routine Patrol Log</td>
-                  <td class="mono" style="text-align:right">8 MB</td>
-                  <td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Normal</span></td>
-                </tr>
-                <tr>
-                  <td><input class="checkbox" type="checkbox"></td>
-                  <td class="mono">2024-03-14 18:44:02</td>
-                  <td class="mono" style="color:var(--bio)">MMSI-556781</td>
-                  <td>Sonar Ping Sequence</td>
-                  <td class="mono" style="text-align:right">4 KB</td>
-                  <td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Normal</span></td>
-                </tr>
-              </tbody>
+              <thead><tr><th></th><th>Timestamp (UTC)</th><th>Vessel ID</th><th>Incident Type</th><th>Status</th></tr></thead>
+              <tbody id="incidents-body"><tr><td colspan="5" style="color:var(--ink-faint)">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1044,26 +934,7 @@
           <div class="table-wrap">
             <table>
               <thead><tr><th>Vessel</th><th>Operator</th><th>Status</th><th style="text-align:right">Action</th></tr></thead>
-              <tbody>
-                <tr>
-                  <td class="mono" style="color:var(--bio)">ORCA-9</td>
-                  <td>K. Naik</td>
-                  <td><span class="chip chip-bad"><i class="dot" style="background:currentColor"></i>Critical</span></td>
-                  <td style="text-align:right"><button class="btn"><svg class="icon" style="width:13px;height:13px"><use href="#i-bell"></use></svg>Relay</button></td>
-                </tr>
-                <tr>
-                  <td class="mono" style="color:var(--bio)">TFA Vanguard</td>
-                  <td>R. Salvi</td>
-                  <td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Normal</span></td>
-                  <td style="text-align:right"><button class="btn"><svg class="icon" style="width:13px;height:13px"><use href="#i-bell"></use></svg>Relay</button></td>
-                </tr>
-                <tr>
-                  <td class="mono" style="color:var(--bio)">V-UNKN-882</td>
-                  <td>Unregistered</td>
-                  <td><span class="chip chip-warn"><i class="dot" style="background:currentColor"></i>Warning</span></td>
-                  <td style="text-align:right"><button class="btn"><svg class="icon" style="width:13px;height:13px"><use href="#i-bell"></use></svg>Relay</button></td>
-                </tr>
-              </tbody>
+              <tbody id="roster-body"><tr><td colspan="4" style="color:var(--ink-faint)">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1082,27 +953,27 @@
     <section id="panel-crisis" class="panel" hidden>
       <div class="panel-head">
         <h2>Crisis Monitor</h2>
-        <span class="panel-sub" style="color:var(--danger)">IMBL proximity · Vessel ORCA-9</span>
+        <span class="panel-sub" style="color:var(--danger)">Simulated boundary proximity · Vessel ORCA-9</span>
       </div>
       <div class="grid grid-3">
         <div class="card" style="min-height:440px;border-color:rgba(255,77,109,.3)">
           <div class="card-head">
             <div class="card-title" style="color:var(--danger)"><svg class="icon" style="color:var(--danger)"><use href="#i-alert"></use></svg>Boundary Radar</div>
-            <span class="chip chip-bad"><i class="dot" style="background:currentColor"></i>Intercept in 00:03:42</span>
+            <span class="chip chip-bad" id="crisis-chip"><i class="dot" style="background:currentColor"></i><span id="crisis-chip-text">Loading…</span></span>
           </div>
           <div class="instrument-surface" style="min-height:360px;background:radial-gradient(ellipse at 50% 50%,rgba(255,77,109,.08),transparent 60%),var(--abyss-2)">
             <div class="grid-overlay"></div>
             <div class="imbl-boundary"></div>
-            <span class="imbl-tag mono">IMBL — 3.8km</span>
+            <span class="imbl-tag mono" id="crisis-boundary-tag">Boundary — --km</span>
             <div class="danger-ring2"></div>
             <div class="node-dot" style="left:55%;top:50%;width:14px;height:14px;background:var(--flare);box-shadow:0 0 12px var(--flare)"></div>
-            <div class="node-label" style="left:55%;top:50%">ORCA-9 · 14kt · 142°</div>
+            <div class="node-label" id="crisis-vessel-label" style="left:55%;top:50%">ORCA-9 · --kt · --°</div>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:18px">
           <div class="card" style="border-color:rgba(255,77,109,.3)">
             <div class="card-title" style="color:var(--danger)">Intervention Required</div>
-            <p style="font-size:12.5px;color:var(--ink-dim);margin:0">Vessel ORCA-9 is critically close to the International Maritime Boundary Line. Immediate action mandated.</p>
+            <p style="font-size:12.5px;color:var(--ink-dim);margin:0" id="crisis-intervention-text">Vessel ORCA-9 is critically close to the simulated maritime boundary. Immediate action mandated.</p>
           </div>
           <div class="card" style="flex:1">
             <div class="card-title">Protocols</div>
@@ -1338,11 +1209,56 @@
       auditFeed.appendChild(line);
     });
   }
+  function timeAgo(ts){
+    var diffS = Math.max(0, Math.round((Date.now() - new Date(ts).getTime()) / 1000));
+    if (diffS < 45) return 'now';
+    if (diffS < 3600) return Math.round(diffS / 60) + 'm';
+    if (diffS < 86400) return Math.round(diffS / 3600) + 'h';
+    return Math.round(diffS / 86400) + 'd';
+  }
+  function parseFeedEntry(e){
+    var m;
+    if ((m = e.text.match(/^Catch report received from (\S+)/))) {
+      return { icon: 'i-boat', bg: 'var(--bio-dim)', fg: 'var(--bio)', title: 'Catch Report · ' + m[1], text: 'Voice/text report logged to archive' };
+    }
+    if ((m = e.text.match(/^Alert issued to (\S+): (.+)$/))) {
+      var critical = e.kind === 'bad';
+      return { icon: 'i-alert', bg: critical ? 'var(--danger-dim)' : 'var(--flare-dim)', fg: critical ? 'var(--danger)' : 'var(--flare)', title: (critical ? 'Critical Alert · ' : 'Warning · ') + m[1], text: m[2] };
+    }
+    if ((m = e.text.match(/^Acknowledgement received from (\S+) for alert (\S+)/))) {
+      return { icon: 'i-check', bg: 'var(--kelp-dim)', fg: 'var(--kelp)', title: 'Acknowledged · ' + m[1], text: 'Alert ' + m[2] + ' confirmed' + (e.text.indexOf('LATE') !== -1 ? ' (late, offline queue)' : '') };
+    }
+    if ((m = e.text.match(/^Position update from (\S+): (.+)$/))) {
+      return { icon: 'i-boat', bg: 'var(--current-dim)', fg: 'var(--current)', title: 'Position Update · ' + m[1], text: m[2] };
+    }
+    return { icon: 'i-satellite', bg: 'var(--panel-2)', fg: 'var(--ink-dim)', title: 'System', text: e.text };
+  }
+  function renderSignalFeed(entries){
+    var feed = document.getElementById('signal-feed');
+    if (!feed) return;
+    feed.innerHTML = '';
+    entries.slice(0, 6).forEach(function(e){
+      var p = parseFeedEntry(e);
+      var item = document.createElement('div');
+      item.className = 'feed-item';
+      item.innerHTML =
+        '<div class="feed-dot" style="background:' + p.bg + ';color:' + p.fg + '"><svg class="icon" style="width:13px;height:13px"><use href="#' + p.icon + '"></use></svg></div>' +
+        '<div class="feed-body"><span class="feed-title"></span><span class="feed-text"></span></div>' +
+        '<span class="feed-time mono"></span>';
+      item.querySelector('.feed-title').textContent = p.title;
+      item.querySelector('.feed-text').textContent = p.text;
+      item.querySelector('.feed-time').textContent = timeAgo(e.ts);
+      feed.appendChild(item);
+    });
+    if (!entries.length) feed.innerHTML = '<div class="feed-item"><div class="feed-body"><span class="feed-text" style="color:var(--ink-faint)">No activity yet.</span></div></div>';
+  }
   async function fetchAudit(){
     try {
       var res = await fetch(API + '/api/audit?limit=8');
       if (!res.ok) throw new Error('bad status');
-      renderAudit(await res.json());
+      var entries = await res.json();
+      renderAudit(entries);
+      renderSignalFeed(entries);
     } catch (e) { /* leave last-known feed showing */ }
   }
   fetchAudit();
@@ -1391,6 +1307,277 @@
   fetchLedger();
   setInterval(fetchLedger, 4000);
 
+  // ---------- Sensors / Network / Analytics / Archive / Field / Crisis — all from /api/dashboard/extended ----------
+  var kinSeries = 'sst';
+  var lastKinematics = null;
+
+  function chipClassForVerdict(v){
+    if (v === 'UNSAFE') return 'chip-bad';
+    if (v === 'CAUTION') return 'chip-warn';
+    if (v === 'SAFE') return 'chip-good';
+    return 'chip-info';
+  }
+  function labelForVerdict(v){
+    if (v === 'UNSAFE') return 'Critical';
+    if (v === 'CAUTION') return 'Warning';
+    if (v === 'SAFE') return 'Normal';
+    return 'Unknown';
+  }
+
+  function renderAgents(agents){
+    agents.forEach(function(a, i){
+      var statsEl = document.getElementById('agent-' + i + '-stats');
+      var dotEl = document.getElementById('agent-' + i + '-dot');
+      if (statsEl) statsEl.textContent = a.active ? (a.latency_ms + 'ms · Brier ' + a.brier.toFixed(2)) : 'idle';
+      if (dotEl) {
+        dotEl.classList.toggle('online', !!a.active);
+        dotEl.style.background = a.active ? '' : '';
+        dotEl.style.boxShadow = a.active ? '' : 'none';
+      }
+    });
+  }
+
+  function renderSensors(sensors){
+    sensors.arrays.forEach(function(a, i){
+      var uplinkEl = document.getElementById('arr-' + i + '-uplink');
+      var powerEl = document.getElementById('arr-' + i + '-power');
+      var dotEl = document.getElementById('arr-' + i + '-dot');
+      if (uplinkEl) uplinkEl.textContent = a.uplink_pct + '%';
+      if (powerEl && a.power_pct != null) powerEl.textContent = a.power_pct + '%';
+      if (dotEl) {
+        var ok = a.status === 'online';
+        dotEl.classList.toggle('online', ok);
+        dotEl.style.background = ok ? '' : 'var(--flare)';
+        dotEl.style.boxShadow = ok ? '' : '0 0 6px var(--flare)';
+      }
+    });
+    var nodesEl = document.getElementById('sens-nodes');
+    if (nodesEl) nodesEl.textContent = sensors.active_nodes.toLocaleString('en-US');
+    var snrBars = document.querySelectorAll('#snr-bars .snr-bar');
+    sensors.snr_history.forEach(function(pt, i){
+      if (snrBars[i]) {
+        snrBars[i].style.height = Math.max(15, Math.min(100, pt.value)) + '%';
+        snrBars[i].dataset.t = pt.t;
+      }
+    });
+  }
+
+  function renderNetwork(network){
+    var pct = network.bandwidth;
+    var map = {tactical: pct.tactical_pct, telemetry: pct.telemetry_pct, background: pct.background_pct};
+    Object.keys(map).forEach(function(k){
+      var pctEl = document.getElementById('bw-' + k + '-pct');
+      var barEl = document.getElementById('bw-' + k + '-bar');
+      if (pctEl) pctEl.textContent = map[k] + '%';
+      if (barEl) barEl.style.width = map[k] + '%';
+    });
+    var body = document.getElementById('tunnels-body');
+    if (body) {
+      body.innerHTML = '';
+      if (!network.tunnels.length) {
+        body.innerHTML = '<tr><td colspan="3" style="color:var(--ink-faint)">No live streams connected right now.</td></tr>';
+      }
+      network.tunnels.forEach(function(tu){
+        var h = Math.floor(tu.uptime_s / 3600), m = Math.floor((tu.uptime_s % 3600) / 60), s = tu.uptime_s % 60;
+        var uptime = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td class="mono">SSE-' + tu.id + '</td><td><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Connected</span></td><td class="mono" style="text-align:right"></td>';
+        tr.children[2].textContent = uptime;
+        body.appendChild(tr);
+      });
+    }
+  }
+
+  function pathFromSeries(pts){
+    var x0 = 30, x1 = 380, y0 = 170, y1 = 10;
+    var minV = Math.min.apply(null, pts), maxV = Math.max.apply(null, pts);
+    var range = (maxV - minV) || 1;
+    var coords = pts.map(function(v, i){
+      var x = x0 + (x1 - x0) * i / (pts.length - 1);
+      var y = y0 - ((v - minV) / range) * (y0 - y1);
+      return [x, y];
+    });
+    var d = 'M' + coords[0][0].toFixed(1) + ',' + coords[0][1].toFixed(1);
+    for (var i = 1; i < coords.length; i++) d += ' L' + coords[i][0].toFixed(1) + ',' + coords[i][1].toFixed(1);
+    return { d: d, last: coords[coords.length - 1] };
+  }
+
+  function renderKinematics(series){
+    if (!lastKinematics) return;
+    var pts = lastKinematics[series];
+    if (!pts) return;
+    var res = pathFromSeries(pts);
+    var line = document.getElementById('fc-path-line');
+    var fill = document.getElementById('fc-path-fill');
+    var dot = document.getElementById('fc-now-dot');
+    var label = document.getElementById('fc-now-label');
+    if (line) line.setAttribute('d', res.d);
+    if (fill) fill.setAttribute('d', res.d + ' L380,170 L30,170 Z');
+    if (dot) { dot.setAttribute('cx', res.last[0]); dot.setAttribute('cy', res.last[1]); }
+    var unit = series === 'sst' ? '°C' : (series === 'wave' ? 'm' : 'kt');
+    if (label) { label.textContent = pts[pts.length - 1] + unit; }
+  }
+  document.querySelectorAll('#kin-seg-tabs button').forEach(function(btn){
+    btn.addEventListener('click', function(){ kinSeries = btn.dataset.series; renderKinematics(kinSeries); });
+  });
+
+  function renderCausal(entries){
+    var el = document.getElementById('causal-list');
+    if (!el) return;
+    el.innerHTML = '';
+    if (!entries.length) {
+      el.innerHTML = '<div class="log-entry" style="opacity:.85"><span class="chip chip-good"><i class="dot" style="background:currentColor"></i>Normal</span><div style="font-size:12.5px;font-weight:500;margin:6px 0 2px">All fleet vessels nominal</div><div style="font-size:10.5px;color:var(--ink-faint)">No elevated swell, wind or boundary signals this cycle</div></div>';
+      return;
+    }
+    entries.forEach(function(e){
+      var isCritical = e.severity === 'UNSAFE';
+      var chipClass = isCritical ? 'chip-bad' : 'chip-warn';
+      var label = isCritical ? 'Critical' : 'Warning';
+      var color = isCritical ? 'var(--danger)' : 'var(--flare)';
+      var div = document.createElement('div');
+      div.className = 'log-entry';
+      div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="chip ' + chipClass + '"><i class="dot" style="background:currentColor"></i>' + label + '</span><span class="mono" style="font-size:11px;color:' + color + '"></span></div>' +
+        '<div style="font-size:12.5px;font-weight:500;margin-bottom:2px"></div>' +
+        '<div style="font-size:10.5px;color:var(--ink-faint);margin-bottom:8px"></div>' +
+        '<div class="bar-track" style="margin-top:6px"><div class="bar-fill" style="background:' + color + '"></div></div>';
+      div.querySelector('.mono').textContent = e.confidence_pct + '%';
+      div.children[1].textContent = e.vessel_name + ' (' + e.vessel_id + ')';
+      div.children[2].textContent = e.reason;
+      div.querySelector('.bar-fill').style.width = e.confidence_pct + '%';
+      el.appendChild(div);
+    });
+  }
+
+  function renderModelConfidence(analytics, fleetCount){
+    var pct = analytics.model_confidence_pct;
+    var circle = document.getElementById('mc-donut-circle');
+    var valEl = document.getElementById('mc-donut-value');
+    var fleetEl = document.getElementById('mc-fleet-count');
+    var readingEl = document.getElementById('mc-reading-count');
+    if (pct != null) {
+      var circumference = 314.159;
+      if (circle) circle.setAttribute('stroke-dashoffset', (circumference * (1 - pct / 100)).toFixed(1));
+      if (valEl) valEl.textContent = pct + '%';
+    }
+    if (fleetEl) fleetEl.textContent = fleetCount;
+    if (readingEl) readingEl.textContent = fleetCount * 3;
+    var thermalEl = document.getElementById('thermal-value');
+    if (thermalEl && analytics.thermal_anomaly_c != null) {
+      var v = analytics.thermal_anomaly_c;
+      thermalEl.textContent = (v >= 0 ? '+' : '') + v + '°C';
+      thermalEl.style.color = v >= 1 ? 'var(--danger)' : (v <= -1 ? 'var(--current)' : 'var(--kelp)');
+    }
+  }
+
+  function renderBrierRow(agents){
+    var map = { kinematic: agents[4], thermal: agents[1], anomaly: agents[5] };
+    Object.keys(map).forEach(function(key){
+      var a = map[key];
+      var valEl = document.getElementById('brier-' + key + '-val');
+      var barEl = document.getElementById('brier-' + key + '-bar');
+      var chipEl = document.getElementById('brier-' + key + '-chip');
+      if (!a || a.brier == null) { if (valEl) valEl.textContent = 'idle'; return; }
+      if (valEl) valEl.textContent = a.brier.toFixed(2);
+      if (barEl) barEl.style.width = Math.round((1 - a.brier) * 100) + '%';
+      if (chipEl) {
+        var label = a.brier < 0.15 ? 'Excellent' : (a.brier < 0.3 ? 'Nominal' : 'Recalibrating');
+        var cls = a.brier < 0.15 ? 'chip-good' : (a.brier < 0.3 ? 'chip-info' : 'chip-warn');
+        chipEl.className = 'chip ' + cls;
+        chipEl.textContent = label;
+      }
+    });
+  }
+
+  function renderIncidents(incidents){
+    var body = document.getElementById('incidents-body');
+    if (!body) return;
+    body.innerHTML = '';
+    if (!incidents.length) { body.innerHTML = '<tr><td colspan="5" style="color:var(--ink-faint)">No incidents logged yet.</td></tr>'; return; }
+    incidents.forEach(function(inc){
+      var chipClass = inc.severity === 'CRITICAL' ? 'chip-bad' : (inc.severity === 'WARNING' ? 'chip-warn' : 'chip-good');
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td><input class="checkbox" type="checkbox"></td><td class="mono"></td><td class="mono" style="color:var(--bio)"></td><td></td><td><span class="chip ' + chipClass + '"><i class="dot" style="background:currentColor"></i></span></td>';
+      tr.children[1].textContent = new Date(inc.ts).toISOString().replace('T', ' ').slice(0, 19);
+      tr.children[2].textContent = inc.vessel_id;
+      tr.children[3].textContent = inc.type;
+      tr.children[4].querySelector('.chip').appendChild(document.createTextNode(inc.status));
+      body.appendChild(tr);
+    });
+  }
+
+  function renderRoster(roster){
+    var body = document.getElementById('roster-body');
+    if (!body) return;
+    body.innerHTML = '';
+    roster.forEach(function(v){
+      var chipClass = chipClassForVerdict(v.verdict);
+      var label = labelForVerdict(v.verdict);
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td class="mono" style="color:var(--bio)"></td><td></td><td><span class="chip ' + chipClass + '"><i class="dot" style="background:currentColor"></i>' + label + '</span></td><td style="text-align:right"><button class="btn relay-btn"><svg class="icon" style="width:13px;height:13px"><use href="#i-bell"></use></svg>Relay</button></td>';
+      tr.children[0].textContent = v.name + ' (' + v.id + ')';
+      tr.children[1].textContent = v.operator;
+      tr.querySelector('.relay-btn').dataset.vessel = v.id;
+      body.appendChild(tr);
+    });
+    body.querySelectorAll('.relay-btn').forEach(function(btn){
+      btn.addEventListener('click', async function(){
+        var vid = btn.dataset.vessel;
+        btn.disabled = true;
+        var original = btn.innerHTML;
+        btn.textContent = 'Sending…';
+        try {
+          await fetch(API + '/api/alert', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vessel_id: vid, severity: 'WARNING', message: BC_TEMPLATES.mr, language: 'mr' }),
+          });
+        } catch (e) {}
+        btn.innerHTML = original;
+        btn.disabled = false;
+        fetchLedger();
+      });
+    });
+  }
+
+  function renderCrisis(crisis){
+    if (!crisis) return;
+    var chipText = document.getElementById('crisis-chip-text');
+    var boundaryTag = document.getElementById('crisis-boundary-tag');
+    var vesselLabel = document.getElementById('crisis-vessel-label');
+    var interventionText = document.getElementById('crisis-intervention-text');
+    var chip = document.getElementById('crisis-chip');
+    var isUnsafe = crisis.verdict === 'UNSAFE';
+    if (chip) chip.className = 'chip ' + (isUnsafe ? 'chip-bad' : (crisis.verdict === 'CAUTION' ? 'chip-warn' : 'chip-good'));
+    if (chipText) chipText.textContent = isUnsafe ? 'Inside exclusion margin' : (crisis.verdict === 'CAUTION' ? 'Approaching margin' : 'Clear of boundary');
+    if (boundaryTag) boundaryTag.textContent = 'Boundary — ' + crisis.distance_km + 'km';
+    if (vesselLabel) vesselLabel.textContent = crisis.vessel_name + ' · ' + crisis.speed + 'kt · ' + Math.round(crisis.heading) + '°';
+    if (interventionText) {
+      interventionText.textContent = isUnsafe
+        ? ('Vessel ' + crisis.vessel_name + ' is critically close to the simulated maritime boundary (' + crisis.distance_km + 'km). Immediate action mandated.')
+        : ('Vessel ' + crisis.vessel_name + ' is ' + crisis.distance_km + 'km from the simulated maritime boundary — monitor closely.');
+    }
+  }
+
+  async function fetchExtended(){
+    try {
+      var res = await fetch(API + '/api/dashboard/extended');
+      if (!res.ok) throw new Error('bad');
+      var d = await res.json();
+      renderAgents(d.agents);
+      renderSensors(d.sensors);
+      renderNetwork(d.network);
+      lastKinematics = d.analytics.kinematics;
+      renderKinematics(kinSeries);
+      renderCausal(d.analytics.causal_entries);
+      renderModelConfidence(d.analytics, d.field_roster.length);
+      renderBrierRow(d.agents);
+      renderIncidents(d.incidents);
+      renderRoster(d.field_roster);
+      renderCrisis(d.crisis);
+    } catch (e) { /* leave last-known values visible */ }
+  }
+  fetchExtended();
+  setInterval(fetchExtended, 5000);
+
   async function populateVesselSelect(){
     try {
       var res = await fetch(API + '/api/vessels');
@@ -1408,6 +1595,28 @@
     } catch (e) { /* offline — keep ALL only */ }
   }
   populateVesselSelect();
+
+  // The language dropdown only tags metadata for TTS/ledger unless the message text
+  // itself is actually written in that language — so keep the two in sync by default.
+  var BC_TEMPLATES = {
+    en: 'Maintain 240° SW heading — 2.8m squall swell ahead. Acknowledge on receipt.',
+    hi: '240° दक्षिण-पश्चिम दिशा बनाए रखें — 2.8मी तूफ़ानी लहर आगे है। प्राप्ति पर स्वीकार करें।',
+    mr: '240° नैऋत्य दिशा कायम ठेवा — 2.8मी वादळी लाट पुढे आहे. मिळाल्यावर मान्य करा.',
+  };
+  var bcMessageEdited = false;
+  var bcMessageEl = document.getElementById('bc-message');
+  var bcLangEl = document.getElementById('bc-lang');
+  if (bcMessageEl) {
+    bcMessageEl.addEventListener('input', function(){ bcMessageEdited = true; });
+  }
+  if (bcLangEl) {
+    bcLangEl.addEventListener('change', function(){
+      if (bcMessageEl && !bcMessageEdited) {
+        bcMessageEl.textContent = '"' + (BC_TEMPLATES[bcLangEl.value] || BC_TEMPLATES.en) + '"';
+      }
+    });
+    if (bcMessageEl) bcMessageEl.textContent = '"' + (BC_TEMPLATES[bcLangEl.value] || BC_TEMPLATES.en) + '"';
+  }
 
   var bcSend = document.getElementById('bc-send');
   if (bcSend) {
@@ -1448,7 +1657,7 @@
       try {
         await fetch(API + '/api/alert', {
           method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ vessel_id: ORCA9_ID, severity: 'CRITICAL', message: 'IMBL proximity — escalate to Coast Guard. Immediate intervention required.', language: 'mr' })
+          body: JSON.stringify({ vessel_id: ORCA9_ID, severity: 'CRITICAL', message: 'सागरी सीमारेषेजवळ धोका — त्वरित किनारी सुरक्षा दलाला सूचित करा. लगेच सुरक्षित मार्गावर वळा.', language: 'mr' })
         });
       } catch (e) {}
       crisisBtn.innerHTML = 'Escalation sent';
@@ -1535,19 +1744,6 @@
     recalcPlan();
   }
 
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!reduceMotion) {
-    var snrBars = document.querySelectorAll('#snr-bars .snr-bar');
-    setInterval(function(){
-      snrBars.forEach(function(bar, i){
-        var base = 50 + i * 6;
-        var jitter = Math.random() * 30 - 15;
-        var h = Math.max(20, Math.min(100, base + jitter));
-        bar.style.height = h + '%';
-      });
-    }, 1400);
-  }
-
   function wireChartHover(svgId, points, crosshairId, dotId, tooltipId, vbW, vbH, fmt){
     var svg = document.getElementById(svgId);
     var crosshair = document.getElementById(crosshairId);
@@ -1585,16 +1781,6 @@
       tooltip.style.display = 'none';
     });
   }
-  wireChartHover('fc-svg', [
-    {x:30,y:140,t:'T-48',v:'19.1°C'},
-    {x:100,y:120,t:'T-40',v:'19.8°C'},
-    {x:160,y:90,t:'T-32',v:'20.4°C'},
-    {x:220,y:75,t:'T-24',v:'20.9°C'},
-    {x:290,y:60,t:'T-12',v:'21.4°C'},
-    {x:340,y:42,t:'T-4',v:'21.9°C'},
-    {x:380,y:30,t:'NOW',v:'22.3°C'}
-  ], 'fc-crosshair', 'fc-dot', 'fc-tooltip', 400, 200, function(p){ return p.t + ' — ' + p.v; });
-
   wireChartHover('tp-svg', [
     {x:55,y:215,t:'04:00',km:'2km offshore'},
     {x:100,y:180,t:'06:00',km:'14km offshore'},

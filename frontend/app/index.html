@@ -127,6 +127,11 @@
     font-size:13px;padding:10px 12px;font-family:inherit;
   }
   .species-box input:focus{outline:none;border-color:var(--bio);}
+  .species-box select{
+    background:var(--panel-2);border:1px solid var(--panel-line);border-radius:10px;color:var(--ink);
+    font-size:12px;padding:0 8px;font-family:inherit;flex:0 0 auto;
+  }
+  .species-box select:focus{outline:none;border-color:var(--bio);}
   .species-result{font-size:12px;color:var(--ink-dim);min-height:16px;}
   .species-result b{color:var(--bio);}
 
@@ -241,8 +246,16 @@
       </div>
 
       <div class="species-box">
-        <div class="section-label">Species Lookup</div>
-        <input id="species-input" type="text" placeholder="bangda, surmai, paplet…">
+        <div class="section-label" data-i18n="species.lookup_label">Species Lookup</div>
+        <div style="display:flex;gap:8px">
+          <input id="species-input" type="text" placeholder="bangda, surmai, paplet…" style="flex:1">
+          <select id="species-lang-filter">
+            <option value="">All languages</option>
+            <option value="mr">मराठी</option>
+            <option value="hi">हिन्दी</option>
+            <option value="en">English</option>
+          </select>
+        </div>
         <div class="species-result" id="species-result"></div>
       </div>
 

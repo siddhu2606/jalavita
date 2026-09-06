@@ -107,8 +107,13 @@ def _seed_if_empty(conn: sqlite3.Connection) -> None:
     now = datetime.now(timezone.utc).isoformat()
     for i in range(12):
         vid = f"MH-RTN-{400 + i * 4}"
-        lat = round(rng.uniform(15.9, 17.0), 4)
-        lon = round(rng.uniform(73.0, 73.6), 4)
+        if NAMES[i] == "ORCA-9":
+            # Seeded close to the simulated boundary on purpose — this is the
+            # vessel the Crisis panel's demo scenario is built around.
+            lat, lon = 16.33, 73.615
+        else:
+            lat = round(rng.uniform(15.9, 17.0), 4)
+            lon = round(rng.uniform(73.0, 73.6), 4)
         heading = round(rng.uniform(0, 360), 1)
         speed = round(rng.uniform(4, 15), 1)
         vclass = VESSEL_CLASSES[i % len(VESSEL_CLASSES)]

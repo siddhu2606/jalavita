@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var DEMO_VESSEL_ID = 'MH-RTN-400';
+  var DEMO_VESSEL_ID = 'MH-RTN-408'; // ORCA-9 — the vessel the Crisis panel's demo scenario is built around
   var DB_NAME = 'jalavita';
   var DB_VERSION = 1;
   var API = '';
@@ -102,6 +102,8 @@
   function setLang(lang) {
     CURRENT_LANG = lang;
     localStorage.setItem('jalavita_lang', lang);
+    var speciesFilter = document.getElementById('species-lang-filter');
+    if (speciesFilter) speciesFilter.value = lang;
     return loadLocale(lang).then(function () {
       applyStaticTranslations();
       render();
@@ -402,41 +404,53 @@
   // ---------------- Species lookup ----------------
   var speciesInput = document.getElementById('species-input');
   var speciesResult = document.getElementById('species-result');
+  var speciesLangFilter = document.getElementById('species-lang-filter');
   var debounceTimer = null;
+  if (speciesLangFilter) speciesLangFilter.value = CURRENT_LANG;
+
   function renderSpeciesRow(row) {
     if (!row) { speciesResult.textContent = t('species.not_found'); return; }
-    speciesResult.innerHTML = '<b></b>';
-    speciesResult.querySelector('b').textContent = '';
     speciesResult.textContent = t('species.envelope', {
       name: row.vernacular_name, sci: row.scientific_name,
       sstmin: row.sst_min_c, sstmax: row.sst_max_c,
       depthmin: row.depth_min_m, depthmax: row.depth_max_m,
     });
   }
-  function searchSpeciesOffline(q) {
+  function searchSpeciesOffline(q, lang) {
     return idbGet('packet', DEMO_VESSEL_ID).then(function (packet) {
       var rows = (packet && packet.species_lexicon) || [];
+      if (lang) rows = rows.filter(function (r) { return r.language === lang; });
       var qn = q.trim().toLowerCase();
       var exact = rows.find(function (r) { return r.vernacular_name.toLowerCase() === qn; });
       if (exact) return exact;
-      return rows.find(function (r) { return r.vernacular_name.toLowerCase().indexOf(qn) !== -1; }) || null;
+      return rows.find(function (r) {
+        var name = r.vernacular_name.toLowerCase();
+        return name.indexOf(qn) !== -1 || qn.indexOf(name) !== -1;
+      }) || null;
     });
+  }
+  function runSpeciesSearch() {
+    var q = speciesInput.value;
+    var lang = speciesLangFilter ? speciesLangFilter.value : '';
+    if (!q.trim()) { speciesResult.textContent = ''; return; }
+    if (isOnline()) {
+      fetch(API + '/api/species/resolve?q=' + encodeURIComponent(q) + (lang ? '&lang=' + lang : ''))
+        .then(function (r) { if (!r.ok) throw new Error('404'); return r.json(); })
+        .then(renderSpeciesRow)
+        .catch(function () { searchSpeciesOffline(q, lang).then(renderSpeciesRow); });
+    } else {
+      searchSpeciesOffline(q, lang).then(renderSpeciesRow);
+    }
   }
   if (speciesInput) {
     speciesInput.addEventListener('input', function () {
       clearTimeout(debounceTimer);
-      var q = speciesInput.value;
-      if (!q.trim()) { speciesResult.textContent = ''; return; }
-      debounceTimer = setTimeout(function () {
-        if (isOnline()) {
-          fetch(API + '/api/species/resolve?q=' + encodeURIComponent(q) + '&lang=' + CURRENT_LANG)
-            .then(function (r) { if (!r.ok) throw new Error('404'); return r.json(); })
-            .then(renderSpeciesRow)
-            .catch(function () { searchSpeciesOffline(q).then(renderSpeciesRow); });
-        } else {
-          searchSpeciesOffline(q).then(renderSpeciesRow);
-        }
-      }, 250);
+      debounceTimer = setTimeout(runSpeciesSearch, 250);
+    });
+  }
+  if (speciesLangFilter) {
+    speciesLangFilter.addEventListener('change', function () {
+      if (speciesInput.value.trim()) runSpeciesSearch();
     });
   }
 
@@ -587,24 +601,53 @@
   }
 
   // ---------------- Live alert channel (online only) ----------------
+  // Two independent paths reach the same handler: SSE push (instant, but some
+  // proxies/tunnels buffer long-lived streams and silently drop it) and short
+  // polling (slower, but works anywhere plain HTTP works). Whichever notices
+  // a new alert first wins; the dedupe on lastSeenAlertId makes replaying the
+  // same alert from the other path harmless.
+  var lastSeenAlertId = null;
+  var sawFirstPoll = false;
+
+  function handleIncomingAlert(data) {
+    if (!data || data.vessel_id !== DEMO_VESSEL_ID) return;
+    if (data.id === lastSeenAlertId) return;
+    lastSeenAlertId = data.id;
+    currentAlertId = data.id;
+    var transcript = document.getElementById('crisis-transcript-text');
+    if (transcript) transcript.textContent = data.message;
+    if (ackBtn) { ackBtn.disabled = false; ackBtn.querySelector('span').textContent = t('crisis.ack_button'); }
+    goToCrisis();
+    speak(data.message, data.language || CURRENT_LANG);
+  }
+
   var sse = null;
   function connectSSE() {
     if (!isOnline() || sse) return;
     try {
       sse = new EventSource(API + '/api/events');
-      sse.addEventListener('alert', function (e) {
-        var data = JSON.parse(e.data);
-        if (data.vessel_id !== DEMO_VESSEL_ID) return;
-        currentAlertId = data.id;
-        var transcript = document.getElementById('crisis-transcript-text');
-        if (transcript) transcript.textContent = data.message;
-        if (ackBtn) { ackBtn.disabled = false; ackBtn.querySelector('span').textContent = t('crisis.ack_button'); }
-        goToCrisis();
-        speak(data.message, data.language || CURRENT_LANG);
-      });
+      sse.addEventListener('alert', function (e) { handleIncomingAlert(JSON.parse(e.data)); });
       sse.onerror = function () { if (sse) { sse.close(); sse = null; setTimeout(connectSSE, 5000); } };
-    } catch (e) { /* SSE unsupported offline path still works via polling-free cached packet */ }
+    } catch (e) { /* SSE unsupported — polling below still covers it */ }
   }
+
+  function pollForAlerts() {
+    if (!isOnline()) return;
+    fetch(API + '/api/alerts/latest?vessel_id=' + encodeURIComponent(DEMO_VESSEL_ID))
+      .then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); })
+      .then(function (data) {
+        if (!sawFirstPoll) {
+          // Baseline on first poll so we don't jump to Crisis for an alert that
+          // was already sitting there before this page ever loaded.
+          sawFirstPoll = true;
+          lastSeenAlertId = data ? data.id : null;
+          return;
+        }
+        if (data) handleIncomingAlert(data);
+      })
+      .catch(function () { /* try again next tick */ });
+  }
+  setInterval(pollForAlerts, 4000);
 
   // ---------------- Service worker ----------------
   if ('serviceWorker' in navigator) {
@@ -623,6 +666,7 @@
       refreshPacket();
       connectSSE();
       flushOutboxes();
+      pollForAlerts();
     }
   });
 

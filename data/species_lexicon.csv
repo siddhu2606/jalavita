@@ -25,7 +25,35 @@ tarli,mr,Konkan,Sardinella longiceps,24,29,10,60,
 oil sardine,hi,Maharashtra,Sardinella longiceps,24,29,10,60,
 mandeli,mr,Konkan,Stolephorus spp.,24,30,5,30,genus-level - TODO confirm exact anchovy species
 ghol,mr,Konkan,Protonibea diacanthus,23,29,15,70,high commercial value; catch reporting sensitive
+ghol,hi,Maharashtra,Protonibea diacanthus,23,29,15,70,widely known by this trade name across languages; high commercial value
 dhoma,mr,Konkan,Otolithes ruber,23,29,15,60,
 shingala,mr,Konkan,Arius spp.,22,29,5,40,genus-level - TODO confirm exact catfish species
 waam,mr,Konkan,Muraenesox cinereus,22,28,10,80,
 kane,mr,Konkan,Sillago sihama,23,29,5,30,TODO verify local usage vs Etroplus in other regions
+boi,mr,Konkan,Mugil cephalus,22,30,2,25,
+mullet,hi,Maharashtra,Mugil cephalus,22,30,2,25,commonly used as-is in coastal Hindi speech - TODO confirm distinct Hindi vernacular
+mullet,en,Maharashtra,Mugil cephalus,22,30,2,25,
+kingfish,en,Maharashtra,Scomberomorus commerson,24,30,10,70,alias for surmai/seer fish
+sardine,hi,Maharashtra,Sardinella longiceps,24,29,10,60,commonly used as-is or as "tarli" in coastal Hindi speech
+sardine,en,Maharashtra,Sardinella longiceps,24,29,10,60,alias for tarli/oil sardine
+anchovy,hi,Maharashtra,Stolephorus spp.,24,30,5,30,genus-level; commonly used as-is in coastal Hindi speech - TODO confirm exact species
+anchovy,en,Maharashtra,Stolephorus spp.,24,30,5,30,genus-level alias for mandeli - TODO confirm exact species
+baam,hi,Maharashtra,Muraenesox cinereus,22,28,10,80,alias for waam
+eel,en,Maharashtra,Muraenesox cinereus,22,28,10,80,alias for waam
+catfish,hi,Maharashtra,Arius spp.,22,29,5,40,genus-level; commonly used as-is in coastal Hindi speech - TODO confirm exact species
+catfish,en,Maharashtra,Arius spp.,22,29,5,40,genus-level alias for shingala - TODO confirm exact species
+shevand,mr,Konkan,Panulirus spp.,23,29,5,50,genus-level; spiny lobster - TODO confirm exact species
+lobster,hi,Maharashtra,Panulirus spp.,23,29,5,50,genus-level; commonly used as-is in coastal Hindi speech - TODO confirm exact species
+lobster,en,Maharashtra,Panulirus spp.,23,29,5,50,genus-level; spiny lobster - TODO confirm exact species
+khekada,mr,Konkan,Portunus spp.,23,30,2,30,genus-level; blue swimmer crab common in Konkan - TODO confirm exact species
+kekda,hi,Maharashtra,Portunus spp.,23,30,2,30,genus-level; blue swimmer crab common in Konkan - TODO confirm exact species
+crab,en,Maharashtra,Portunus spp.,23,30,2,30,genus-level; blue swimmer crab common in Konkan - TODO confirm exact species
+mushi,mr,Konkan,Carcharhinus spp.,23,29,10,100,genus-level; requiem shark - TODO confirm exact species
+shark,hi,Maharashtra,Carcharhinus spp.,23,29,10,100,genus-level; commonly used as-is in coastal Hindi speech - TODO confirm exact species
+shark,en,Maharashtra,Carcharhinus spp.,23,29,10,100,genus-level; requiem shark - TODO confirm exact species
+squid,hi,Maharashtra,Loligo spp.,23,29,10,60,genus-level; commonly used as-is in coastal Hindi speech - TODO confirm exact species
+squid,en,Maharashtra,Loligo spp.,23,29,10,60,genus-level - TODO confirm exact species and Marathi vernacular
+octopus,hi,Maharashtra,Octopus spp.,23,29,5,60,genus-level; commonly used as-is in coastal Hindi speech - TODO confirm exact species
+octopus,en,Maharashtra,Octopus spp.,23,29,5,60,genus-level - TODO confirm exact species and Marathi vernacular
+tuna,hi,Maharashtra,Thunnus spp.,25,30,20,150,genus-level; commonly used as-is in coastal Hindi speech - TODO confirm exact species
+tuna,en,Maharashtra,Thunnus spp.,25,30,20,150,genus-level; yellowfin/skipjack common off Konkan - TODO confirm exact species and Marathi vernacular

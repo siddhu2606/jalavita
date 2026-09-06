@@ -34,6 +34,7 @@
   "crisis.relay_button": "Relay to Harbour Control",
   "crisis.acknowledged": "Acknowledged — waypoint set",
   "crisis.distance_to_boundary": "{km}km to boundary",
+  "species.lookup_label": "Species Lookup",
   "species.not_found": "Species not recognized",
   "species.envelope": "{name} ({sci}) · {sstmin}–{sstmax}°C · {depthmin}–{depthmax}m",
   "lang.switch": "Language",

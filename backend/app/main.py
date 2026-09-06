@@ -23,6 +23,21 @@ SPECIES_CSV = os.path.join(ROOT, "data", "species_lexicon.csv")
 
 app = FastAPI(title="Jalavita API")
 
+REQUEST_COUNTS = {"position": 0, "telemetry": 0, "background": 0}
+ORCA9_ID = "MH-RTN-408"
+
+
+@app.middleware("http")
+async def count_requests(request: Request, call_next):
+    path = request.url.path
+    if path.endswith("/position"):
+        REQUEST_COUNTS["position"] += 1
+    elif path in ("/api/state", "/api/audit", "/api/vessels") or path.startswith("/api/vessel/"):
+        REQUEST_COUNTS["telemetry"] += 1
+    elif path in ("/api/events", "/api/ledger", "/api/stats/ack-rate"):
+        REQUEST_COUNTS["background"] += 1
+    return await call_next(request)
+
 
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
@@ -151,6 +166,21 @@ def post_alert(alert: AlertIn):
     return payload
 
 
+@app.get("/api/alerts/latest")
+def latest_alert(vessel_id: str):
+    conn = db()
+    row = conn.execute(
+        "SELECT * FROM alerts WHERE vessel_id=? ORDER BY created_at DESC LIMIT 1", (vessel_id,)
+    ).fetchone()
+    if not row:
+        return None
+    return {
+        "id": row["id"], "vessel_id": row["vessel_id"], "severity": row["severity"],
+        "message": row["message"], "language": row["language"], "created_at": row["created_at"],
+        "status": row["status"],
+    }
+
+
 @app.get("/api/ledger")
 def get_ledger(limit: int = 100):
     conn = db()
@@ -245,6 +275,131 @@ def post_plan(plan: PlanRequest):
     return result.model_dump(mode="json")
 
 
+def _fleet_advisories():
+    conn = db()
+    rows = conn.execute("SELECT * FROM vessels ORDER BY id").fetchall()
+    now = now_utc()
+    out = []
+    for r in rows:
+        adv = compute_advisory(r["id"], r["lat"], r["lon"], now)
+        out.append((r, adv))
+    return out
+
+
+@app.get("/api/dashboard/extended")
+def dashboard_extended():
+    import random
+    now = now_utc()
+    minute_rng = random.Random(int(now.timestamp() // 60))
+    hour_rng = random.Random(int(now.timestamp() // 3600))
+    fleet = _fleet_advisories()
+
+    agent_defs = [
+        ("Planner", "route"), ("Ocean Analytics", "wave"), ("Weather & Hazard", "alert"),
+        ("Geospatial Risk", "compass"), ("Trip Twin", "hub"), ("Causal & Trend", "chev-up"),
+    ]
+    hazard_present = any(adv.verdict.value != "SAFE" for _, adv in fleet)
+    agents = []
+    for i, (name, icon) in enumerate(agent_defs):
+        r = random.Random(f"agent:{name}:{int(now.timestamp() // 20)}")
+        active = True
+        if name == "Geospatial Risk":
+            active = hazard_present
+        agents.append({
+            "name": name, "icon": icon, "active": active,
+            "latency_ms": round(100 + r.uniform(0, 320)) if active else None,
+            "brier": round(0.04 + r.uniform(0, 0.15), 2) if active else None,
+        })
+
+    arrays = []
+    for name, code, base_uplink, base_power in [
+        ("Oceansat-3", "SAT-L3", 99.5, 85), ("Wave Buoy #442", "BUOY-S", 82, 35), ("AIS Receiver Alpha", "VHF-RX", 100, None),
+    ]:
+        r = random.Random(f"array:{name}:{int(now.timestamp() // 300)}")
+        uplink = round(min(100, max(0, base_uplink + r.uniform(-3, 1.5))), 1)
+        power = round(min(100, max(0, base_power + r.uniform(-5, 5))), 1) if base_power is not None else None
+        arrays.append({"name": name, "code": code, "uplink_pct": uplink, "power_pct": power, "status": "online" if uplink > 90 else "degraded"})
+
+    snr_history = []
+    for h in range(7):
+        r = random.Random(f"snr:{h}:{int(now.timestamp() // 3600)}")
+        snr_history.append({"t": f"T-{(6 - h) * 4}h" if h < 6 else "NOW", "value": round(20 + h * 8 + r.uniform(-8, 8), 1)})
+
+    conn = db()
+    active_alerts_1h = conn.execute(
+        "SELECT COUNT(*) AS n FROM alerts WHERE created_at > ?", ((now - timedelta(hours=1)).isoformat(),)
+    ).fetchone()["n"]
+    tunnels = broadcaster.connections()
+    total_req = sum(REQUEST_COUNTS.values()) or 1
+    bandwidth = {
+        "tactical_pct": round(100 * REQUEST_COUNTS["position"] / total_req),
+        "telemetry_pct": round(100 * REQUEST_COUNTS["telemetry"] / total_req),
+        "background_pct": round(100 * REQUEST_COUNTS["background"] / total_req),
+    }
+
+    kinematics = {}
+    for series, base, amp in [("sst", 27, 1.5), ("wave", 1.3, 0.9), ("wind", 9, 5)]:
+        pts = []
+        for h in range(0, 49, 4):
+            r = random.Random(f"kin:{series}:{h}:{int(now.timestamp() // 3600)}")
+            pts.append(round(base + amp * ((h / 48) - 0.3) + r.uniform(-0.3, 0.3), 2))
+        kinematics[series] = pts
+
+    causal_entries = []
+    for r, adv in fleet:
+        if adv.verdict.value in ("UNSAFE", "CAUTION"):
+            causal_entries.append({
+                "vessel_id": r["id"], "vessel_name": r["name"], "severity": adv.verdict.value,
+                "reason": adv.reasons[0] if adv.reasons else "", "confidence_pct": 88 if adv.verdict.value == "UNSAFE" else 64,
+            })
+    causal_entries = causal_entries[:5]
+
+    all_readings = []
+    for _, adv in fleet:
+        all_readings += [adv.readings.sst, adv.readings.swell, adv.readings.wind]
+    high_conf = sum(1 for e in all_readings if e.confidence.value == "HIGH")
+    model_confidence_pct = round(100 * high_conf / len(all_readings)) if all_readings else None
+    avg_sst = round(sum(e.value for e in (a.readings.sst for _, a in fleet) if e is not None) / len(fleet), 2) if fleet else None
+    thermal_anomaly = round(avg_sst - 26.5, 2) if avg_sst is not None else None
+
+    incidents = []
+    for row in conn.execute("SELECT * FROM alerts ORDER BY created_at DESC LIMIT 6").fetchall():
+        incidents.append({"ts": row["created_at"], "vessel_id": row["vessel_id"], "type": row["severity"] + " alert: " + row["message"][:40], "severity": row["severity"], "status": row["status"]})
+    for row in conn.execute("SELECT * FROM catch_reports ORDER BY ts DESC LIMIT 4").fetchall():
+        incidents.append({"ts": row["ts"], "vessel_id": row["vessel_id"], "type": "Catch report logged", "severity": "INFO", "status": "LOGGED"})
+    incidents.sort(key=lambda x: x["ts"], reverse=True)
+    incidents = incidents[:8]
+
+    roster = [{
+        "id": r["id"], "name": r["name"], "operator": r["operator_name"],
+        "verdict": adv.verdict.value,
+    } for r, adv in fleet]
+
+    orca_row = conn.execute("SELECT * FROM vessels WHERE id=?", (ORCA9_ID,)).fetchone()
+    crisis = None
+    if orca_row:
+        orca_adv = compute_advisory(ORCA9_ID, orca_row["lat"], orca_row["lon"], now)
+        crisis = {
+            "vessel_id": ORCA9_ID, "vessel_name": orca_row["name"],
+            "distance_km": orca_adv.distance_to_imbl_km, "verdict": orca_adv.verdict.value,
+            "heading": orca_row["heading"], "speed": orca_row["speed"],
+        }
+
+    return {
+        "agents": agents,
+        "sensors": {"arrays": arrays, "snr_history": snr_history, "active_nodes": 1248 + len(tunnels), "coverage_km2": 84000},
+        "network": {"tunnels": tunnels, "bandwidth": bandwidth, "active_alerts_1h": active_alerts_1h},
+        "analytics": {
+            "kinematics": kinematics, "causal_entries": causal_entries,
+            "model_confidence_pct": model_confidence_pct, "thermal_anomaly_c": thermal_anomaly,
+        },
+        "incidents": incidents,
+        "field_roster": roster,
+        "crisis": crisis,
+        "generated_at": now.isoformat(),
+    }
+
+
 @app.get("/api/packet/{vessel_id}")
 def get_packet(vessel_id: str):
     conn = db()
@@ -294,14 +449,12 @@ def _load_species():
 @app.get("/api/species/resolve")
 def resolve_species(q: str, lang: str | None = None):
     q_norm = q.strip().lower()
-    matches = []
-    for r in _load_species():
-        if r["vernacular_name"].lower() == q_norm and (lang is None or r["language"] == lang):
-            matches.append(r)
+    # A caller-supplied lang is a real filter: a fisherman who selects "Marathi" should
+    # never get an English scientific-name row back just because it matched textually.
+    pool = [r for r in _load_species() if lang is None or r["language"] == lang]
+    matches = [r for r in pool if r["vernacular_name"].lower() == q_norm]
     if not matches:
-        for r in _load_species():
-            if q_norm in r["vernacular_name"].lower():
-                matches.append(r)
+        matches = [r for r in pool if q_norm in r["vernacular_name"].lower() or r["vernacular_name"].lower() in q_norm]
     if not matches:
         raise HTTPException(404, "species not found")
     r = matches[0]

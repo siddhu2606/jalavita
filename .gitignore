@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 data/jalavita.db
 .DS_Store
+*.log
+sse_local.out
+sse_test.out
