@@ -20,7 +20,7 @@ This creates a venv, installs dependencies, seeds a SQLite database with 12 vess
 the Ratnagiri/Malvan coast, and starts one server.
 
 The Command Deck itself now requires signing in — demo credentials are
-**`arangan` / `Jalavita@2026`** (shown on the login page too). This is a hackathon-grade
+**`ihalbe` / `Jalavita@251`** (shown on the login page too). This is a hackathon-grade
 login (SHA-256 + an in-memory session, no rate limiting or password reset) gating only
 the dashboard's page load — the underlying API, the Wayfinder phone app, and the
 `/simulator` page are unaffected, since none of them go through this login.

@@ -154,7 +154,7 @@ def _seed_if_empty(conn: sqlite3.Connection) -> None:
         )
     conn.execute(
         "INSERT INTO operators (username, password_hash, display_name, role) VALUES (?,?,?,?)",
-        ("arangan", hash_password("Jalavita@2026"), "A. Rangan", "Watch Officer"),
+        ("ihalbe", hash_password("Jalavita@251"), "Isha Halbe", "Watch Officer"),
     )
 
     ID_TYPES = ["Fisheries Registration Card", "Boat License (Form II)", "Aadhaar (masked)"]
@@ -167,7 +167,7 @@ def _seed_if_empty(conn: sqlite3.Connection) -> None:
             "INSERT INTO captain_kyc (vessel_id, captain_name, id_type, id_number_masked, status, submitted_at, reviewed_at, reviewed_by) "
             "VALUES (?,?,?,?,?,?,?,?)",
             (vid, OPERATORS[i], id_type, masked, status, now,
-             now if status == "VERIFIED" else None, "A. Rangan" if status == "VERIFIED" else None),
+             now if status == "VERIFIED" else None, "Isha Halbe" if status == "VERIFIED" else None),
         )
 
     conn.execute(
