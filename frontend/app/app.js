@@ -20,6 +20,11 @@
       };
       req.onsuccess = function () { resolve(req.result); };
       req.onerror = function () { reject(req.error); };
+      // A version bump (new feature needing a new object store) can hang forever,
+      // with no error and no success, if another tab/instance of this same app is
+      // still open somewhere holding the old database version open. Fail loudly
+      // instead of hanging silently so the UI can show something rather than freeze.
+      req.onblocked = function () { reject(new Error('IndexedDB upgrade blocked — close other open tabs/instances of this app')); };
     });
   }
 
@@ -349,12 +354,12 @@
           coastInfo.innerHTML = '<b></b> from ' + p.nearest_port + ' · ' + p.region;
           coastInfo.querySelector('b').textContent = '~' + p.distance_km + 'km';
         } else {
-          coastInfo.textContent = '--';
+          coastInfo.textContent = 'Distance to coast unavailable — reconnect to refresh';
         }
       }
     } else {
       tag.textContent = '--';
-      if (coastInfo) coastInfo.textContent = '--';
+      if (coastInfo) coastInfo.textContent = 'Distance to coast — no packet cached yet';
     }
   }
 
@@ -469,21 +474,26 @@
   // ---------------- Climate tips (unverified — operator must review) ----------------
   var tipStatusEl = document.getElementById('tip-status');
   function sendOrQueueTip(record) {
+    var p;
     if (!isOnline()) {
-      return idbPut('outbox_tip', record).then(function () {
+      p = idbPut('outbox_tip', record).then(function () {
         if (tipStatusEl) tipStatusEl.textContent = t('tip.sent') + ' (' + t('conn.offline') + ' — ' + t('fab.queued', { n: 1 }) + ')';
       });
-    }
-    return fetch(API + '/api/tips', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(record),
-    }).then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); })
-      .then(function () { if (tipStatusEl) tipStatusEl.textContent = t('tip.sent'); })
-      .catch(function () {
-        return idbPut('outbox_tip', record).then(function () {
-          if (tipStatusEl) tipStatusEl.textContent = t('tip.sent') + ' (queued)';
+    } else {
+      p = fetch(API + '/api/tips', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(record),
+      }).then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); })
+        .then(function () { if (tipStatusEl) tipStatusEl.textContent = t('tip.sent'); })
+        .catch(function () {
+          return idbPut('outbox_tip', record).then(function () {
+            if (tipStatusEl) tipStatusEl.textContent = t('tip.sent') + ' (queued)';
+          });
         });
-      });
+    }
+    return p.catch(function (e) {
+      if (tipStatusEl) tipStatusEl.textContent = t('tip.failed') + (e && e.message ? ' (' + e.message + ')' : '');
+    });
   }
   document.querySelectorAll('.tip-chip').forEach(function (chip) {
     chip.addEventListener('click', function () {
