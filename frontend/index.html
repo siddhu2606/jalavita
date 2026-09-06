@@ -874,7 +874,7 @@
         <div class="card">
           <div class="card-head">
             <div class="card-title"><svg class="icon"><use href="#i-alert"></use></svg>Causal Inference</div>
-            <span class="panel-sub" style="font-size:10.5px">12h trend</span>
+            <span class="panel-sub" style="font-size:10.5px" title="Real vessels currently in CAUTION/UNSAFE per the rules engine">live, from fleet</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px" id="causal-list">
             <div class="log-entry" style="color:var(--ink-faint)">Loading…</div>
@@ -888,6 +888,7 @@
               <button class="active" data-series="sst">SST</button><button data-series="wave">Wave</button><button data-series="wind">Wind</button>
             </div>
           </div>
+          <div class="panel-sub" style="margin-top:-10px">Fleet-wide {SST/swell/wind} sampled every 4h, T-48h → now. Hover the line for exact readings. Values are simulated, not live satellite feed.</div>
           <div style="position:relative">
             <svg id="fc-svg" viewBox="0 0 400 200" preserveAspectRatio="none" style="width:100%;height:220px;cursor:crosshair">
               <line x1="30" y1="10" x2="30" y2="170" stroke="var(--panel-line)"/>
@@ -930,8 +931,9 @@
             <div class="card-title" style="font-size:10.5px">SST vs Fleet Baseline</div>
             <div style="display:flex;align-items:baseline;gap:8px">
               <span class="metric-value mono" id="thermal-value" style="font-size:24px;color:var(--danger)">--°C</span>
-              <span style="font-size:11px;color:var(--ink-faint)">vs 26.5°C reference</span>
+              <span style="font-size:11px;color:var(--ink-faint)">vs 26.5°C reference — real, from current fleet SST</span>
             </div>
+            <div style="font-size:9px;color:var(--ink-faint);margin-top:2px">Trend bars below are illustrative — no stored history yet</div>
             <div style="display:flex;align-items:flex-end;gap:3px;height:28px">
               <div style="flex:1;background:rgba(255,138,76,.25);height:30%;border-radius:2px 2px 0 0"></div>
               <div style="flex:1;background:rgba(255,138,76,.35);height:40%;border-radius:2px 2px 0 0"></div>
@@ -1553,14 +1555,16 @@
     });
     var d = 'M' + coords[0][0].toFixed(1) + ',' + coords[0][1].toFixed(1);
     for (var i = 1; i < coords.length; i++) d += ' L' + coords[i][0].toFixed(1) + ',' + coords[i][1].toFixed(1);
-    return { d: d, last: coords[coords.length - 1] };
+    return { d: d, last: coords[coords.length - 1], coords: coords };
   }
 
+  var lastKinCoords = null;
   function renderKinematics(series){
     if (!lastKinematics) return;
     var pts = lastKinematics[series];
     if (!pts) return;
     var res = pathFromSeries(pts);
+    lastKinCoords = res.coords;
     var line = document.getElementById('fc-path-line');
     var fill = document.getElementById('fc-path-fill');
     var dot = document.getElementById('fc-now-dot');
@@ -1574,6 +1578,43 @@
   document.querySelectorAll('#kin-seg-tabs button').forEach(function(btn){
     btn.addEventListener('click', function(){ kinSeries = btn.dataset.series; renderKinematics(kinSeries); });
   });
+
+  (function setupKinematicsHover(){
+    var svg = document.getElementById('fc-svg');
+    var crosshair = document.getElementById('fc-crosshair');
+    var dot = document.getElementById('fc-dot');
+    var tooltip = document.getElementById('fc-tooltip');
+    if (!svg || !tooltip) return;
+    svg.addEventListener('mousemove', function(e){
+      if (!lastKinCoords || !lastKinematics) return;
+      var pts = lastKinematics[kinSeries];
+      if (!pts) return;
+      var rect = svg.getBoundingClientRect();
+      var mx = (e.clientX - rect.left) * (400 / rect.width);
+      var nearestIdx = 0, minDist = Infinity;
+      lastKinCoords.forEach(function(c, i){
+        var d = Math.abs(c[0] - mx);
+        if (d < minDist) { minDist = d; nearestIdx = i; }
+      });
+      var coord = lastKinCoords[nearestIdx];
+      var hoursAgo = 48 - nearestIdx * 4;
+      var label = hoursAgo === 0 ? 'NOW' : ('T-' + hoursAgo + 'h');
+      var unit = kinSeries === 'sst' ? '°C' : (kinSeries === 'wave' ? 'm' : 'kt');
+      if (crosshair) { crosshair.setAttribute('x1', coord[0]); crosshair.setAttribute('x2', coord[0]); crosshair.style.opacity = 1; }
+      if (dot) { dot.setAttribute('cx', coord[0]); dot.setAttribute('cy', coord[1]); dot.style.opacity = 1; }
+      tooltip.style.display = 'block';
+      tooltip.textContent = label + ' — ' + pts[nearestIdx] + unit;
+      var px = coord[0] * (rect.width / 400);
+      var py = coord[1] * (rect.height / 200);
+      tooltip.style.left = Math.min(rect.width - 90, Math.max(0, px - 40)) + 'px';
+      tooltip.style.top = Math.max(0, py - 34) + 'px';
+    });
+    svg.addEventListener('mouseleave', function(){
+      if (crosshair) crosshair.style.opacity = 0;
+      if (dot) dot.style.opacity = 0;
+      tooltip.style.display = 'none';
+    });
+  })();
 
   function renderCausal(entries){
     var el = document.getElementById('causal-list');
