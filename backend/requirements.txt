@@ -6,3 +6,4 @@ python-multipart==0.0.9
 twilio==9.11.0
 python-dotenv==1.0.1
 qrcode[pil]==7.4.2
+requests==2.34.2

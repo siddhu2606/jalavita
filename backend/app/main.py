@@ -27,8 +27,26 @@ SPECIES_CSV = os.path.join(ROOT, "data", "species_lexicon.csv")
 KYC_UPLOAD_DIR = os.path.join(ROOT, "data", "kyc_uploads")
 
 # SMS gateway — the one channel that can reach a vessel with zero internet.
-# Wired for real Twilio use, but degrades to a logged "SIMULATED" send when no
-# credentials are configured, so the whole pipeline stays demoable either way.
+# Two providers, tried in order, each degrading to a logged "SIMULATED" send
+# when unconfigured so the pipeline stays demoable either way:
+#   1. Fast2SMS — an Indian gateway, no DLT business registration needed for
+#      its "Quick SMS" route, no credit card to sign up. Outbound only.
+#   2. Twilio — full two-way capable (see /api/sms/inbound), but India SMS to
+#      a foreign number is carrier-outbound-only regardless, and trial
+#      accounts cap daily volume.
+FAST2SMS_API_KEY = os.environ.get("FAST2SMS_API_KEY")
+FAST2SMS_CONFIGURED = bool(FAST2SMS_API_KEY)
+
+# Hard spending guard: a real provider call is only ever attempted for a
+# number on this allowlist (last-10-digits match, so +91/0/space-insensitive).
+# Every other number always logs SIMULATED and never touches Fast2SMS/Twilio,
+# no matter which button fires it — this is what stops a fleet-wide broadcast
+# from accidentally billing 12 real API calls for 11 numbers that don't exist.
+SMS_REAL_NUMBERS = {
+    "".join(ch for ch in n if ch.isdigit())[-10:]
+    for n in os.environ.get("SMS_REAL_NUMBERS", "").split(",") if n.strip()
+}
+
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_FROM_NUMBER = os.environ.get("TWILIO_FROM_NUMBER")
@@ -121,7 +139,37 @@ def send_sms(to_number: str, body: str, vessel_id: str | None = None, related_al
     now = now_utc().isoformat()
     short_body = body if len(body) <= 300 else body[:297] + "..."
     status = "SIMULATED"
-    if SMS_CONFIGURED and _twilio_client is not None:
+    digits = "".join(ch for ch in to_number if ch.isdigit())[-10:]
+    is_real_recipient = digits in SMS_REAL_NUMBERS
+
+    if not is_real_recipient:
+        pass  # never call a real provider for a number that isn't on the allowlist
+    elif FAST2SMS_CONFIGURED:
+        try:
+            import requests
+            # Plain-ASCII text bills as GSM (single ~160-char segment); any
+            # Devanagari forces Unicode encoding (~70-char segments, roughly
+            # 2x the cost for the same message) — pick whichever the body
+            # actually needs instead of always paying the Unicode rate.
+            lang = "english" if short_body.isascii() else "unicode"
+            resp = requests.get(
+                "https://www.fast2sms.com/dev/bulkV2",
+                params={
+                    "authorization": FAST2SMS_API_KEY, "route": "q",
+                    "message": short_body, "language": lang, "numbers": digits,
+                },
+                timeout=10,
+            )
+            data = resp.json()
+            if data.get("return") is True:
+                status = "SENT"
+            else:
+                status = "FAILED"
+                audit(f"Fast2SMS send to {to_number} failed: {data}", kind="bad")
+        except Exception as e:
+            status = "FAILED"
+            audit(f"Fast2SMS send to {to_number} failed: {e}", kind="bad")
+    elif SMS_CONFIGURED and _twilio_client is not None:
         try:
             _twilio_client.messages.create(to=to_number, from_=TWILIO_FROM_NUMBER, body=short_body)
             status = "SENT"
@@ -684,7 +732,12 @@ def get_sms_log(request: Request, limit: int = 50):
 @app.get("/api/sms/status")
 def get_sms_status(request: Request):
     require_operator(request)
-    return {"configured": SMS_CONFIGURED, "from_number": TWILIO_FROM_NUMBER if SMS_CONFIGURED else None}
+    if FAST2SMS_CONFIGURED:
+        return {"configured": True, "provider": "fast2sms", "from_number": None}
+    return {
+        "configured": SMS_CONFIGURED, "provider": "twilio" if SMS_CONFIGURED else None,
+        "from_number": TWILIO_FROM_NUMBER if SMS_CONFIGURED else None,
+    }
 
 
 @app.post("/api/sms/send")
