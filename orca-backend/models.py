@@ -1,5 +1,5 @@
 """
-SQLAlchemy ORM models for Jalavita.
+SQLAlchemy ORM models for ORCA.
 """
 from datetime import datetime
 from sqlalchemy import String, Float, Integer, DateTime, Text, Boolean

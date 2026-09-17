@@ -1,5 +1,5 @@
 /**
- * Jalavita API client — connects to the FastAPI backend.
+ * ORCA API client — connects to the FastAPI backend.
  */
 
 const BASE_URL = "http://localhost:8000";
