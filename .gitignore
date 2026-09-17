@@ -1,0 +1,7 @@
+node_modules/
+.venv/
+jalavita.db
+__pycache__/
+dist/
+.env
+.DS_Store

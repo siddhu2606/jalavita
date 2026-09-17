@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sensors Dashboard - Aegis Marine Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#aac9f4",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "secondary": "#ffb596",
+                        "on-secondary-container": "#551c00",
+                        "tertiary-fixed-dim": "#7bd0ff",
+                        "tertiary": "#7bd0ff",
+                        "primary-container": "#1e3e62",
+                        "on-secondary": "#581e00",
+                        "on-error": "#690005",
+                        "surface-bright": "#343a3d",
+                        "surface-dim": "#0f1416",
+                        "on-primary": "#0e3255",
+                        "primary": "#aac9f4",
+                        "on-tertiary-fixed": "#001e2c",
+                        "surface": "#0f1416",
+                        "surface-variant": "#303638",
+                        "surface-container-low": "#171c1f",
+                        "on-tertiary": "#00354a",
+                        "on-primary-fixed": "#001c38",
+                        "outline-variant": "#43474e",
+                        "surface-container-high": "#252b2d",
+                        "primary-fixed-dim": "#aac9f4",
+                        "on-tertiary-container": "#26b3ee",
+                        "on-surface": "#dee3e6",
+                        "on-primary-container": "#8ba9d3",
+                        "on-error-container": "#ffdad6",
+                        "on-background": "#dee3e6",
+                        "secondary-container": "#fe6500",
+                        "inverse-on-surface": "#2c3134",
+                        "surface-container-lowest": "#090f11",
+                        "error": "#ffb4ab",
+                        "tertiary-container": "#00425b",
+                        "on-primary-fixed-variant": "#29486d",
+                        "secondary-fixed": "#ffdbcd",
+                        "on-secondary-fixed": "#360f00",
+                        "tertiary-fixed": "#c4e7ff",
+                        "on-secondary-fixed-variant": "#7d2d00",
+                        "inverse-primary": "#426086",
+                        "secondary-fixed-dim": "#ffb596",
+                        "surface-container": "#1b2023",
+                        "surface-container-highest": "#303638",
+                        "inverse-surface": "#dee3e6",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#d3e4ff",
+                        "on-surface-variant": "#c3c6cf",
+                        "background": "#0f1416",
+                        "outline": "#8d9199",
+                        "emergency-orange": "#FF6500",
+                        "tech-cyan": "#38BDF8",
+                        "crimson-red": "#E11D48",
+                        "deep-navy": "#0B192C",
+                        "arctic-white": "#FFFFFF"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "container-max-width": "1440px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-data": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0B192C;
+            color: #dee3e6;
+            overflow-x: hidden;
+        }
+        
+        .cyber-glass {
+            background-color: rgba(30, 62, 98, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(241, 246, 249, 0.1);
+        }
+        
+        .cyber-glass-active {
+            background-color: #1E3E62;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.2);
+        }
+        
+        .tech-border {
+            border: 1px solid rgba(241, 246, 249, 0.1);
+        }
+        
+        .tech-divider-bottom {
+            border-bottom: 1px solid rgba(241, 246, 249, 0.1);
+        }
+        
+        .map-grid {
+            background-image: 
+                linear-gradient(rgba(241, 246, 249, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(241, 246, 249, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .sparkline-cyan {
+            stroke: #38BDF8;
+            stroke-width: 1.5;
+            fill: none;
+        }
+        
+        .sparkline-fill {
+            fill: url(#cyan-gradient);
+            opacity: 0.2;
+        }
+        
+        /* Custom scrollbar for density */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(11, 25, 44, 0.5); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.3); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.6); 
+        }
+        
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+        
+        .pulse-dot-warning {
+            animation: pulse-warn 2s infinite;
+        }
+        
+        @keyframes pulse-warn {
+            0% { box-shadow: 0 0 0 0 rgba(255, 101, 0, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(255, 101, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 101, 0, 0); }
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+<!-- TopNavBar Web -->
+<nav class="hidden md:flex justify-between items-center px-margin-desktop w-full h-16 bg-surface-container/40 backdrop-blur-xl border-b border-white/10 fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="text-headline-md font-headline-md font-bold tracking-tight text-primary">Aegis Marine Intelligence</div>
+<div class="flex gap-6">
+<a class="text-on-surface-variant hover:bg-white/5 transition-colors text-label-caps font-label-caps uppercase flex items-center h-16 px-2" href="#">Operations</a>
+<a class="text-on-surface-variant hover:bg-white/5 transition-colors text-label-caps font-label-caps uppercase flex items-center h-16 px-2" href="#">Spatiotemporal</a>
+<a class="text-on-surface-variant hover:bg-white/5 transition-colors text-label-caps font-label-caps uppercase flex items-center h-16 px-2" href="#">Tactical</a>
+<a class="text-on-surface-variant hover:bg-white/5 transition-colors text-label-caps font-label-caps uppercase flex items-center h-16 px-2" href="#">Logs</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<!-- Search placeholder on_right -->
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 18px;">search</span>
+<input class="bg-surface-container-low border border-outline-variant text-on-surface text-body-sm font-body-sm pl-9 pr-3 py-1.5 rounded w-64 focus:outline-none focus:border-tech-cyan focus:ring-1 focus:ring-tech-cyan transition-colors placeholder-on-surface-variant/50" placeholder="QUERY..." type="text"/>
+</div>
+<button class="p-2 text-on-surface-variant hover:bg-white/5 rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-white/5 rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant ml-2">
+<img alt="Command Officer Avatar" class="w-full h-full object-cover" data-alt="A detailed, hyper-realistic avatar portrait of a naval command officer in a dark, high-tech command center. Crisp, dramatic lighting with subtle blue and orange reflections on their uniform. The aesthetic is serious, professional, and cyber-slate." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0rPXx-UOlsMPO0jow-w_aElms6ui75kihwhLCy3tAH1yCNs4SgrKxm3xIuyGel4Gk2eESCLDjGAo5cGdDMF0Y3TV-StDA1YQceENjTtwRLkc-M-Nq4NMmMJNiAnzSUyDcN8qjNXZ9joXQ_18wnxCbikus61UEtODdtLdj__EpTJYxKKvbX4c4eQc8s2ctavM7yX0KN0JU_gnLOsukfvsV81rtukjCswAD4iEu-CMSpCn3wvtApGGp5Q"/>
+</div>
+</div>
+</nav>
+<div class="flex flex-1 pt-16 h-full">
+<!-- SideNavBar Desktop -->
+<aside class="hidden md:flex flex-col h-full py-8 bg-surface-container-low/40 backdrop-blur-2xl border-r border-white/5 fixed left-0 top-16 w-64 z-40">
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-10 h-10 rounded overflow-hidden border border-white/10">
+<img alt="Vessel Operator" class="w-full h-full object-cover" data-alt="A stylized crest or badge for Task Force Alpha, featuring sharp geometric lines, an anchor motif, and dark navy blue and tech cyan accents. The background is a dark, metallic texture. The overall feel is military, precise, and authoritative." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRuVQH5vV_8bp0nRsTb3yjtRTeQMwDYVqnI-T6NaTfU2xVBCtjpHHr94MW4NIYNE9YE8epyu4tMIpcHFavXHSBxD7vnuHNowvfvHPC1TOXXJg4G62EFEMyanTrCcb3rtrjuwENqzaUHkua5OvQxVIVUPHsKMGCLpEurfq0s0KnejzSFQvR9iv_1znIGlDZBfYUos-f38DTE5HzHZTY3GOeRHLsrobfKhce8FGqdiiKQUdleHHcmjjNmg"/>
+</div>
+<div>
+<h2 class="text-body-md font-body-md font-bold text-primary">Task Force Alpha</h2>
+<p class="text-label-caps font-label-caps text-on-surface-variant text-[10px]">Sector 7G-Delta</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-body-md font-body-md">Command</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-primary font-bold bg-primary-container/20 border-r-2 border-secondary translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="radar" style="font-variation-settings: 'FILL' 1;">radar</span>
+<span class="text-body-md font-body-md">Sensors</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="text-body-md font-body-md">Networks</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="text-body-md font-body-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-on-surface-variant hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="text-body-md font-body-md">Archive</span>
+</a>
+</nav>
+<div class="px-6 mb-6">
+<button class="w-full bg-emergency-orange text-arctic-white text-label-caps font-label-caps uppercase font-bold py-3 rounded flex items-center justify-center gap-2 hover:bg-orange-600 transition-colors shadow-[0_0_15px_rgba(255,101,0,0.3)]">
+<span class="material-symbols-outlined text-[18px]">warning</span>
+                    Initiate Emergency Protocol
+                </button>
+</div>
+<div class="flex flex-col gap-1 mt-auto border-t border-white/5 pt-4">
+<a class="flex items-center gap-3 px-6 py-2 text-on-surface-variant hover:bg-white/10 transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="build">build</span>
+<span class="text-body-sm font-body-sm">Diagnostics</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-2 text-on-surface-variant hover:bg-white/10 transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="help">help</span>
+<span class="text-body-sm font-body-sm">Help</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 flex flex-col h-full overflow-hidden p-gutter gap-gutter pb-24 md:pb-gutter">
+<!-- SVG Definitions for Sparklines -->
+<svg aria-hidden="true" focusable="false" style="width:0;height:0;position:absolute;">
+<defs>
+<lineargradient id="cyan-gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#38BDF8" stop-opacity="0.5"></stop>
+<stop offset="100%" stop-color="#38BDF8" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- 3 Column Layout -->
+<div class="flex-1 flex flex-col lg:flex-row gap-gutter min-h-0">
+<!-- Left Panel: Active Sensor Arrays -->
+<div class="w-full lg:w-[320px] flex flex-col gap-unit cyber-glass rounded-lg overflow-hidden shrink-0">
+<div class="p-3 tech-divider-bottom bg-black/20 flex justify-between items-center">
+<h3 class="text-label-caps font-label-caps text-primary uppercase font-bold tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">rss_feed</span>
+                            Active Arrays
+                        </h3>
+<span class="bg-tech-cyan text-deep-navy text-[10px] font-bold px-1.5 py-0.5 rounded-sm">4 ONLINE</span>
+</div>
+<div class="flex-1 overflow-y-auto p-2 flex flex-col gap-2">
+<!-- Sensor Card 1 -->
+<div class="bg-black/30 tech-border rounded p-3 hover:bg-black/50 transition-colors cursor-pointer cyber-glass-active">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tech-cyan pulse-dot"></div>
+<span class="text-body-sm font-body-sm font-semibold text-white">Oceansat-3</span>
+</div>
+<span class="text-[10px] text-on-surface-variant font-mono-data">SAT-L3</span>
+</div>
+<div class="flex justify-between items-center mb-3">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase">Uplink</span>
+<span class="text-mono-data font-mono-data text-tech-cyan">99.8%</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-on-surface-variant uppercase">Pwr</span>
+<div class="flex items-center gap-1">
+<div class="w-8 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="bg-tech-cyan h-full w-[85%]"></div>
+</div>
+<span class="text-[10px] font-mono-data">85%</span>
+</div>
+</div>
+</div>
+<div class="h-10 w-full relative">
+<svg class="w-full h-full preserve-aspect-ratio-none" viewbox="0 0 100 30">
+<path class="sparkline-fill" d="M0,25 L10,20 L20,22 L30,10 L40,15 L50,5 L60,12 L70,8 L80,18 L90,12 L100,20 L100,30 L0,30 Z"></path>
+<path class="sparkline-cyan" d="M0,25 L10,20 L20,22 L30,10 L40,15 L50,5 L60,12 L70,8 L80,18 L90,12 L100,20"></path>
+</svg>
+</div>
+</div>
+<!-- Sensor Card 2 -->
+<div class="bg-black/30 tech-border rounded p-3 hover:bg-black/50 transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-emergency-orange pulse-dot-warning"></div>
+<span class="text-body-sm font-body-sm font-semibold text-white">Wave Buoy #442</span>
+</div>
+<span class="text-[10px] text-on-surface-variant font-mono-data">BUOY-S</span>
+</div>
+<div class="flex justify-between items-center mb-3">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase">Uplink</span>
+<span class="text-mono-data font-mono-data text-emergency-orange">82.1%</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-on-surface-variant uppercase">Pwr</span>
+<div class="flex items-center gap-1">
+<div class="w-8 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="bg-emergency-orange h-full w-[35%]"></div>
+</div>
+<span class="text-[10px] font-mono-data text-emergency-orange">35%</span>
+</div>
+</div>
+</div>
+<div class="h-10 w-full relative">
+<svg class="w-full h-full preserve-aspect-ratio-none" viewbox="0 0 100 30">
+<path d="M0,15 L10,18 L20,12 L30,25 L40,10 L50,22 L60,15 L70,28 L80,15 L90,20 L100,10 L100,30 L0,30 Z" fill="rgba(255,101,0,0.1)"></path>
+<path d="M0,15 L10,18 L20,12 L30,25 L40,10 L50,22 L60,15 L70,28 L80,15 L90,20 L100,10" fill="none" stroke="#FF6500" stroke-width="1.5"></path>
+</svg>
+</div>
+</div>
+<!-- Sensor Card 3 -->
+<div class="bg-black/30 tech-border rounded p-3 hover:bg-black/50 transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tech-cyan"></div>
+<span class="text-body-sm font-body-sm font-semibold text-white">AIS Receiver Alpha</span>
+</div>
+<span class="text-[10px] text-on-surface-variant font-mono-data">VHF-RX</span>
+</div>
+<div class="flex justify-between items-center mb-3">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase">Uplink</span>
+<span class="text-mono-data font-mono-data text-tech-cyan">100%</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-on-surface-variant uppercase">Pwr</span>
+<div class="flex items-center gap-1">
+<span class="text-[10px] font-mono-data text-tech-cyan">HARDLINE</span>
+</div>
+</div>
+</div>
+<div class="h-10 w-full relative">
+<svg class="w-full h-full preserve-aspect-ratio-none" viewbox="0 0 100 30">
+<path class="sparkline-fill" d="M0,28 L10,27 L20,28 L30,26 L40,28 L50,27 L60,28 L70,26 L80,27 L90,28 L100,26 L100,30 L0,30 Z"></path>
+<path class="sparkline-cyan" d="M0,28 L10,27 L20,28 L30,26 L40,28 L50,27 L60,28 L70,26 L80,27 L90,28 L100,26"></path>
+</svg>
+</div>
+</div>
+</div>
+</div>
+<!-- Center Panel: Live Spatial Sensor Coverage (Map) -->
+<div class="flex-1 cyber-glass rounded-lg flex flex-col overflow-hidden relative">
+<div class="p-3 tech-divider-bottom bg-black/20 flex justify-between items-center z-10">
+<h3 class="text-label-caps font-label-caps text-primary uppercase font-bold tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">my_location</span>
+                            Live Spatial Coverage
+                        </h3>
+<div class="flex gap-2">
+<button class="bg-surface-variant hover:bg-white/10 text-on-surface text-[10px] uppercase px-2 py-1 rounded border border-white/10 transition-colors">Filters</button>
+<button class="bg-surface-variant hover:bg-white/10 text-on-surface text-[10px] uppercase px-2 py-1 rounded border border-white/10 transition-colors">Layers</button>
+</div>
+</div>
+<div class="flex-1 relative bg-deep-navy map-grid overflow-hidden group">
+<!-- Abstract Map Representation (using background image placeholder for realistic feel if needed, but styling it to fit the technical vibe) -->
+<div class="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-screen pointer-events-none" data-alt="A highly stylized, dark-mode topographical map of a coastal region. The map uses minimal lines and deep navy blue tones, with subtle glowing grids and bathymetric depth contours in cyan. It looks like a high-tech radar or sonar interface." data-location="North Sea Sector 4" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD7KqpZKx2co5JSfSwAlu5jtqZdLLuV5kLDB_4LLFKr34WsX8x9pVix0Rj4vXNTBCiiidQRRcSW6xLrNRPIyWoQ90y68agzmd8EYDmF2TAZeVP9MS0pKK0_pUjg_GzuoMeo7niSzWtva_VokzKmhF0AM3wbchGXL57mFzWLK2te8IKSPkeYkpLmYJmk4C-GQus1oOH4dH75ILoXmkobo_8tx3a_037937eTZyHbBOU1OjJUmXpHpo_Umg')"></div>
+<!-- Radar Sweep Animation overlay -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden">
+<div class="absolute top-1/2 left-1/2 w-[800px] h-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-cyan/20"></div>
+<div class="absolute top-1/2 left-1/2 w-[600px] h-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-cyan/20"></div>
+<div class="absolute top-1/2 left-1/2 w-[400px] h-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-tech-cyan/30"></div>
+<!-- Scanning line -->
+<div class="absolute top-1/2 left-1/2 w-[400px] h-0.5 bg-gradient-to-r from-transparent to-tech-cyan/50 origin-left animate-[spin_4s_linear_infinite]"></div>
+</div>
+<!-- Data Nodes on Map -->
+<div class="absolute top-1/3 left-1/4 flex flex-col items-center">
+<div class="w-3 h-3 bg-tech-cyan rounded-full pulse-dot mb-1 shadow-[0_0_10px_#38BDF8]"></div>
+<div class="bg-black/60 border border-tech-cyan/30 px-1.5 py-0.5 rounded text-[9px] font-mono-data text-tech-cyan whitespace-nowrap">SAT-L3 LINK</div>
+</div>
+<div class="absolute top-2/3 left-1/2 flex flex-col items-center">
+<div class="w-3 h-3 bg-emergency-orange rounded-full pulse-dot-warning mb-1 shadow-[0_0_10px_#FF6500]"></div>
+<div class="bg-black/60 border border-emergency-orange/30 px-1.5 py-0.5 rounded text-[9px] font-mono-data text-emergency-orange whitespace-nowrap">BUOY-S WX</div>
+<div class="w-24 h-24 border border-emergency-orange/20 rounded-full absolute top-1.5 left-1.5 -translate-x-1/2 -translate-y-1/2 bg-emergency-orange/5"></div>
+</div>
+<div class="absolute top-1/4 right-1/4 flex flex-col items-center">
+<span class="material-symbols-outlined text-tech-cyan text-[16px] mb-1 drop-shadow-[0_0_5px_#38BDF8]">directions_boat</span>
+<div class="bg-black/60 border border-tech-cyan/30 px-1.5 py-0.5 rounded text-[9px] font-mono-data text-white whitespace-nowrap">VESSEL ID: 4492</div>
+</div>
+<!-- Overlay Stats -->
+<div class="absolute bottom-3 left-3 right-3 flex justify-between pointer-events-none">
+<div class="bg-black/50 cyber-glass p-2 rounded text-xs font-mono-data flex gap-4">
+<div><span class="text-on-surface-variant">LAT:</span> 54°12'N</div>
+<div><span class="text-on-surface-variant">LON:</span> 03°45'E</div>
+</div>
+<div class="bg-black/50 cyber-glass p-2 rounded text-xs font-mono-data text-tech-cyan">
+                                LIVE SYNC
+                            </div>
+</div>
+</div>
+</div>
+<!-- Right Panel: Calibration & Health -->
+<div class="w-full lg:w-[360px] flex flex-col gap-unit cyber-glass rounded-lg overflow-hidden shrink-0">
+<div class="p-3 tech-divider-bottom bg-black/20 flex justify-between items-center">
+<h3 class="text-label-caps font-label-caps text-primary uppercase font-bold tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+                            Telemetry Details
+                        </h3>
+<span class="text-[10px] font-mono-data text-on-surface-variant">Oceansat-3</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
+<!-- Key Metrics Bento -->
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-black/20 tech-border rounded p-2 flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase mb-1">Signal Strength</span>
+<div class="flex items-end gap-1">
+<span class="text-headline-md font-headline-md text-white">-42</span>
+<span class="text-xs text-tech-cyan mb-1 font-mono-data">dBm</span>
+</div>
+</div>
+<div class="bg-black/20 tech-border rounded p-2 flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase mb-1">Packet Loss</span>
+<div class="flex items-end gap-1">
+<span class="text-headline-md font-headline-md text-white">0.02</span>
+<span class="text-xs text-tech-cyan mb-1 font-mono-data">%</span>
+</div>
+</div>
+<div class="bg-black/20 tech-border rounded p-2 flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase mb-1">Latency</span>
+<div class="flex items-end gap-1">
+<span class="text-headline-md font-headline-md text-white">124</span>
+<span class="text-xs text-tech-cyan mb-1 font-mono-data">ms</span>
+</div>
+</div>
+<div class="bg-black/20 tech-border rounded p-2 flex flex-col">
+<span class="text-[10px] text-on-surface-variant uppercase mb-1">Temp (Int)</span>
+<div class="flex items-end gap-1">
+<span class="text-headline-md font-headline-md text-white">14.2</span>
+<span class="text-xs text-tech-cyan mb-1 font-mono-data">°C</span>
+</div>
+</div>
+</div>
+<!-- SNR Graph -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<span class="text-label-caps font-label-caps text-on-surface-variant uppercase">Signal-to-Noise Ratio (SNR)</span>
+<span class="text-[10px] font-mono-data text-tech-cyan">24H TREND</span>
+</div>
+<div class="h-24 bg-black/30 tech-border rounded p-2 relative flex items-end">
+<!-- Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none opacity-20">
+<div class="w-full border-b border-white border-dashed"></div>
+<div class="w-full border-b border-white border-dashed"></div>
+<div class="w-full border-b border-white border-dashed"></div>
+</div>
+<!-- Bar Chart -->
+<div class="flex justify-between items-end w-full h-full gap-1 pt-4 relative z-10">
+<div class="w-full bg-tech-cyan/40 hover:bg-tech-cyan transition-colors" style="height: 60%"></div>
+<div class="w-full bg-tech-cyan/40 hover:bg-tech-cyan transition-colors" style="height: 65%"></div>
+<div class="w-full bg-tech-cyan/40 hover:bg-tech-cyan transition-colors" style="height: 55%"></div>
+<div class="w-full bg-tech-cyan/40 hover:bg-tech-cyan transition-colors" style="height: 70%"></div>
+<div class="w-full bg-tech-cyan/40 hover:bg-tech-cyan transition-colors" style="height: 85%"></div>
+<div class="w-full bg-tech-cyan/40 hover:bg-tech-cyan transition-colors" style="height: 80%"></div>
+<div class="w-full bg-tech-cyan/40 hover:bg-tech-cyan transition-colors" style="height: 95%"></div>
+<div class="w-full bg-tech-cyan/40 hover:bg-tech-cyan transition-colors" style="height: 90%"></div>
+<div class="w-full bg-tech-cyan hover:bg-tech-cyan transition-colors shadow-[0_0_8px_rgba(56,189,248,0.6)]" style="height: 98%"></div>
+</div>
+</div>
+</div>
+<!-- Frequency Spectrum (Abstract) -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<span class="text-label-caps font-label-caps text-on-surface-variant uppercase">Raw Frequency Spectrum</span>
+</div>
+<div class="h-16 bg-black/30 tech-border rounded overflow-hidden relative">
+<div class="absolute inset-0 opacity-50 mix-blend-screen" style="background: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(56,189,248,0.1) 2px, rgba(56,189,248,0.1) 4px);"></div>
+<svg class="w-full h-full preserve-aspect-ratio-none drop-shadow-[0_0_3px_rgba(56,189,248,0.8)]" viewbox="0 0 100 40">
+<path class="animate-[pulse_1s_ease-in-out_infinite]" d="M0,20 Q5,15 10,20 T20,20 T30,10 T35,30 T40,5 T45,35 T50,20 T60,20 T70,15 T80,25 T90,20 T100,20" fill="none" stroke="#38BDF8" stroke-width="1"></path>
+</svg>
+</div>
+</div>
+<!-- Actions -->
+<div class="mt-auto pt-4 flex flex-col gap-2 border-t border-white/10">
+<button class="w-full bg-transparent border border-tech-cyan text-tech-cyan text-label-caps font-label-caps uppercase font-bold py-2 rounded hover:bg-tech-cyan/10 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+                                Run Diagnostic Sweep
+                            </button>
+<button class="w-full bg-surface-variant text-on-surface text-label-caps font-label-caps uppercase font-bold py-2 rounded border border-white/10 hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                                Force Recalibrate
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom: Terminal Stream -->
+<div class="h-32 cyber-glass rounded-lg overflow-hidden flex flex-col shrink-0">
+<div class="px-3 py-1.5 tech-divider-bottom bg-black/40 flex justify-between items-center cursor-pointer hover:bg-black/30 transition-colors">
+<h3 class="text-[10px] font-mono-data text-on-surface-variant uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+                        Raw Data Stream / ttyS0
+                    </h3>
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant">expand_more</span>
+</div>
+<div class="flex-1 bg-[#090f11] p-2 overflow-y-auto font-mono-data text-[11px] leading-tight text-on-surface-variant/70 flex flex-col justify-end">
+<div><span class="text-tech-cyan">[14:02:44.102]</span> SYS_INIT: OceanSat-3 handshake OK. Buffer at 42%.</div>
+<div><span class="text-tech-cyan">[14:02:44.891]</span> RX_DATA: Payload size 1024b. CRC verified.</div>
+<div><span class="text-tech-cyan">[14:02:45.001]</span> ALRT: Buoy#442 thermal drift detected (+0.4C/hr).</div>
+<div><span class="text-tech-cyan">[14:02:45.050]</span> <span class="text-emergency-orange">WARN: Packet retransmission requested on Ch 4.</span></div>
+<div><span class="text-tech-cyan">[14:02:45.882]</span> RX_DATA: AIS ping vessel ID 4492. Bearing 142. Speed 14kn.</div>
+<div class="animate-pulse"><span class="text-tech-cyan">[14:02:46.000]</span> Awaiting next frame..._</div>
+</div>
+</div>
+</main>
+</div>
+<!-- BottomNavBar Mobile -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 h-20 pb-safe bg-surface-container-highest/90 backdrop-blur-lg border-t border-white/20 rounded-t-xl shadow-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:bg-surface-container-high transition-colors rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1">waves</span>
+<span class="text-label-caps font-label-caps uppercase text-[10px]">Live</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:bg-surface-container-high transition-colors rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1">anchor</span>
+<span class="text-label-caps font-label-caps uppercase text-[10px]">Ports</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-4 py-2 scale-90 duration-150" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="text-label-caps font-label-caps uppercase text-[10px]">Alerts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:bg-surface-container-high transition-colors rounded-xl" href="#">
+<span class="material-symbols-outlined mb-1">map</span>
+<span class="text-label-caps font-label-caps uppercase text-[10px]">Plan</span>
+</a>
+</nav>
+</body></html>

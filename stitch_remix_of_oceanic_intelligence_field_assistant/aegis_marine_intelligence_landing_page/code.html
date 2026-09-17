@@ -1,0 +1,437 @@
+<!DOCTYPE html><html class="dark" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Aegis Marine Intelligence - Operations Command</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container": "#1b2023",
+                      "secondary": "#ffb596",
+                      "on-tertiary-container": "#26b3ee",
+                      "primary-fixed": "#d3e4ff",
+                      "tertiary": "#7bd0ff",
+                      "error": "#ffb4ab",
+                      "secondary-fixed-dim": "#ffb596",
+                      "on-error": "#690005",
+                      "surface-variant": "#303638",
+                      "outline-variant": "#43474e",
+                      "error-container": "#93000a",
+                      "inverse-primary": "#426086",
+                      "surface-container-high": "#252b2d",
+                      "on-secondary-container": "#551c00",
+                      "on-primary-container": "#8ba9d3",
+                      "surface-dim": "#0f1416",
+                      "on-primary-fixed": "#001c38",
+                      "on-tertiary": "#00354a",
+                      "on-secondary-fixed-variant": "#7d2d00",
+                      "on-tertiary-fixed-variant": "#004c69",
+                      "surface-bright": "#343a3d",
+                      "tertiary-container": "#00425b",
+                      "on-secondary-fixed": "#360f00",
+                      "tertiary-fixed": "#c4e7ff",
+                      "primary-fixed-dim": "#aac9f4",
+                      "outline": "#8d9199",
+                      "surface-container-lowest": "#090f11",
+                      "on-surface": "#dee3e6",
+                      "on-primary-fixed-variant": "#29486d",
+                      "surface-container-highest": "#303638",
+                      "surface": "#0f1416",
+                      "inverse-on-surface": "#2c3134",
+                      "inverse-surface": "#dee3e6",
+                      "on-error-container": "#ffdad6",
+                      "secondary-fixed": "#ffdbcd",
+                      "on-background": "#dee3e6",
+                      "primary": "#aac9f4",
+                      "on-surface-variant": "#c3c6cf",
+                      "on-primary": "#0e3255",
+                      "on-tertiary-fixed": "#001e2c",
+                      "surface-container-low": "#171c1f",
+                      "primary-container": "#1e3e62",
+                      "surface-tint": "#aac9f4",
+                      "secondary-container": "#fe6500",
+                      "on-secondary": "#581e00",
+                      "tertiary-fixed-dim": "#7bd0ff",
+                      "background": "#0f1416"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "gutter": "16px",
+                      "unit": "4px",
+                      "margin-desktop": "32px",
+                      "container-max-width": "1440px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "mono-data": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "mono-data": [
+                              "13px",
+                              {
+                                      "lineHeight": "18px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .glass-panel {
+            background-color: rgba(30, 62, 98, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(241, 246, 249, 0.1);
+        }
+        .tech-border {
+            border: 1px solid rgba(241, 246, 249, 0.1);
+        }
+        
+        .radar-sweep {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(from 0deg at 50% 50%, rgba(56, 189, 248, 0) 0deg, rgba(56, 189, 248, 0) 270deg, rgba(56, 189, 248, 0.2) 360deg);
+            border-radius: 50%;
+            transform-origin: center center;
+            animation: sweep 4s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes sweep {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .grid-bg {
+            background-image: 
+                linear-gradient(to right, rgba(241, 246, 249, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(241, 246, 249, 0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+      </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-tertiary/30 selection:text-tertiary">
+<!-- TopNavBar Shared Component -->
+<header class="w-full top-0 sticky bg-surface-container/40 backdrop-blur-xl border-b border-on-surface/10 z-50">
+<div class="flex justify-between items-center w-full px-margin-desktop py-4 max-w-container-max-width mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-tertiary text-[28px]" style="font-variation-settings: 'FILL' 1;">radar</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface tracking-tight">Aegis Marine Intelligence</span>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<!-- Assuming Home/Landing Page intent, so no active nav specifically mapped unless 'Home' was an option, defaulting to inactive for landing generic state or choosing closest if applicable. Leaving all inactive as this is a high-level landing. -->
+<a class="text-on-surface-variant hover:text-tertiary transition-colors duration-200 font-body-md text-body-md hover:opacity-80 active:scale-95 transition-all" href="#">Sensors</a>
+<a class="text-on-surface-variant hover:text-tertiary transition-colors duration-200 font-body-md text-body-md hover:opacity-80 active:scale-95 transition-all" href="#">Networks</a>
+<a class="text-on-surface-variant hover:text-tertiary transition-colors duration-200 font-body-md text-body-md hover:opacity-80 active:scale-95 transition-all" href="#">Analytics</a>
+<a class="text-on-surface-variant hover:text-tertiary transition-colors duration-200 font-body-md text-body-md hover:opacity-80 active:scale-95 transition-all" href="#">Archive</a>
+</nav>
+<div class="flex items-center gap-gutter">
+<a class="text-on-surface-variant hover:text-tertiary transition-colors duration-200 font-body-md text-body-md font-medium" href="#">Sign In</a>
+<a class="bg-secondary-container text-white px-6 py-2 rounded font-body-md text-body-md font-bold hover:bg-secondary-container/90 transition-colors" href="#">Get Started</a>
+</div>
+</div>
+</header>
+<main class="flex-1 w-full">
+<!-- Hero Section -->
+<section class="relative w-full min-h-[90vh] flex items-center overflow-hidden grid-bg pt-24 pb-32">
+<!-- Background Image -->
+<div class="absolute inset-0 z-0 opacity-20 mix-blend-luminosity" data-alt="A highly detailed, ultra-realistic rendering of a high-tech naval command center interface overlaying a dark, stormy ocean surface. The scene is bathed in a deep cyber-slate navy blue palette (#0B192C) with vibrant, glowing neon cyan (#38BDF8) and emergency orange (#FF6500) tactical grid lines, holographic sensor readouts, and global mapping nodes. The mood is tense, authoritative, and technologically advanced, suitable for a military or intelligence operational dashboard. Lighting is stark and dramatic, emphasizing the glowing data against the dark backdrop." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCaEWFyW1FWB5_8qdqKRvWSOngniIkD3goVQvdsNOllwW6sLZ2B1k7-fU0BpEGTkYAnTZDfRPVyHjJj7QLnGpjrhoifcRvqsa2rGryUk2-sWo_3bsFuknafw68Auyoe4Ojt8w4Q3brAUoIZ1THPnJQA01Glvy9D9z3xBIasJZD-q7gZ32UagGddBbX0oxiUsBAdn62blWGbqGryP3oEH9MzKnyCbn_PMukJsWuBqySvRfsr13rJFW1PQw')"></div>
+<!-- Radial Gradient Overlay for focus -->
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-background/40 via-background/80 to-background z-0"></div>
+<div class="relative z-10 w-full max-w-container-max-width mx-auto px-margin-desktop flex flex-col items-center gap-16 text-center">
+<!-- Hero Content -->
+<div class="flex-1 flex flex-col gap-6 items-center mx-auto max-w-container-max-width">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel border border-tertiary/30 text-tertiary font-label-caps text-label-caps">
+<span class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span>
+                        SYSTEM ONLINE: GLOBAL ARRAY ACTIVE
+                    </div>
+<h1 class="font-headline-lg text-[40px] leading-tight lg:text-[84px] lg:leading-[92px] font-extrabold text-on-surface tracking-tighter max-w-full">
+                        Ocean Intelligence. <br>
+<span class="text-tertiary">Multi-Agent Precision.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-3xl">
+                        Command the seas with real-time spatiotemporal analytics, multi-agent orchestration, and predictive marine tactical intelligence. Engineered for mission-critical command centers.
+                    </p>
+<div class="w-full aspect-square relative glass-panel rounded-xl flex items-center justify-center overflow-hidden my-8 mx-auto max-w-2xl">
+<div class="absolute w-[90%] h-[90%] border border-tertiary/20 rounded-full"></div>
+<div class="absolute w-[60%] h-[60%] border border-tertiary/30 rounded-full"></div>
+<div class="absolute w-[30%] h-[30%] border border-tertiary/40 rounded-full"></div>
+<div class="absolute w-full h-[1px] bg-tertiary/20"></div>
+<div class="absolute h-full w-[1px] bg-tertiary/20"></div>
+<div class="radar-sweep"></div>
+<div class="absolute w-3 h-3 bg-tertiary rounded-full top-[30%] left-[40%] shadow-[0_0_10px_#7bd0ff]"></div>
+<div class="absolute w-2 h-2 bg-secondary-container rounded-full top-[60%] left-[70%] shadow-[0_0_8px_#FF6500]"></div>
+<div class="absolute w-2 h-2 bg-tertiary rounded-full top-[20%] left-[75%] shadow-[0_0_8px_#7bd0ff] opacity-50"></div>
+<div class="absolute w-4 h-4 bg-error rounded-full top-[75%] left-[25%] shadow-[0_0_12px_#ffb4ab] flex items-center justify-center">
+<span class="absolute w-full h-full border border-error rounded-full animate-ping"></span>
+</div>
+<svg class="absolute inset-0 w-full h-full z-0" style="opacity: 0.3;">
+<line stroke="#7bd0ff" stroke-dasharray="4" stroke-width="1" x1="40%" x2="70%" y1="30%" y2="60%"></line>
+<line stroke="#7bd0ff" stroke-dasharray="4" stroke-width="1" x1="40%" x2="25%" y1="30%" y2="75%"></line>
+<line stroke="#7bd0ff" stroke-dasharray="4" stroke-width="1" x1="75%" x2="40%" y1="20%" y2="30%"></line>
+</svg>
+<div class="absolute top-4 left-4 font-mono-data text-[10px] text-tertiary">SECTOR: 7G-ALPHA</div>
+<div class="absolute bottom-4 right-4 font-mono-data text-[10px] text-tertiary">SCAN RATE: MAX</div>
+</div><div class="flex flex-col sm:flex-row gap-4 mt-4 w-full sm:w-auto justify-center">
+<button class="bg-secondary-container text-white h-[48px] px-8 rounded font-body-md text-body-md font-bold flex items-center justify-center gap-2 hover:bg-secondary-container/90 transition-all shadow-[0_0_15px_rgba(255,101,0,0.3)]">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+                            Initiate Operations
+                        </button>
+<button class="bg-transparent text-tertiary border border-tertiary h-[48px] px-8 rounded font-body-md text-body-md font-bold flex items-center justify-center gap-2 hover:bg-tertiary/10 transition-all">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+                            Operator Login
+                        </button>
+</div>
+<!-- Micro-stats -->
+<div class="flex gap-8 mt-8 border-t border-on-surface/10 pt-8 w-full justify-center">
+<div>
+<div class="font-mono-data text-mono-data text-tertiary">LATENCY</div>
+<div class="font-headline-md text-headline-md font-bold">&lt; 12ms</div>
+</div>
+<div>
+<div class="font-mono-data text-mono-data text-tertiary">ACTIVE NODES</div>
+<div class="font-headline-md text-headline-md font-bold">14,208</div>
+</div>
+<div>
+<div class="font-mono-data text-mono-data text-tertiary">STATUS</div>
+<div class="font-headline-md text-headline-md font-bold text-tertiary flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                NOMINAL
+                            </div>
+</div>
+</div>
+</div>
+<!-- Decorative Interactive Element (Glassmorphic Radar/DAG preview) -->
+
+</div>
+</section>
+<!-- Platform Overview (The 'Review' section) -->
+<section class="w-full bg-surface py-24 border-t border-on-surface/10 relative">
+<div class="w-full max-w-container-max-width mx-auto px-margin-desktop">
+<div class="mb-16 max-w-3xl">
+<h2 class="font-headline-lg text-headline-lg font-bold text-on-surface mb-4 flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary text-[32px]" style="font-variation-settings: 'FILL' 1;">dns</span>
+                        Operational Domains
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-3xl">
+                        Our integrated tactical stack delivers unprecedented visibility across four core vectors, enabling decisive action in high-stakes marine environments.
+                    </p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-gutter auto-rows-[280px]">
+<!-- Sensors (Spans 8 cols) -->
+<div class="lg:col-span-8 glass-panel rounded-xl p-6 flex flex-col relative overflow-hidden group hover:bg-primary-container/30 transition-colors">
+<div class="absolute top-0 right-0 w-64 h-64 bg-tertiary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+<div class="flex items-center gap-3 mb-4 z-10 border-b border-on-surface/10 pb-4">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">sensors</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Sensors</h3>
+<span class="ml-auto bg-tertiary/10 text-tertiary px-2 py-1 rounded-full font-label-caps text-[10px]">REAL-TIME TELEMETRY</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant z-10 max-w-xl mb-auto">
+                            Ingest continuous, high-fidelity streams from a unified global matrix of satellite constellations, deep-sea sonobuoys, and terrestrial mesh arrays.
+                        </p>
+<!-- Visual representation of data stream -->
+<div class="h-16 w-full flex items-end gap-1 mt-4 z-10 opacity-60">
+<!-- JS will populate these bars -->
+<div class="w-full h-full flex items-end justify-between px-2" id="sensor-bars">
+<div class="w-2 bg-tertiary h-[30%]" style="height: 10%;"></div>
+<div class="w-2 bg-tertiary h-[50%]" style="height: 10%;"></div>
+<div class="w-2 bg-tertiary h-[80%]" style="height: 10%;"></div>
+<div class="w-2 bg-secondary-container h-[95%]" style="height: 62.8546%;"></div>
+<div class="w-2 bg-tertiary h-[40%]" style="height: 17.5577%;"></div>
+<div class="w-2 bg-tertiary h-[60%]" style="height: 52.3983%;"></div>
+<div class="w-2 bg-tertiary h-[20%]" style="height: 93.8763%;"></div>
+<div class="w-2 bg-tertiary h-[70%]" style="height: 43.2044%;"></div>
+<div class="w-2 bg-tertiary h-[90%]" style="height: 28.7789%;"></div>
+<div class="w-2 bg-tertiary h-[50%]" style="height: 31.4262%;"></div>
+<div class="w-2 bg-tertiary h-[30%]" style="height: 40.2881%;"></div>
+<div class="w-2 bg-secondary-container h-[85%]" style="height: 11.2836%;"></div>
+</div>
+</div>
+</div>
+<!-- Networks (Spans 4 cols) -->
+<div class="lg:col-span-4 glass-panel rounded-xl p-6 flex flex-col relative overflow-hidden group hover:bg-primary-container/30 transition-colors">
+<div class="flex items-center gap-3 mb-4 z-10 border-b border-on-surface/10 pb-4">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">hub</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Networks</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant z-10">
+                            Secure, high-resilience topology ensuring zero-trust, mission-critical connectivity across all operational theaters.
+                        </p>
+<div class="mt-auto flex justify-between items-center bg-surface-container/50 p-3 rounded tech-border">
+<span class="font-mono-data text-mono-data text-on-surface-variant">UPTIME</span>
+<span class="font-mono-data text-mono-data text-tertiary font-bold">99.999%</span>
+</div>
+</div>
+<!-- Analytics (Spans 5 cols) -->
+<div class="lg:col-span-5 glass-panel rounded-xl p-6 flex flex-col relative overflow-hidden group hover:bg-primary-container/30 transition-colors">
+<div class="flex items-center gap-3 mb-4 z-10 border-b border-on-surface/10 pb-4">
+<span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Analytics</h3>
+<span class="ml-auto bg-secondary-container/10 text-secondary-container px-2 py-1 rounded-full font-label-caps text-[10px]">PREDICTIVE</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant z-10">
+                            Deploy causal inference engines and multi-variable kinematics to model threat vectors and forecast marine anomalies before they manifest.
+                        </p>
+<!-- Mini visualization -->
+<div class="mt-auto w-full h-24 border border-on-surface/10 rounded relative overflow-hidden">
+<svg class="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+<path d="M0,100 L0,50 Q25,20 50,60 T100,30 L100,100 Z" fill="rgba(255,101,0,0.1)"></path>
+<path d="M0,50 Q25,20 50,60 T100,30" fill="none" stroke="#FF6500" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Archive (Spans 7 cols) -->
+<div class="lg:col-span-7 glass-panel rounded-xl p-6 flex flex-col relative overflow-hidden group hover:bg-primary-container/30 transition-colors">
+<div class="flex items-center gap-3 mb-4 z-10 border-b border-on-surface/10 pb-4">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">database</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Archive</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant z-10">
+                            Immutable, high-performance provenance logs and historical mission data storage. Query petabytes of spatiotemporal records with sub-second latency.
+                        </p>
+<!-- High density telemetry list impression -->
+<div class="mt-auto flex flex-col gap-1 w-full z-10">
+<div class="flex justify-between items-center px-2 py-1 bg-surface-container/40 rounded tech-border h-[32px]">
+<span class="font-mono-data text-mono-data text-on-surface-variant text-[11px]">LOG_ID: 994-A</span>
+<span class="font-mono-data text-mono-data text-tertiary text-[11px]">VERIFIED_SECURE</span>
+</div>
+<div class="flex justify-between items-center px-2 py-1 bg-surface-container/20 rounded tech-border h-[32px]">
+<span class="font-mono-data text-mono-data text-on-surface-variant text-[11px]">LOG_ID: 994-B</span>
+<span class="font-mono-data text-mono-data text-tertiary text-[11px]">VERIFIED_SECURE</span>
+</div>
+<div class="flex justify-between items-center px-2 py-1 bg-surface-container/40 rounded tech-border h-[32px]">
+<span class="font-mono-data text-mono-data text-on-surface-variant text-[11px]">LOG_ID: 994-C</span>
+<span class="font-mono-data text-mono-data text-tertiary text-[11px]">VERIFIED_SECURE</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Shared Component -->
+<footer class="w-full py-12 bg-surface-container-lowest border-t border-on-surface/5">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter px-margin-desktop max-w-container-max-width mx-auto">
+<div>
+<p class="font-label-caps text-label-caps text-on-surface-variant">© 2024 Aegis Marine Intelligence. Tactical operations secured.</p>
+</div>
+<div class="flex flex-wrap gap-4 md:justify-end">
+<a class="text-on-surface-variant hover:text-on-surface transition-colors font-body-sm text-body-sm" href="#">Privacy Protocol</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors font-body-sm text-body-sm" href="#">Service Terms</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors font-body-sm text-body-sm" href="#">Contact Command</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors font-body-sm text-body-sm" href="#">System Status</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple script to animate the sensor bars slightly for atmospheric effect
+        document.addEventListener('DOMContentLoaded', () => {
+            const barsContainer = document.getElementById('sensor-bars');
+            if(barsContainer) {
+                const bars = barsContainer.children;
+                setInterval(() => {
+                    for(let bar of bars) {
+                        // Randomly adjust height slightly to simulate live data
+                        const currentHeight = parseInt(bar.style.height || bar.className.match(/h-\[(\d+)%\]/)[1]);
+                        const newHeight = Math.max(10, Math.min(100, currentHeight + (Math.random() * 20 - 10)));
+                        bar.style.height = `${newHeight}%`;
+                    }
+                }, 800);
+            }
+        });
+    </script>
+
+
+</body></html>

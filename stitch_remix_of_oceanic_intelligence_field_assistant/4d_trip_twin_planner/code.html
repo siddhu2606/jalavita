@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>4D Trip Twin &amp; Spatiotemporal Hazard Planner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#360f00",
+                        "on-secondary-container": "#551c00",
+                        "surface-container-low": "#171c1f",
+                        "on-surface-variant": "#c3c6cf",
+                        "on-tertiary-fixed": "#001e2c",
+                        "secondary-fixed-dim": "#ffb596",
+                        "inverse-on-surface": "#2c3134",
+                        "surface-bright": "#343a3d",
+                        "surface-tint": "#aac9f4",
+                        "primary-fixed-dim": "#aac9f4",
+                        "tertiary-fixed-dim": "#7bd0ff",
+                        "error-container": "#93000a",
+                        "outline-variant": "#43474e",
+                        "on-background": "#dee3e6",
+                        "surface-container-highest": "#303638",
+                        "on-secondary": "#581e00",
+                        "tertiary": "#7bd0ff",
+                        "primary-fixed": "#d3e4ff",
+                        "on-surface": "#dee3e6",
+                        "secondary-container": "#fe6500",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "inverse-primary": "#426086",
+                        "surface-container-high": "#252b2d",
+                        "surface-dim": "#0f1416",
+                        "on-tertiary": "#00354a",
+                        "on-primary-fixed": "#001c38",
+                        "outline": "#8d9199",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#26b3ee",
+                        "surface-container-lowest": "#090f11",
+                        "surface-container": "#1b2023",
+                        "on-primary-container": "#8ba9d3",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#29486d",
+                        "tertiary-fixed": "#c4e7ff",
+                        "primary": "#aac9f4",
+                        "surface-variant": "#303638",
+                        "secondary-fixed": "#ffdbcd",
+                        "tertiary-container": "#00425b",
+                        "primary-container": "#1e3e62",
+                        "inverse-surface": "#dee3e6",
+                        "background": "#0f1416",
+                        "secondary": "#ffb596",
+                        "surface": "#0f1416",
+                        "on-primary": "#0e3255",
+                        "on-secondary-fixed-variant": "#7d2d00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max-width": "1440px",
+                        "unit": "4px",
+                        "gutter": "16px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-data": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #0B192C; }
+        .cyber-panel { background: rgba(30, 62, 98, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(241, 246, 249, 0.1); }
+        .tech-border { border: 1px solid rgba(241, 246, 249, 0.1); }
+        .glass-btn { background: rgba(30, 62, 98, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(241, 246, 249, 0.1); transition: all 0.2s ease; }
+        .glass-btn:hover { background: rgba(30, 62, 98, 0.8); border-color: rgba(56, 189, 248, 0.4); }
+        .glass-input { background: rgba(11, 25, 44, 0.8); border: 1px solid rgba(241, 246, 249, 0.1); color: #dee3e6; transition: all 0.2s ease; }
+        .glass-input:focus { outline: none; border-color: rgba(56, 189, 248, 0.8); box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
+        
+        /* Custom range slider styling for technical look */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 8px;
+            border-radius: 2px;
+            background: #38BDF8;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(241, 246, 249, 0.2);
+            border-radius: 2px;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        
+        .grid-bg {
+            background-size: 20px 20px;
+            background-image: linear-gradient(to right, rgba(241, 246, 249, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(241, 246, 249, 0.05) 1px, transparent 1px);
+        }
+        
+        .chart-line-danger { stroke: #FF6500; stroke-width: 2; fill: none; stroke-dasharray: 4 4; animation: dash 10s linear infinite; }
+        .chart-line-safe { stroke: #38BDF8; stroke-width: 2; fill: none; }
+        .chart-area-safe { fill: url(#safeGradient); }
+        .hazard-zone { fill: rgba(255, 101, 0, 0.1); }
+        
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(255, 101, 0, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(255, 101, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 101, 0, 0); }
+        }
+        .status-pulse-danger { animation: pulse-glow 2s infinite; }
+    </style>
+</head>
+<body class="text-on-surface h-screen overflow-hidden flex flex-col font-sans">
+<!-- Top Navigation Bar -->
+<nav class="flex justify-between items-center px-margin-desktop w-full h-16 bg-surface-container/40 backdrop-blur-xl border-b border-white/10 z-50 shrink-0">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[28px]" data-icon="radar">radar</span>
+<span class="text-headline-md font-headline-md font-bold tracking-tight text-primary">Aegis Marine Intelligence</span>
+</div>
+<div class="h-6 w-px bg-white/10 mx-2"></div>
+<div class="flex gap-1">
+<button class="px-4 py-2 text-on-surface-variant hover:bg-white/5 transition-colors rounded text-label-caps font-label-caps">Operations</button>
+<button class="px-4 py-2 text-primary border-b-2 border-secondary pb-1 bg-white/5 transition-colors rounded-t text-label-caps font-label-caps transform scale-95 duration-100">Spatiotemporal</button>
+<button class="px-4 py-2 text-on-surface-variant hover:bg-white/5 transition-colors rounded text-label-caps font-label-caps">Tactical</button>
+<button class="px-4 py-2 text-on-surface-variant hover:bg-white/5 transition-colors rounded text-label-caps font-label-caps">Logs</button>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button aria-label="Notifications" class="p-2 text-on-surface-variant hover:bg-white/5 transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button aria-label="Settings" class="p-2 text-on-surface-variant hover:bg-white/5 transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-white/20">
+<img alt="Command Officer Avatar" class="w-full h-full object-cover" data-alt="A portrait of a stern-looking command officer in a futuristic navy uniform. Lighting is dramatic and blue-tinted. High resolution, hyper-realistic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC40F4E9OjHBp1EWamQhGmPWI02k80sF3eWBSYGc2PENv1qTzFbh0S0MK0pZxLi0fCnQ-8HhnIHt6-7WMhC93BpIFCnKF9FjYaiVmbHGgeQhk_oJeJE5MywxoBwuOqxkBF6yR8Xin6PbTeTY3O15WEccsPxUKVxFY758TZwjFdSl6l0rI4IjBtsJUwQnYhKagp1c_dSEoVSroq9zGLSSiYtPmIluhQtTjnc4DtZB0JpEwXe6tZp8XnU"/>
+</div>
+</div>
+</nav>
+<!-- Main Workspace -->
+<main class="flex-1 flex gap-4 p-4 overflow-hidden h-full">
+<!-- Left Panel: Spatiotemporal Parameters -->
+<aside class="w-80 cyber-panel rounded-lg flex flex-col shrink-0 overflow-y-auto">
+<div class="p-4 border-b border-white/10 flex justify-between items-center bg-black/20">
+<h2 class="text-body-md font-headline-md font-semibold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]" data-icon="tune">tune</span>
+                    Mission Parameters
+                </h2>
+<div class="px-2 py-0.5 rounded-full bg-[#1E3E62] border border-[#38BDF8]/20 flex items-center gap-1">
+<div class="w-2 h-2 rounded-full bg-[#38BDF8]"></div>
+<span class="text-[10px] font-bold text-[#38BDF8] tracking-wide">SYNCED</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-6">
+<!-- Departure Time -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<label class="text-label-caps font-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span>
+                            Departure Window
+                        </label>
+<span class="text-mono-data font-mono-data text-primary" id="val-departure">06:30</span>
+</div>
+<div class="relative pt-2 pb-1">
+<input class="w-full" max="1200" min="400" oninput="document.getElementById('val-departure').innerText = formatTime(this.value)" type="range" value="630"/>
+<div class="flex justify-between text-[10px] text-on-surface-variant/50 mt-1">
+<span>04:00</span>
+<span>08:00</span>
+<span>12:00</span>
+</div>
+</div>
+</div>
+<!-- Cruise Speed -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<label class="text-label-caps font-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="speed">speed</span>
+                            Cruise Speed (Kts)
+                        </label>
+<span class="text-mono-data font-mono-data text-primary" id="val-speed">12.5</span>
+</div>
+<div class="relative pt-2 pb-1">
+<input class="w-full" max="14" min="6" oninput="document.getElementById('val-speed').innerText = this.value" step="0.5" type="range" value="12.5"/>
+<div class="flex justify-between text-[10px] text-on-surface-variant/50 mt-1">
+<span>6.0</span>
+<span>10.0</span>
+<span>14.0</span>
+</div>
+</div>
+</div>
+<!-- Operation Duration -->
+<div class="space-y-2">
+<div class="flex justify-between items-end">
+<label class="text-label-caps font-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="hourglass_empty">hourglass_empty</span>
+                            Operation Duration (Hrs)
+                        </label>
+<span class="text-mono-data font-mono-data text-primary" id="val-duration">4.5</span>
+</div>
+<div class="relative pt-2 pb-1">
+<input class="w-full" max="8" min="2" oninput="document.getElementById('val-duration').innerText = this.value" step="0.5" type="range" value="4.5"/>
+<div class="flex justify-between text-[10px] text-on-surface-variant/50 mt-1">
+<span>2.0</span>
+<span>5.0</span>
+<span>8.0</span>
+</div>
+</div>
+</div>
+<!-- Fuel Capacity -->
+<div class="space-y-2 pb-4 border-b border-white/5">
+<div class="flex justify-between items-end">
+<label class="text-label-caps font-label-caps text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="local_gas_station">local_gas_station</span>
+                            Fuel Tank Limit (L)
+                        </label>
+</div>
+<input class="glass-input w-full p-2 rounded text-mono-data font-mono-data" type="number" value="50"/>
+</div>
+<button class="w-full py-3 bg-[#FF6500] hover:bg-[#FF6500]/90 text-white font-bold rounded flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="sync">sync</span>
+                    Recalculate Spatiotemporal Twin
+                </button>
+</div>
+</aside>
+<!-- Center Column: Graph & Metrics -->
+<section class="flex-1 flex flex-col gap-4 overflow-hidden">
+<!-- Top: Space-Time Risk Graph -->
+<div class="flex-1 cyber-panel rounded-lg flex flex-col overflow-hidden relative">
+<div class="p-3 border-b border-white/10 flex justify-between items-center bg-black/20 z-10">
+<h2 class="text-body-sm font-headline-md font-semibold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-tertiary" data-icon="show_chart">show_chart</span>
+                        4D Trajectory &amp; Hazard Intersection Analysis
+                    </h2>
+<div class="flex gap-4">
+<div class="flex items-center gap-1">
+<div class="w-3 h-0.5 bg-[#38BDF8]"></div>
+<span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Optimal Route</span>
+</div>
+<div class="flex items-center gap-1">
+<div class="w-3 h-0.5 bg-[#FF6500] border-t border-dashed"></div>
+<span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Hazard Conflict</span>
+</div>
+</div>
+</div>
+<div class="flex-1 relative p-4 pl-12 pb-8 grid-bg">
+<!-- Y Axis Labels (Distance) -->
+<div class="absolute left-2 top-4 bottom-8 flex flex-col justify-between text-[10px] text-on-surface-variant/70 font-mono-data">
+<span>60km</span>
+<span>40km</span>
+<span>20km</span>
+<span>0km</span>
+</div>
+<!-- X Axis Labels (Time) -->
+<div class="absolute left-12 right-4 bottom-2 flex justify-between text-[10px] text-on-surface-variant/70 font-mono-data">
+<span>04:00</span>
+<span>08:00</span>
+<span>12:00</span>
+<span>16:00</span>
+<span>18:00</span>
+</div>
+<!-- SVG Chart Overlay -->
+<svg class="w-full h-full absolute inset-0 pt-4 pb-8 pl-12 pr-4 overflow-visible" preserveaspectratio="none" viewbox="0 0 100 100">
+<defs>
+<lineargradient id="safeGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="rgba(56, 189, 248, 0.2)"></stop>
+<stop offset="100%" stop-color="rgba(56, 189, 248, 0)"></stop>
+</lineargradient>
+<pattern height="4" id="hazardPattern" patternunits="userSpaceOnUse" width="4">
+<path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" stroke="rgba(255, 101, 0, 0.3)" stroke-width="1"></path>
+</pattern>
+</defs>
+<!-- Hazard Zone (Squall Line) -->
+<path class="hazard-zone" d="M60,0 L80,0 L70,100 L50,100 Z" fill="url(#hazardPattern)"></path>
+<!-- Planned Route (Dangerous) -->
+<path class="chart-line-danger" d="M10,100 C30,90 40,60 50,33 C55,20 60,33 65,33 C70,33 80,80 90,100"></path>
+<!-- Intersect Marker -->
+<circle class="status-pulse-danger" cx="65" cy="33" fill="#FF6500" r="1.5"></circle>
+<text fill="#FF6500" font-family="monospace" font-size="3" text-anchor="middle" x="65" y="28">13:30 INTERSECT</text>
+<!-- Alternative Route (Safe) -->
+<path class="chart-line-safe" d="M15,100 C25,80 30,50 40,40 C50,30 65,90 75,100"></path>
+<path class="chart-area-safe" d="M15,100 C25,80 30,50 40,40 C50,30 65,90 75,100 L75,100 L15,100 Z"></path>
+</svg>
+</div>
+</div>
+<!-- Bottom: Honest Metrics Cards -->
+<div class="h-32 shrink-0 grid grid-cols-3 gap-4">
+<!-- Fuel Card -->
+<div class="cyber-panel rounded-lg p-4 flex flex-col justify-between relative overflow-hidden">
+<div class="flex justify-between items-start">
+<span class="text-label-caps font-label-caps text-on-surface-variant uppercase tracking-wider">Fuel Consumption</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary" data-icon="local_gas_station">local_gas_station</span>
+</div>
+<div class="flex items-end gap-2 mt-auto">
+<span class="text-headline-lg font-headline-lg text-[#FF6500] leading-none">38</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant mb-1">/ 50L limit</span>
+</div>
+<!-- Mini progress bar -->
+<div class="w-full h-1 bg-white/10 mt-3 rounded-full overflow-hidden">
+<div class="h-full bg-[#FF6500] w-[76%] rounded-full"></div>
+</div>
+</div>
+<!-- Point of No Return Card -->
+<div class="cyber-panel rounded-lg p-4 flex flex-col justify-between relative">
+<div class="absolute top-0 right-0 p-2">
+<div class="w-2 h-2 rounded-full bg-[#FF6500] status-pulse-danger"></div>
+</div>
+<div class="flex justify-between items-start">
+<span class="text-label-caps font-label-caps text-on-surface-variant uppercase tracking-wider">Point of No Return</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary" data-icon="timer">timer</span>
+</div>
+<div class="flex flex-col mt-auto">
+<span class="text-headline-lg font-headline-lg text-on-surface leading-none">11:15 <span class="text-body-sm">AM</span></span>
+<span class="text-[10px] text-[#FF6500] mt-1 font-mono-data tracking-wide">WARNING: LIMITED MARGIN</span>
+</div>
+</div>
+<!-- Wave Margin Card -->
+<div class="cyber-panel rounded-lg p-4 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="text-label-caps font-label-caps text-on-surface-variant uppercase tracking-wider">Offshore Wave Margin</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary" data-icon="water">water</span>
+</div>
+<div class="flex items-end gap-2 mt-auto">
+<span class="text-headline-lg font-headline-lg text-primary leading-none">1.8</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant mb-1">m max</span>
+</div>
+<div class="flex items-center gap-2 mt-2">
+<span class="material-symbols-outlined text-[14px] text-green-400" data-icon="check_circle">check_circle</span>
+<span class="text-[10px] text-on-surface-variant uppercase font-mono-data">Within Vessel Limits</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Panel: Explainability Drawer -->
+<aside class="w-80 cyber-panel rounded-lg flex flex-col shrink-0 overflow-hidden">
+<div class="p-3 border-b border-white/10 bg-black/20">
+<h3 class="text-body-sm font-headline-md font-semibold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]" data-icon="rule">rule</span>
+                    Route Explainability Log
+                </h3>
+</div>
+<div class="flex-1 overflow-y-auto p-2 space-y-2">
+<!-- Log Entry: Warning -->
+<div class="p-3 rounded border border-[#FF6500]/30 bg-[#FF6500]/5 hover:bg-[#FF6500]/10 transition-colors">
+<div class="flex items-start gap-2 mb-1">
+<span class="material-symbols-outlined text-[#FF6500] text-[16px] mt-0.5" data-icon="warning">warning</span>
+<span class="text-label-caps font-label-caps text-[#FF6500]">Direct Route Rejected</span>
+</div>
+<p class="text-mono-data font-mono-data text-on-surface-variant text-xs pl-6">
+                        Crosses predicted 2.8m swell anomaly at coordinates [42.3,-71.1] during time frame 13:00-14:30.
+                    </p>
+</div>
+<!-- Log Entry: Error/Limit -->
+<div class="p-3 rounded border border-error/30 bg-error/5 hover:bg-error/10 transition-colors">
+<div class="flex items-start gap-2 mb-1">
+<span class="material-symbols-outlined text-error text-[16px] mt-0.5" data-icon="block">block</span>
+<span class="text-label-caps font-label-caps text-error">South Ground Rejected</span>
+</div>
+<p class="text-mono-data font-mono-data text-on-surface-variant text-xs pl-6">
+                        Exceeds hard vessel fuel limit. Projected consumption: 54L (Limit: 50L) given current wind vector analysis.
+                    </p>
+</div>
+<!-- Log Entry: Info -->
+<div class="p-3 rounded border border-[#38BDF8]/30 bg-[#38BDF8]/5 hover:bg-[#38BDF8]/10 transition-colors">
+<div class="flex items-start gap-2 mb-1">
+<span class="material-symbols-outlined text-[#38BDF8] text-[16px] mt-0.5" data-icon="info">info</span>
+<span class="text-label-caps font-label-caps text-[#38BDF8]">Alternative Generated</span>
+</div>
+<p class="text-mono-data font-mono-data text-on-surface-variant text-xs pl-6">
+                        Dog-leg North route viable. Avoids squall line, remains within fuel constraints (Est 42L).
+                    </p>
+<button class="mt-2 text-[10px] uppercase font-bold text-[#38BDF8] hover:text-white border border-[#38BDF8]/50 px-2 py-1 rounded w-full transition-colors">Apply Route</button>
+</div>
+<!-- Log Entry: Info -->
+<div class="p-3 rounded border border-white/10 bg-white/5 opacity-60">
+<div class="flex items-start gap-2 mb-1">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px] mt-0.5" data-icon="history">history</span>
+<span class="text-label-caps font-label-caps text-on-surface-variant">Previous Iteration</span>
+</div>
+<p class="text-mono-data font-mono-data text-on-surface-variant text-xs pl-6">
+                        Calculation at 08:42 Z rejected due to outdated telemetry data from buoy network.
+                    </p>
+</div>
+</div>
+</aside>
+</main>
+<script>
+        // Simple helper to format time nicely
+        function formatTime(val) {
+            const hours = Math.floor(val / 100);
+            const minutes = (val % 100) === 50 ? '30' : '00';
+            const h = hours.toString().padStart(2, '0');
+            return `${h}:${minutes}`;
+        }
+    </script>
+</body></html>

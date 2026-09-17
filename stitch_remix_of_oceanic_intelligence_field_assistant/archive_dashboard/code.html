@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Aegis Marine Intelligence - Archive</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-tint": "#aac9f4",
+                      "on-tertiary-fixed-variant": "#004c69",
+                      "secondary": "#ffb596",
+                      "on-secondary-container": "#551c00",
+                      "tertiary-fixed-dim": "#7bd0ff",
+                      "tertiary": "#7bd0ff",
+                      "primary-container": "#1e3e62",
+                      "on-secondary": "#581e00",
+                      "on-error": "#690005",
+                      "surface-bright": "#343a3d",
+                      "surface-dim": "#0f1416",
+                      "on-primary": "#0e3255",
+                      "primary": "#aac9f4",
+                      "on-tertiary-fixed": "#001e2c",
+                      "surface": "#0f1416",
+                      "surface-variant": "#303638",
+                      "surface-container-low": "#171c1f",
+                      "on-tertiary": "#00354a",
+                      "on-primary-fixed": "#001c38",
+                      "outline-variant": "#43474e",
+                      "surface-container-high": "#252b2d",
+                      "primary-fixed-dim": "#aac9f4",
+                      "on-tertiary-container": "#26b3ee",
+                      "on-surface": "#dee3e6",
+                      "on-primary-container": "#8ba9d3",
+                      "on-error-container": "#ffdad6",
+                      "on-background": "#dee3e6",
+                      "secondary-container": "#fe6500",
+                      "inverse-on-surface": "#2c3134",
+                      "surface-container-lowest": "#090f11",
+                      "error": "#ffb4ab",
+                      "tertiary-container": "#00425b",
+                      "on-primary-fixed-variant": "#29486d",
+                      "secondary-fixed": "#ffdbcd",
+                      "on-secondary-fixed": "#360f00",
+                      "tertiary-fixed": "#c4e7ff",
+                      "on-secondary-fixed-variant": "#7d2d00",
+                      "inverse-primary": "#426086",
+                      "secondary-fixed-dim": "#ffb596",
+                      "surface-container": "#1b2023",
+                      "surface-container-highest": "#303638",
+                      "inverse-surface": "#dee3e6",
+                      "error-container": "#93000a",
+                      "primary-fixed": "#d3e4ff",
+                      "on-surface-variant": "#c3c6cf",
+                      "background": "#0f1416",
+                      "outline": "#8d9199"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "margin-mobile": "16px",
+                      "container-max-width": "1440px",
+                      "margin-desktop": "32px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "mono-data": ["Inter"],
+                      "body-md": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "mono-data": ["13px", {"lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        /* High-density grid resets and utility classes */
+        .glass-panel {
+            background-color: rgba(30, 62, 98, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(241, 246, 249, 0.1);
+        }
+        .data-row:nth-child(even) { background-color: rgba(255, 255, 255, 0.02); }
+        .data-row:hover { background-color: rgba(56, 189, 248, 0.05); }
+        .active-row {
+            background-color: rgba(30, 62, 98, 1) !important;
+            box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.2);
+        }
+        /* Custom scrollbar for dense data areas */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 20, 22, 1); }
+        ::-webkit-scrollbar-thumb { background: rgba(67, 71, 78, 1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(141, 145, 153, 1); }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen overflow-hidden flex font-body-sm selection:bg-tertiary-container selection:text-on-tertiary-container">
+<!-- Top Navigation (Desktop) -->
+<header class="hidden md:flex justify-between items-center px-margin-desktop w-full h-16 fixed top-0 w-full z-50 bg-surface-container/40 backdrop-blur-xl border-b border-white/10 flat no shadows">
+<div class="flex items-center gap-6">
+<h1 class="text-headline-md font-headline-md font-bold tracking-tight text-primary">Aegis Marine Intelligence</h1>
+<nav class="flex gap-4">
+<a class="text-on-surface-variant hover:bg-white/5 transition-colors px-3 py-2 rounded-DEFAULT text-label-caps font-label-caps" href="#">Operations</a>
+<a class="text-on-surface-variant hover:bg-white/5 transition-colors px-3 py-2 rounded-DEFAULT text-label-caps font-label-caps" href="#">Spatiotemporal</a>
+<a class="text-on-surface-variant hover:bg-white/5 transition-colors px-3 py-2 rounded-DEFAULT text-label-caps font-label-caps" href="#">Tactical</a>
+<a class="text-primary border-b-2 border-secondary pb-1 scale-95 duration-100 hover:bg-white/5 transition-colors px-3 py-2 rounded-DEFAULT text-label-caps font-label-caps" href="#">Logs</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1.5 text-on-surface-variant text-[18px]">search</span>
+<input class="bg-surface-dim border border-white/10 rounded-DEFAULT text-body-sm pl-8 pr-3 py-1 text-on-surface focus:outline-none focus:border-tertiary focus:ring-1 focus:ring-tertiary w-64 h-8 transition-colors" placeholder="Search logs..." type="text"/>
+</div>
+<button aria-label="notifications" class="text-on-surface-variant hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button aria-label="settings" class="text-on-surface-variant hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="Command Officer Avatar" class="w-8 h-8 rounded-full border border-white/10 object-cover" data-alt="A small, stylized avatar of a command officer in a tactical marine setting, dark cyber-slate aesthetic, high contrast." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBELl_8l10xXZsXMzBeP23wiy_BRszqd_STMtNyLM_AG7IN_aoNvMy3E6CLe1oXcRcMO5fM-_doRU9ITUAnzztpfAgQvA7j9XMoTJtuCJooZflcD5wj_c4B9KejqP80GzwDAvV_RIZAKvGiLiZpwj9_uG-wWoNt1I9qotpTHy2EQHSlRnNMF9x3EJTA_SiW1kLHRlwCH2n20R2YftTouscFn4JtnEB73CBg7JhLrG39MexBOWAG-B_uBw"/>
+</div>
+</header>
+<!-- Side Navigation -->
+<aside class="hidden md:flex flex-col h-full py-8 fixed left-0 top-0 h-full w-64 bg-surface-container-low/40 backdrop-blur-2xl border-r border-white/5 flat no shadows z-40 pt-20">
+<div class="px-6 mb-8 mt-4">
+<h2 class="text-headline-md font-headline-md text-primary truncate">Task Force Alpha</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant truncate">Sector 7G-Delta</p>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-DEFAULT text-on-surface-variant hover:bg-white/10 transition-colors text-body-md font-body-md" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span> Command
+            </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-DEFAULT text-on-surface-variant hover:bg-white/10 transition-colors text-body-md font-body-md" href="#">
+<span class="material-symbols-outlined text-[20px]">radar</span> Sensors
+            </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-DEFAULT text-on-surface-variant hover:bg-white/10 transition-colors text-body-md font-body-md" href="#">
+<span class="material-symbols-outlined text-[20px]">hub</span> Networks
+            </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-DEFAULT text-on-surface-variant hover:bg-white/10 transition-colors text-body-md font-body-md" href="#">
+<span class="material-symbols-outlined text-[20px]">insights</span> Analytics
+            </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-DEFAULT text-primary font-bold bg-primary-container/20 border-r-2 border-secondary hover:bg-white/10 transition-colors text-body-md font-body-md translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">inventory_2</span> Archive
+            </a>
+</nav>
+<div class="px-4 mt-auto space-y-4">
+<button class="w-full bg-error text-on-error py-2 rounded-DEFAULT text-label-caps font-label-caps hover:bg-error-container hover:text-on-error-container transition-colors font-bold uppercase tracking-wider flex items-center justify-center gap-2 h-[48px] md:h-auto">
+<span class="material-symbols-outlined text-[18px]">warning</span> Initiate Emergency Protocol
+            </button>
+<div class="border-t border-white/5 pt-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant hover:bg-white/10 transition-colors text-body-sm font-body-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">build</span> Diagnostics
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant hover:bg-white/10 transition-colors text-body-sm font-body-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span> Help
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-0 md:ml-64 mt-0 md:mt-16 h-[calc(100vh-64px)] md:h-[calc(100vh-64px)] flex flex-col p-4 md:p-gutter gap-4 bg-background">
+<!-- Toolbar & Filters -->
+<div class="flex flex-col md:flex-row gap-4 h-auto md:h-12 shrink-0">
+<!-- Filter Sidebar (Horizontal on desktop top, vertical on mobile) -->
+<div class="glass-panel rounded-lg p-2 flex flex-1 items-center gap-3 overflow-x-auto">
+<span class="material-symbols-outlined text-on-surface-variant px-2">filter_list</span>
+<select class="bg-surface-dim border border-white/10 rounded-DEFAULT text-body-sm py-1.5 pl-3 pr-8 text-on-surface focus:border-tertiary focus:ring-1 focus:ring-tertiary h-8 appearance-none">
+<option>Last 7 Days</option>
+<option>Last 30 Days</option>
+<option>Custom Range...</option>
+</select>
+<select class="bg-surface-dim border border-white/10 rounded-DEFAULT text-body-sm py-1.5 pl-3 pr-8 text-on-surface focus:border-tertiary focus:ring-1 focus:ring-tertiary h-8 appearance-none">
+<option>All Sensors</option>
+<option>Sonar Array</option>
+<option>AIS Transceiver</option>
+<option>EO/IR Camera</option>
+</select>
+<select class="bg-surface-dim border border-white/10 rounded-DEFAULT text-body-sm py-1.5 pl-3 pr-8 text-on-surface focus:border-tertiary focus:ring-1 focus:ring-tertiary h-8 appearance-none">
+<option>All Outcomes</option>
+<option>Resolved</option>
+<option>Escalated</option>
+<option>Logged</option>
+</select>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<button class="bg-surface-dim border border-tertiary/50 text-tertiary hover:bg-tertiary/10 px-4 py-1.5 rounded-DEFAULT text-label-caps font-label-caps transition-colors flex items-center gap-2 h-8 md:h-[48px] md:h-8">
+<span class="material-symbols-outlined text-[16px]">download</span> Export Selected
+                </button>
+</div>
+</div>
+<!-- Data Area Layout -->
+<div class="flex flex-1 gap-4 min-h-0">
+<!-- Dense Table View -->
+<div class="glass-panel rounded-lg flex-1 flex flex-col overflow-hidden">
+<div class="border-b border-white/10 flex px-4 py-2 bg-surface-container-low sticky top-0 z-10 text-label-caps font-label-caps text-on-surface-variant uppercase tracking-wider">
+<div class="w-8 shrink-0"></div> <!-- Checkbox col -->
+<div class="flex-1 min-w-[140px]">Timestamp (UTC)</div>
+<div class="flex-1 min-w-[120px]">Vessel ID</div>
+<div class="flex-[1.5] min-w-[180px]">Incident Type</div>
+<div class="w-24 shrink-0 text-right">Data Size</div>
+<div class="w-24 shrink-0 text-center">Status</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<!-- Row 1 -->
+<div class="data-row active-row flex items-center px-4 py-2 border-b border-white/5 cursor-pointer h-10">
+<div class="w-8 shrink-0 flex items-center">
+<input checked="" class="rounded-sm bg-surface-dim border-white/20 text-tertiary focus:ring-tertiary focus:ring-offset-background h-4 w-4" type="checkbox"/>
+</div>
+<div class="flex-1 min-w-[140px] text-mono-data font-mono-data text-on-surface">2023-10-27 14:32:01</div>
+<div class="flex-1 min-w-[120px] text-mono-data font-mono-data text-tertiary">MMSI-987654</div>
+<div class="flex-[1.5] min-w-[180px] text-body-sm font-body-sm text-on-surface truncate">IMBL Breach (Zone 4)</div>
+<div class="w-24 shrink-0 text-right text-mono-data font-mono-data text-on-surface-variant">45 MB</div>
+<div class="w-24 shrink-0 flex justify-center">
+<span class="bg-error/20 text-error border border-error/50 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">Critical</span>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="data-row flex items-center px-4 py-2 border-b border-white/5 cursor-pointer h-10">
+<div class="w-8 shrink-0 flex items-center">
+<input class="rounded-sm bg-surface-dim border-white/20 text-tertiary focus:ring-tertiary focus:ring-offset-background h-4 w-4" type="checkbox"/>
+</div>
+<div class="flex-1 min-w-[140px] text-mono-data font-mono-data text-on-surface">2023-10-27 12:15:44</div>
+<div class="flex-1 min-w-[120px] text-mono-data font-mono-data text-tertiary">V-UNKN-882</div>
+<div class="flex-[1.5] min-w-[180px] text-body-sm font-body-sm text-on-surface truncate">Severe Squall Detection</div>
+<div class="w-24 shrink-0 text-right text-mono-data font-mono-data text-on-surface-variant">1.2 GB</div>
+<div class="w-24 shrink-0 flex justify-center">
+<span class="bg-secondary-container/20 text-secondary border border-secondary-container/50 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">Warning</span>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="data-row flex items-center px-4 py-2 border-b border-white/5 cursor-pointer h-10">
+<div class="w-8 shrink-0 flex items-center">
+<input class="rounded-sm bg-surface-dim border-white/20 text-tertiary focus:ring-tertiary focus:ring-offset-background h-4 w-4" type="checkbox"/>
+</div>
+<div class="flex-1 min-w-[140px] text-mono-data font-mono-data text-on-surface">2023-10-26 23:01:10</div>
+<div class="flex-1 min-w-[120px] text-mono-data font-mono-data text-tertiary">MMSI-112233</div>
+<div class="flex-[1.5] min-w-[180px] text-body-sm font-body-sm text-on-surface truncate">Routine Patrol Log</div>
+<div class="w-24 shrink-0 text-right text-mono-data font-mono-data text-on-surface-variant">8 MB</div>
+<div class="w-24 shrink-0 flex justify-center">
+<span class="bg-tertiary/20 text-tertiary border border-tertiary/50 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">Normal</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Preview Panel (Hidden on smaller screens) -->
+<aside class="hidden lg:flex w-80 glass-panel rounded-lg flex-col overflow-hidden shrink-0">
+<div class="border-b border-white/10 px-4 py-3 flex justify-between items-center bg-surface-container-low">
+<h3 class="text-body-sm font-body-sm font-bold text-on-surface">Entry Preview</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px] cursor-pointer hover:text-on-surface">open_in_full</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-4">
+<!-- Map Thumbnail -->
+<div class="rounded-DEFAULT border border-white/10 overflow-hidden relative h-40 bg-surface-dim">
+<img alt="Incident Map Location" class="w-full h-full object-cover opacity-80" data-alt="A highly detailed, tactical marine map interface showing a specific coordinate in the South China Sea. Cyber-slate aesthetic with glowing cyan grid lines, minimal landmass outlines, and a distinct red 'incident' marker. Dark mode, technical precision." data-location="South China Sea" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8YhcOSuHp68xfZ3yUv-BFqF0v4cUHFqfVUEbbatCX5stDqYaQH7rNqddAsVxZ_2DuerGbuMCRyU1n2rC8OXX0fBAv8FHkEVz_qivB6gfoBWqOrYY84n4QUnAdE6hbO0TM1j01QIqupcfWfjz2N7TGs8jG7Kzk_nFZ9wkKm5j5tnp-vnXmMJIH1IXIBIotfliVaCtbzkgYTAHpguvNtOBTzdPhLBXG_6S1AIpRWCfh50JFz1YEMbbhIQ"/>
+<div class="absolute bottom-2 left-2 bg-background/80 backdrop-blur text-mono-data font-mono-data text-on-surface px-2 py-1 rounded text-[10px] border border-white/10">
+                            LAT: 12.45°N LON: 114.12°E
+                        </div>
+</div>
+<!-- Metadata Snippet -->
+<div>
+<h4 class="text-label-caps font-label-caps text-on-surface-variant mb-2 uppercase">Provenance Data</h4>
+<div class="bg-surface-dim border border-white/10 rounded-DEFAULT p-3 font-mono-data text-mono-data text-tertiary-fixed-dim text-xs overflow-x-auto">
+<pre class="whitespace-pre"><code>{
+  "log_id": "L-99827-A",
+  "source": "Sonar_Array_B",
+  "confidence": 0.94,
+  "operator": "CMD-04",
+  "tags": ["imbl", "unauthorized"]
+}</code></pre>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-surface-dim p-2 rounded border border-white/5">
+<div class="text-[10px] text-on-surface-variant uppercase mb-1">Duration</div>
+<div class="text-body-sm font-body-sm text-on-surface">14m 22s</div>
+</div>
+<div class="bg-surface-dim p-2 rounded border border-white/5">
+<div class="text-[10px] text-on-surface-variant uppercase mb-1">Vessel Type</div>
+<div class="text-body-sm font-body-sm text-on-surface">Cargo</div>
+</div>
+</div>
+</div>
+<div class="p-4 border-t border-white/10 bg-surface-container-low mt-auto">
+<button class="w-full bg-primary-container text-on-primary-container hover:bg-primary-container/80 py-2 rounded-DEFAULT text-label-caps font-label-caps transition-colors font-bold uppercase tracking-wider h-[48px] md:h-auto">
+                        View Full Dossier
+                    </button>
+</div>
+</aside>
+</div>
+<!-- Bottom Action Bar (Bulk Export) -->
+<div class="glass-panel rounded-lg p-3 flex justify-between items-center shrink-0">
+<div class="text-body-sm font-body-sm text-on-surface-variant">
+<span class="text-on-surface font-bold">1</span> entry selected
+             </div>
+<div class="flex gap-2">
+<button class="text-label-caps font-label-caps text-on-surface-variant hover:text-tertiary border border-transparent hover:border-white/10 px-3 py-1.5 rounded transition-colors h-[48px] md:h-auto">JSON</button>
+<button class="text-label-caps font-label-caps text-on-surface-variant hover:text-tertiary border border-transparent hover:border-white/10 px-3 py-1.5 rounded transition-colors h-[48px] md:h-auto">CSV</button>
+<button class="text-label-caps font-label-caps text-on-surface-variant hover:text-tertiary border border-transparent hover:border-white/10 px-3 py-1.5 rounded transition-colors h-[48px] md:h-auto">Parquet</button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation (Mobile) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 h-20 pb-safe bg-surface-container-highest/90 backdrop-blur-lg rounded-t-xl border-t border-white/20 shadow-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 active:bg-surface-container-high rounded-xl text-label-caps font-label-caps" href="#">
+<span class="material-symbols-outlined mb-1">waves</span> Live
+        </a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 active:bg-surface-container-high rounded-xl text-label-caps font-label-caps" href="#">
+<span class="material-symbols-outlined mb-1">anchor</span> Ports
+        </a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 active:bg-surface-container-high rounded-xl text-label-caps font-label-caps" href="#">
+<span class="material-symbols-outlined mb-1">warning</span> Alerts
+        </a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-4 py-2 scale-90 duration-150 active:bg-surface-container-high text-label-caps font-label-caps" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">map</span> Plan
+        </a>
+</nav>
+</body></html>

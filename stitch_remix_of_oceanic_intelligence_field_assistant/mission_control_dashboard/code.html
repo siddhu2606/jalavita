@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Live Mission-Control &amp; Agent Orchestrator</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Config from Brand Anchors -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#360f00",
+                        "on-secondary-container": "#551c00",
+                        "surface-container-low": "#171c1f",
+                        "on-surface-variant": "#c3c6cf",
+                        "on-tertiary-fixed": "#001e2c",
+                        "secondary-fixed-dim": "#ffb596",
+                        "inverse-on-surface": "#2c3134",
+                        "surface-bright": "#343a3d",
+                        "surface-tint": "#aac9f4",
+                        "primary-fixed-dim": "#aac9f4",
+                        "tertiary-fixed-dim": "#7bd0ff",
+                        "error-container": "#93000a",
+                        "outline-variant": "#43474e",
+                        "on-background": "#dee3e6",
+                        "surface-container-highest": "#303638",
+                        "on-secondary": "#581e00",
+                        "tertiary": "#7bd0ff",
+                        "primary-fixed": "#d3e4ff",
+                        "on-surface": "#dee3e6",
+                        "secondary-container": "#fe6500",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "inverse-primary": "#426086",
+                        "surface-container-high": "#252b2d",
+                        "surface-dim": "#0f1416",
+                        "on-tertiary": "#00354a",
+                        "on-primary-fixed": "#001c38",
+                        "outline": "#8d9199",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#26b3ee",
+                        "surface-container-lowest": "#090f11",
+                        "surface-container": "#1b2023",
+                        "on-primary-container": "#8ba9d3",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#29486d",
+                        "tertiary-fixed": "#c4e7ff",
+                        "primary": "#aac9f4",
+                        "surface-variant": "#303638",
+                        "secondary-fixed": "#ffdbcd",
+                        "tertiary-container": "#00425b",
+                        "primary-container": "#1e3e62",
+                        "inverse-surface": "#dee3e6",
+                        "background": "#0f1416",
+                        "secondary": "#ffb596",
+                        "surface": "#0f1416",
+                        "on-primary": "#0e3255",
+                        "on-secondary-fixed-variant": "#7d2d00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max-width": "1440px",
+                        "unit": "4px",
+                        "gutter": "16px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-data": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom scrollbar for dense data areas */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #303638; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #43474e; }
+        
+        /* Utility for material symbols to easily apply fill */
+        .material-symbols-outlined[data-weight="fill"] { font-variation-settings: 'FILL' 1; }
+        
+        /* DAG Path Animation */
+        .dag-path {
+            stroke-dasharray: 10;
+            animation: dash 20s linear infinite;
+        }
+        @keyframes dash { to { stroke-dashoffset: -1000; } }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-sm h-screen w-screen overflow-hidden flex selection:bg-tertiary/30">
+<!-- JSON Component 2: SideNavBar -->
+<nav class="hidden md:flex flex-col h-full py-8 bg-surface-container-low/40 backdrop-blur-2xl fixed left-0 top-0 w-64 border-r border-white/5 z-40">
+<!-- Header -->
+<div class="px-gutter mb-8 flex items-center gap-3">
+<div class="h-10 w-10 rounded-full overflow-hidden border border-white/10 shrink-0">
+<img alt="Vessel Operator" class="w-full h-full object-cover" data-alt="A futuristic, high-contrast digital avatar of a Vessel Operator in a cyber-slate marine command center environment. Soft cyan lighting highlights the technical gear. Cinematic and hyper-detailed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCa7JG7uGp7UIyPv8DNgZyV345l7_sxIvJFYqCZY1LFYq9DF4De-YNGPG_ze5aOoJ24wJg2I2ArXhgFYtw72H-g3ymZr3xBEmcNL6vr_mjtFnEtkM8D58SmbiREr4T42WFZVi34Dctvr2h8_4aK8ZFVdTP7SdzqJTGeAQ5IeF6wJ2vg1pDJ9HZKLmx8axWGeYQeHnT_uvQOlmgKX90XgoXe2dQMhGcGpxgLR2yqnicIi1ESJeKLhXZJ"/>
+</div>
+<div class="flex flex-col">
+<span class="text-headline-md font-headline-md text-primary text-[16px] leading-tight">Task Force Alpha</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant text-[12px]">Sector 7G-Delta</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 px-4 space-y-1 overflow-y-auto">
+<!-- Active Tab (Intent: Command Center Orchestration) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded text-primary font-bold bg-primary-container/20 border-r-2 border-secondary translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="text-body-md font-body-md">Command</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-white/10 hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="radar">radar</span>
+<span class="text-body-md font-body-md">Sensors</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-white/10 hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="hub">hub</span>
+<span class="text-body-md font-body-md">Networks</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-white/10 hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="insights">insights</span>
+<span class="text-body-md font-body-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-white/10 hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="inventory_2">inventory_2</span>
+<span class="text-body-md font-body-md">Archive</span>
+</a>
+</div>
+<!-- CTA & Footer -->
+<div class="px-4 mt-auto space-y-4 pt-4 border-t border-white/5">
+<button class="w-full bg-secondary-container/20 border border-secondary text-secondary-container hover:bg-secondary-container hover:text-on-secondary-container transition-colors py-2 rounded text-label-caps font-label-caps flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+                Initiate Emergency Protocol
+            </button>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="build">build</span>
+<span class="text-body-sm font-body-sm">Diagnostics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded text-on-surface-variant hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="help">help</span>
+<span class="text-body-sm font-body-sm">Help</span>
+</a>
+</div>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 flex flex-col md:ml-64 relative min-w-0">
+<!-- JSON Component 1: TopNavBar -->
+<header class="flex justify-between items-center px-margin-desktop w-full h-16 bg-surface-container/40 backdrop-blur-xl fixed top-0 w-full z-30 border-b border-white/10 no shadows">
+<div class="flex items-center gap-6">
+<span class="text-headline-md font-headline-md font-bold tracking-tight text-primary">Aegis Marine Intelligence</span>
+<!-- Nav Links -->
+<nav class="hidden lg:flex items-center gap-6 ml-8 mt-1">
+<a class="text-label-caps font-label-caps text-primary border-b-2 border-secondary pb-1 scale-95 duration-100" href="#">Operations</a>
+<a class="text-label-caps font-label-caps text-on-surface-variant hover:bg-white/5 transition-colors pb-1 border-b-2 border-transparent" href="#">Spatiotemporal</a>
+<a class="text-label-caps font-label-caps text-on-surface-variant hover:bg-white/5 transition-colors pb-1 border-b-2 border-transparent" href="#">Tactical</a>
+<a class="text-label-caps font-label-caps text-on-surface-variant hover:bg-white/5 transition-colors pb-1 border-b-2 border-transparent" href="#">Logs</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<!-- Search on right -->
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-2 top-1.5 text-on-surface-variant text-[18px]">search</span>
+<input class="bg-surface-container-highest border border-white/10 rounded pl-8 pr-3 py-1 text-body-sm font-body-sm text-on-surface focus:outline-none focus:border-tertiary focus:ring-1 focus:ring-tertiary transition-all w-48" placeholder="Query Matrix..." type="text"/>
+</div>
+<!-- Trailing Icons -->
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="h-8 w-8 rounded bg-surface-container border border-white/20 ml-2 overflow-hidden">
+<img alt="Command Officer Avatar" class="w-full h-full object-cover" data-alt="A strict, authoritative portrait of a Command Officer Avatar in a dark cyber-slate uniform. Harsh, dramatic lighting against a deep navy background. Cinematic realism." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzOibqoJi1HJPV3h6Rs3MwBp9Rm1sz9MljqsQmw2AVkSjUoX2BC_Z_XprDQ0M34CukZX1VogdY0DMVxHG53SPXmwgAWwqdkMKfsLpjoq6zefHwMMDY2R9GfeuH1YbUOr4qiCFFnfF1l_mH1KC1dqNEuyAH0EG6xio4uXa294tA00uobUd9eh1mEX5ifV-e3B6IxfH_vmrP8nYVSwJVLT_EHLsvmuqdPVhYkbWTBuNRpsvbY9YGl00O"/>
+</div>
+</div>
+</header>
+<!-- Dynamic Grid Content Area (3-Column + Bottom Drawer) -->
+<main class="flex-1 mt-16 flex flex-col overflow-hidden h-[calc(100vh-64px)] relative p-gutter gap-gutter bg-surface">
+<!-- 3 Column Top Section -->
+<div class="flex-1 grid grid-cols-12 gap-gutter min-h-0">
+<!-- Col 1: Left Sidebar - Specialist Agents (Span 3) -->
+<section class="col-span-3 flex flex-col bg-surface-container/40 backdrop-blur-xl border border-white/5 rounded-lg overflow-hidden flex flex-col">
+<div class="px-4 py-3 border-b border-white/10 flex items-center justify-between shrink-0 bg-surface-container-low/50">
+<h2 class="text-label-caps font-label-caps text-primary tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">psychology</span>
+                            Specialist Agents
+                        </h2>
+<span class="text-mono-data font-mono-data text-on-surface-variant text-[10px]">8 ONLINE</span>
+</div>
+<div class="flex-1 overflow-y-auto p-2 space-y-2">
+<!-- Agent Card Template (Repeated via JS logic visually) -->
+<div class="bg-surface-container-lowest/80 border border-white/5 rounded p-3 hover:border-tertiary/30 transition-colors group">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary animate-pulse shadow-[0_0_8px_#7bd0ff]"></div>
+<span class="text-body-sm font-body-sm font-semibold text-on-surface">Planner</span>
+</div>
+<!-- Toggle -->
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-7 h-4 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-tertiary"></div>
+</label>
+</div>
+<div class="flex justify-between text-mono-data font-mono-data text-[11px] text-on-surface-variant">
+<span>Lat: <span class="text-on-surface">120ms</span></span>
+<span>Brier: <span class="text-tertiary">0.05</span></span>
+</div>
+</div>
+<div class="bg-surface-container-lowest/80 border border-white/5 rounded p-3 hover:border-tertiary/30 transition-colors group">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary animate-pulse shadow-[0_0_8px_#7bd0ff]"></div>
+<span class="text-body-sm font-body-sm font-semibold text-on-surface">Ocean Analytics</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-7 h-4 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-tertiary"></div>
+</label>
+</div>
+<div class="flex justify-between text-mono-data font-mono-data text-[11px] text-on-surface-variant">
+<span>Lat: <span class="text-on-surface">210ms</span></span>
+<span>Brier: <span class="text-tertiary">0.12</span></span>
+</div>
+</div>
+<div class="bg-surface-container-lowest/80 border border-white/5 rounded p-3 hover:border-tertiary/30 transition-colors group">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary animate-pulse shadow-[0_0_8px_#7bd0ff]"></div>
+<span class="text-body-sm font-body-sm font-semibold text-on-surface">Weather &amp; Hazard</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-7 h-4 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-tertiary"></div>
+</label>
+</div>
+<div class="flex justify-between text-mono-data font-mono-data text-[11px] text-on-surface-variant">
+<span>Lat: <span class="text-on-surface">340ms</span></span>
+<span>Brier: <span class="text-secondary-container">0.45</span></span>
+</div>
+</div>
+<!-- Inactive Agent Example -->
+<div class="bg-surface-dim/30 border border-white/5 rounded p-3 opacity-60">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-outline-variant"></div>
+<span class="text-body-sm font-body-sm font-semibold text-outline">Geospatial Risk</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-7 h-4 bg-surface-container-highest rounded-full peer after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-outline-variant after:border-none after:rounded-full after:h-3 after:w-3 after:transition-all"></div>
+</label>
+</div>
+<div class="flex justify-between text-mono-data font-mono-data text-[11px] text-outline-variant">
+<span>Lat: --</span>
+<span>Brier: --</span>
+</div>
+</div>
+<!-- More Active Agents -->
+<div class="bg-surface-container-lowest/80 border border-white/5 rounded p-3 hover:border-tertiary/30 transition-colors">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_#7bd0ff]"></div>
+<span class="text-body-sm font-body-sm font-semibold text-on-surface">Trip Twin</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-7 h-4 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-tertiary"></div>
+</label>
+</div>
+<div class="flex justify-between text-mono-data font-mono-data text-[11px] text-on-surface-variant">
+<span>Lat: <span class="text-on-surface">180ms</span></span>
+<span>Brier: <span class="text-tertiary">0.08</span></span>
+</div>
+</div>
+<div class="bg-surface-container-lowest/80 border border-white/5 rounded p-3 hover:border-tertiary/30 transition-colors">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_#7bd0ff]"></div>
+<span class="text-body-sm font-body-sm font-semibold text-on-surface">Causal &amp; Trend</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-7 h-4 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-tertiary"></div>
+</label>
+</div>
+<div class="flex justify-between text-mono-data font-mono-data text-[11px] text-on-surface-variant">
+<span>Lat: <span class="text-on-surface">410ms</span></span>
+<span>Brier: <span class="text-tertiary">0.15</span></span>
+</div>
+</div>
+<!-- Guardrail - Highlighted slightly -->
+<div class="bg-surface-container/60 border border-tertiary/40 rounded p-3 relative overflow-hidden">
+<div class="absolute inset-0 bg-tertiary/5 z-0"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary animate-ping absolute"></div>
+<div class="w-2 h-2 rounded-full bg-tertiary relative"></div>
+<span class="text-body-sm font-body-sm font-semibold text-tertiary">Guardrail</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-7 h-4 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-tertiary"></div>
+</label>
+</div>
+<div class="flex justify-between text-mono-data font-mono-data text-[11px] text-on-surface-variant">
+<span>Lat: <span class="text-on-surface">50ms</span></span>
+<span>Status: <span class="text-tertiary">ENFORCING</span></span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest/80 border border-white/5 rounded p-3">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_#7bd0ff]"></div>
+<span class="text-body-sm font-body-sm font-semibold text-on-surface">Response Comp.</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-7 h-4 bg-surface-container-highest rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-tertiary"></div>
+</label>
+</div>
+<div class="flex justify-between text-mono-data font-mono-data text-[11px] text-on-surface-variant">
+<span>Lat: <span class="text-on-surface">110ms</span></span>
+<span>Queue: <span class="text-tertiary">1</span></span>
+</div>
+</div>
+</div>
+</section>
+<!-- Col 2: Main Center - Task DAG Visualizer (Span 6) -->
+<section class="col-span-6 bg-surface-dim border border-white/10 rounded-lg flex flex-col relative overflow-hidden">
+<!-- Technical Grid Background -->
+<div class="absolute inset-0 pointer-events-none opacity-20" style="background-image: linear-gradient(to right, rgba(139, 169, 211, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(139, 169, 211, 0.1) 1px, transparent 1px); background-size: 32px 32px;"></div>
+<!-- Header & Query -->
+<div class="relative z-10 px-5 py-4 border-b border-white/10 bg-surface-container-lowest/80 backdrop-blur-sm">
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-label-caps font-label-caps text-primary tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">account_tree</span>
+                                Live Compiled Task DAG
+                            </h2>
+<div class="flex items-center gap-2 bg-primary-container/30 border border-primary/20 px-2 py-1 rounded text-mono-data text-[10px] text-primary">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                                EXECUTING
+                            </div>
+</div>
+<div class="bg-surface-container-low border border-white/5 rounded p-3 text-body-md font-body-md text-on-surface font-semibold flex items-start gap-3 shadow-inner">
+<span class="material-symbols-outlined text-tertiary mt-0.5">terminal</span>
+                            "Safe to go 40km off Malvan at 05:00?"
+                        </div>
+</div>
+<!-- Graph Canvas Area -->
+<div class="flex-1 relative z-10 overflow-hidden flex flex-col items-center justify-center p-6 pb-12 gap-8">
+<!-- SVG Connections (Absolute behind nodes) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none z-0" style="filter: drop-shadow(0 0 2px rgba(123,208,255,0.2));">
+<!-- T1 to T2 -->
+<path class="dag-path" d="M 330 60 L 330 110" fill="none" stroke="rgba(123,208,255,0.4)" stroke-width="2"></path>
+<!-- T2 to parallel T3-T6 -->
+<path class="dag-path" d="M 330 160 C 330 200, 120 180, 120 220" fill="none" stroke="rgba(123,208,255,0.4)" stroke-width="1.5"></path>
+<path class="dag-path" d="M 330 160 C 330 200, 260 180, 260 220" fill="none" stroke="rgba(123,208,255,0.4)" stroke-width="1.5"></path>
+<path class="dag-path" d="M 330 160 C 330 200, 400 180, 400 220" fill="none" stroke="rgba(123,208,255,0.4)" stroke-width="1.5"></path>
+<path class="dag-path" d="M 330 160 C 330 200, 540 180, 540 220" fill="none" stroke="rgba(255,101,0,0.5)" stroke-width="1.5"></path> <!-- Warning path -->
+<!-- Parallel to Contract Net Box -->
+<path class="dag-path" d="M 120 270 C 120 310, 330 290, 330 330" fill="none" stroke="rgba(123,208,255,0.4)" stroke-width="1.5"></path>
+<path class="dag-path" d="M 260 270 C 260 310, 330 290, 330 330" fill="none" stroke="rgba(123,208,255,0.4)" stroke-width="1.5"></path>
+<path class="dag-path" d="M 400 270 C 400 310, 330 290, 330 330" fill="none" stroke="rgba(123,208,255,0.4)" stroke-width="1.5"></path>
+<path class="dag-path" d="M 540 270 C 540 310, 330 290, 330 330" fill="none" stroke="rgba(255,101,0,0.5)" stroke-width="1.5"></path>
+<!-- Contract Net to T9 Guardrail -->
+<path class="dag-path" d="M 330 400 L 330 440" fill="none" stroke="rgba(123,208,255,0.8)" stroke-width="2"></path>
+</svg>
+<!-- Level 1: Initialization -->
+<div class="flex gap-4 z-10 w-full justify-center">
+<div class="bg-surface-container-high border border-outline-variant/50 rounded-md p-2 w-48 text-center shadow-lg flex flex-col items-center">
+<span class="bg-outline-variant/30 text-on-surface-variant text-[10px] font-mono-data px-1.5 rounded mb-1">T1: INTENT</span>
+<span class="text-body-sm font-body-sm font-semibold text-on-surface">resolve_location</span>
+<span class="text-mono-data text-[10px] text-tertiary-fixed-dim mt-1">Status: OK [12ms]</span>
+</div>
+</div>
+<!-- Level 2: Context -->
+<div class="flex gap-4 z-10 w-full justify-center">
+<div class="bg-surface-container-high border border-outline-variant/50 rounded-md p-2 w-48 text-center shadow-lg flex flex-col items-center">
+<span class="bg-outline-variant/30 text-on-surface-variant text-[10px] font-mono-data px-1.5 rounded mb-1">T2: CONTEXT</span>
+<span class="text-body-sm font-body-sm font-semibold text-on-surface">vessel_profile</span>
+<span class="text-mono-data text-[10px] text-tertiary-fixed-dim mt-1">Class: Standard Fisher</span>
+</div>
+</div>
+<!-- Level 3: Parallel Data Fetching Bands -->
+<div class="flex justify-between w-full max-w-2xl z-10 gap-2">
+<div class="bg-surface-container border border-outline-variant/30 rounded p-2 w-32 text-center opacity-80">
+<span class="text-[10px] font-mono-data text-outline mb-1 block">T3: WAVE</span>
+<span class="text-[12px] font-bold text-on-surface">INCOIS</span>
+</div>
+<div class="bg-surface-container border border-outline-variant/30 rounded p-2 w-32 text-center opacity-80">
+<span class="text-[10px] font-mono-data text-outline mb-1 block">T4: WEATHER</span>
+<span class="text-[12px] font-bold text-on-surface">Damini L.</span>
+</div>
+<div class="bg-surface-container border border-outline-variant/30 rounded p-2 w-32 text-center opacity-80">
+<span class="text-[10px] font-mono-data text-outline mb-1 block">T5: GEO</span>
+<span class="text-[12px] font-bold text-on-surface">PostGIS IMBL</span>
+</div>
+<div class="bg-surface-container border border-secondary/40 rounded p-2 w-32 text-center shadow-[0_0_10px_rgba(255,101,0,0.1)]">
+<span class="text-[10px] font-mono-data text-secondary-container mb-1 block">T6: THERMAL</span>
+<span class="text-[12px] font-bold text-on-surface">MOSDAC SST</span>
+<span class="material-symbols-outlined text-secondary-container text-[14px] mt-1 block">warning</span>
+</div>
+</div>
+<!-- Level 4: Contract-Net Bidding Box (HIGHLIGHT) -->
+<div class="bg-primary-container/20 border-2 border-tertiary rounded-lg p-4 w-72 text-center shadow-[0_0_20px_rgba(123,208,255,0.15)] z-10 backdrop-blur-md relative overflow-hidden group">
+<!-- Sweep effect -->
+<div class="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-tertiary/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></div>
+<span class="text-[10px] font-label-caps text-primary tracking-widest block mb-2">RESOLVER: CONTRACT-NET</span>
+<h3 class="text-body-md font-body-md font-bold text-on-surface mb-2">Data Aggregation</h3>
+<!-- Glowing Green/Cyan Badge -->
+<div class="inline-flex items-center gap-1.5 bg-tertiary/10 border border-tertiary/50 text-tertiary text-[11px] font-mono-data px-2 py-1 rounded shadow-[0_0_10px_rgba(123,208,255,0.4)]">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+                                Awarded to ORCA on Freshness
+                            </div>
+</div>
+<!-- Level 5: Guardrail (Highlighted T9) -->
+<div class="bg-surface-container-highest border border-tertiary rounded-md p-3 w-64 text-center shadow-lg flex flex-col items-center z-10 relative">
+<div class="absolute -right-2 -top-2 w-4 h-4 bg-tertiary rounded-full animate-ping opacity-75"></div>
+<div class="absolute -right-2 -top-2 w-4 h-4 bg-tertiary border-2 border-surface-container-highest rounded-full z-20"></div>
+<span class="bg-tertiary/20 text-tertiary text-[10px] font-mono-data px-1.5 rounded mb-1 border border-tertiary/30">T9: GUARDRAIL</span>
+<span class="text-body-md font-body-md font-bold text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px] text-tertiary">policy</span>
+                                Schema/Citation Check
+                            </span>
+<div class="w-full h-1 bg-surface-container mt-3 rounded overflow-hidden">
+<div class="h-full bg-tertiary w-3/4 animate-pulse"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Col 3: Right Panel - Provenance & Log (Span 3) -->
+<section class="col-span-3 flex flex-col gap-gutter min-h-0">
+<!-- Provenance JSON Inspector -->
+<div class="flex-1 bg-surface-container/40 backdrop-blur-xl border border-white/5 rounded-lg flex flex-col overflow-hidden">
+<div class="px-4 py-3 border-b border-white/10 flex items-center justify-between shrink-0 bg-surface-container-low/50">
+<h2 class="text-label-caps font-label-caps text-primary tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">data_object</span>
+                                Provenance Log
+                            </h2>
+<div class="flex gap-2 text-[10px] font-mono-data">
+<span class="text-on-surface border-b border-primary pb-0.5 cursor-pointer">JSON</span>
+<span class="text-outline-variant hover:text-on-surface transition-colors cursor-pointer">RAW</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-3 bg-surface-container-lowest font-mono-data text-[12px] leading-relaxed">
+<pre class="text-outline">{
+  <span class="text-primary-fixed-dim">"node_id"</span>: <span class="text-secondary-fixed-dim">"T6_MOSDAC"</span>,
+  <span class="text-primary-fixed-dim">"status"</span>: <span class="text-secondary-container">"WARNING_THRESHOLD"</span>,
+  <span class="text-primary-fixed-dim">"payload"</span>: {
+    <span class="text-primary-fixed-dim">"value"</span>: <span class="text-tertiary">31.2</span>,
+    <span class="text-primary-fixed-dim">"unit"</span>: <span class="text-secondary-fixed-dim">"Celsius"</span>,
+    <span class="text-primary-fixed-dim">"source_dataset"</span>: <span class="text-secondary-fixed-dim">"MOSDAC_SST_L4"</span>,
+    <span class="text-primary-fixed-dim">"valid_time"</span>: <span class="text-secondary-fixed-dim">"2023-10-27T05:00:00Z"</span>,
+    <span class="text-primary-fixed-dim">"confidence"</span>: <span class="text-tertiary">0.94</span>
+  },
+  <span class="text-primary-fixed-dim">"guardrail_flags"</span>: [
+    <span class="text-secondary-fixed-dim">"ANOMALY_SST_DEVIATION"</span>
+  ],
+  <span class="text-primary-fixed-dim">"citations"</span>: [
+    { <span class="text-primary-fixed-dim">"ref"</span>: <span class="text-secondary-fixed-dim">"ISRO-MOS-23-A"</span> }
+  ]
+}
+</pre>
+</div>
+</div>
+<!-- Audit Feed -->
+<div class="h-1/3 bg-surface-container/40 backdrop-blur-xl border border-white/5 rounded-lg flex flex-col overflow-hidden">
+<div class="px-4 py-2 border-b border-white/10 shrink-0 bg-surface-container-low/50">
+<h2 class="text-label-caps font-label-caps text-on-surface-variant tracking-widest">Live Audit Feed</h2>
+</div>
+<div class="flex-1 overflow-y-auto p-2 space-y-1.5 font-mono-data text-[11px]">
+<div class="flex gap-2 items-start text-on-surface-variant">
+<span class="text-tertiary/70 shrink-0">14:02:11</span>
+<span>Agent <span class="text-primary">Ocean_Analytics</span> verified IMBL distance (42km).</span>
+</div>
+<div class="flex gap-2 items-start text-secondary-container/90">
+<span class="text-secondary-container/70 shrink-0">14:02:14</span>
+<span>MOSDAC SST reports localized thermal anomaly (+2.1C).</span>
+</div>
+<div class="flex gap-2 items-start text-on-surface-variant">
+<span class="text-tertiary/70 shrink-0">14:02:15</span>
+<span>Contract-Net bidding initiated for secondary validation.</span>
+</div>
+<div class="flex gap-2 items-start text-tertiary">
+<span class="text-tertiary/70 shrink-0">14:02:16</span>
+<span>Awarded: ORCA agent selected (Latency &lt; Freshness threshold).</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Bottom Drawer - Terminal Streaming WebSocket Logs -->
+<section class="h-40 bg-surface-container-lowest border border-white/10 rounded-lg flex flex-col overflow-hidden shrink-0 shadow-lg relative">
+<!-- Glossy top reflection -->
+<div class="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+<div class="px-4 py-1.5 border-b border-white/5 flex items-center justify-between shrink-0 bg-surface-container-low">
+<div class="flex items-center gap-3">
+<h2 class="text-label-caps font-label-caps text-outline-variant tracking-widest flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+                            WEBSOCKET STREAM
+                        </h2>
+<span class="flex h-2 w-2 relative">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary"></span>
+</span>
+</div>
+<div class="flex gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-outline-variant/30"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-outline-variant/30"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-outline-variant/30"></div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-3 font-mono-data text-[12px] leading-tight text-outline-variant space-y-1" id="terminal-stream">
+<div><span class="text-tertiary-fixed-dim">[SYS]</span> WSS Connection Established on ws://ops.aegis.mil/stream:8080</div>
+<div><span class="text-tertiary-fixed-dim">[SYS]</span> Handshake verified. Subscribed to topic: /agents/live_dag</div>
+<div><span class="text-primary-fixed-dim">[DAG_MGR]</span> Init Task DAG ID: 9f8a-4b2c for query context.</div>
+<div><span class="text-primary-fixed-dim">[DAG_MGR]</span> Dispatching T1 (resolve_location) -&gt; Agent: Planner</div>
+<div><span class="text-primary-fixed-dim">[DAG_MGR]</span> T1 resolved. Latency: 12ms. Output: {lat: 16.05, lon: 73.46}</div>
+<div><span class="text-outline">[NET]</span> Broadcasting parallel fetch T3..T6 to worker pool.</div>
+<div><span class="text-secondary-fixed-dim">[WRK]</span> INCOIS (T3) response received. Payload size: 1.2kb.</div>
+<div><span class="text-secondary-container font-bold">[WARN]</span> MOSDAC (T6) anomaly flag triggered. Value exceeds expected seasonal mean.</div>
+<div><span class="text-outline">[NET]</span> Initiating Contract-Net resolution protocol for conflicting thermal data.</div>
+<!-- JS will append more lines here -->
+</div>
+</section>
+</main>
+</div>
+<script>
+        // Simple script to simulate streaming terminal logs
+        const terminal = document.getElementById('terminal-stream');
+        const logs = [
+            '<div><span class="text-tertiary-fixed-dim">[SYS]</span> ORCA Agent accepted bid. Validating freshness constraint.</div>',
+            '<div><span class="text-primary-fixed-dim">[DAG_MGR]</span> Bidding closed. T_ORCA injected into DAG path.</div>',
+            '<div><span class="text-outline">[NET]</span> Payload parsing from ORCA source dataset... OK.</div>',
+            '<div><span class="text-primary-fixed-dim">[DAG_MGR]</span> Merging parallel nodes to T8 Aggregator.</div>',
+            '<div><span class="text-tertiary-fixed-dim">[SYS]</span> Invoking Guardrail (T9) schema validation.</div>',
+            '<div><span class="text-outline">[NET]</span> Guardrail policy: ENFORCING checks on Citations array.</div>',
+            '<div><span class="text-tertiary-fixed-dim">[SYS]</span> Validation PASS. Preparing final orchestration response.</div>'
+        ];
+        
+        let logIndex = 0;
+        setInterval(() => {
+            if (logIndex < logs.length) {
+                terminal.innerHTML += logs[logIndex];
+                terminal.scrollTop = terminal.scrollHeight;
+                logIndex++;
+            } else {
+                logIndex = 0; // loop for demo purposes
+            }
+        }, 1500);
+    </script>
+</body></html>

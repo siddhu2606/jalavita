@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Fisherman Field Assistant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error": "#ffb4ab",
+                      "on-secondary-fixed": "#360f00",
+                      "on-secondary-container": "#551c00",
+                      "surface-container-low": "#171c1f",
+                      "on-surface-variant": "#c3c6cf",
+                      "on-tertiary-fixed": "#001e2c",
+                      "secondary-fixed-dim": "#ffb596",
+                      "inverse-on-surface": "#2c3134",
+                      "surface-bright": "#343a3d",
+                      "surface-tint": "#aac9f4",
+                      "primary-fixed-dim": "#aac9f4",
+                      "tertiary-fixed-dim": "#7bd0ff",
+                      "error-container": "#93000a",
+                      "outline-variant": "#43474e",
+                      "on-background": "#dee3e6",
+                      "surface-container-highest": "#303638",
+                      "on-secondary": "#581e00",
+                      "tertiary": "#7bd0ff",
+                      "primary-fixed": "#d3e4ff",
+                      "on-surface": "#dee3e6",
+                      "secondary-container": "#fe6500",
+                      "on-tertiary-fixed-variant": "#004c69",
+                      "inverse-primary": "#426086",
+                      "surface-container-high": "#252b2d",
+                      "surface-dim": "#0f1416",
+                      "on-tertiary": "#00354a",
+                      "on-primary-fixed": "#001c38",
+                      "outline": "#8d9199",
+                      "on-error-container": "#ffdad6",
+                      "on-tertiary-container": "#26b3ee",
+                      "surface-container-lowest": "#090f11",
+                      "surface-container": "#1b2023",
+                      "on-primary-container": "#8ba9d3",
+                      "on-error": "#690005",
+                      "on-primary-fixed-variant": "#29486d",
+                      "tertiary-fixed": "#c4e7ff",
+                      "primary": "#aac9f4",
+                      "surface-variant": "#303638",
+                      "secondary-fixed": "#ffdbcd",
+                      "tertiary-container": "#00425b",
+                      "primary-container": "#1e3e62",
+                      "inverse-surface": "#dee3e6",
+                      "background": "#0f1416",
+                      "secondary": "#ffb596",
+                      "surface": "#0f1416",
+                      "on-primary": "#0e3255",
+                      "on-secondary-fixed-variant": "#7d2d00"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-max-width": "1440px",
+                      "unit": "4px",
+                      "gutter": "16px",
+                      "margin-desktop": "32px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "headline-md": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "mono-data": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-lg-mobile": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-caps": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "mono-data": ["13px", {"lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        /* Utility for hiding scrollbar in carousel */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Map Grid Pattern */
+        .tech-grid {
+            background-image: 
+                linear-gradient(to right, rgba(241, 246, 249, 0.05) 1px, transparent 1px), 
+                linear-gradient(to bottom, rgba(241, 246, 249, 0.05) 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+        
+        /* Safe Area Padding for mobile bottom nav */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased flex flex-col min-h-screen pb-24 md:hidden">
+<!-- Top Header -->
+<header class="px-margin-mobile pt-4 pb-2 flex flex-col gap-unit sticky top-0 z-10 bg-background/80 backdrop-blur-lg">
+<div class="flex justify-between items-center h-[48px]">
+<div class="inline-flex items-center gap-2 bg-surface-container/60 border border-white/10 rounded-full px-3 py-1.5 backdrop-blur-xl shadow-sm">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1; font-size: 18px;">my_location</span>
+<span class="font-label-caps text-label-caps text-on-surface tracking-wide">Malvan Harbour • 16.06°N, 73.46°E</span>
+</div>
+<div class="text-on-surface-variant font-label-caps text-label-caps bg-surface-container-low px-2 py-1 rounded border border-white/5">
+                मराठी / HI / EN
+            </div>
+</div>
+<div class="flex items-center gap-2 text-tertiary opacity-90 px-1">
+<span class="material-symbols-outlined" style="font-size: 16px;">cloud_done</span>
+<span class="font-mono-data text-mono-data">Cached Briefing: 04:10 AM</span>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col gap-4">
+<!-- Verdict Banner -->
+<section class="px-margin-mobile">
+<div class="bg-primary-container/30 border border-secondary-container/50 backdrop-blur-xl p-4 rounded-xl flex flex-col gap-3 relative overflow-hidden">
+<!-- Subtle background glow -->
+<div class="absolute -right-10 -top-10 w-32 h-32 bg-secondary-container/20 blur-3xl rounded-full pointer-events-none"></div>
+<div class="flex justify-between items-start z-10">
+<h2 class="font-headline-md text-headline-md text-on-surface tracking-tight leading-tight">STATUS:<br/><span class="text-secondary-fixed">CONDITIONAL GO</span></h2>
+<span class="bg-secondary-container text-on-secondary-container font-label-caps text-label-caps px-2.5 py-1 rounded shadow-sm">CAUTION</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant z-10 border-l-2 border-tertiary/40 pl-3">
+                    Unlikely to encounter severe squalls before 13:00 (IPCC Certainty: High).
+                </p>
+<div class="bg-surface-container-highest/60 border border-white/10 rounded-lg p-3 flex justify-between items-center mt-1 z-10 shadow-inner">
+<span class="font-label-caps text-label-caps text-secondary-fixed-dim">SAFE RETURN WINDOW CLOSES IN</span>
+<span class="font-mono-data text-mono-data text-secondary-container text-lg font-bold tracking-wider">04h 25m</span>
+</div>
+</div>
+</section>
+<!-- Interactive Map -->
+<section class="px-margin-mobile">
+<div class="relative w-full h-64 rounded-xl overflow-hidden border border-white/10 bg-surface shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+<!-- Data Placeholder Image -->
+<div class="absolute inset-0 bg-cover bg-center opacity-50 mix-blend-screen" data-alt="A highly detailed, dark-mode technical maritime map. Deep navy ocean waters feature subtle topography. Bright cyan lines indicate thermal fronts and ocean currents. A semi-transparent emergency orange wedge denotes a hazardous squall line moving across the sea. The aesthetic is high-tech, precise, and rugged, typical of a coastal command center interface." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAIEhYur1c7Y_W7ADbbBpY5OChaIAHB60TjyBO7g7Klo_oLeQSuuYYQGzOyPJDk_JNoOw6iWXClQ5sY_-JRHdwejKV2W2gOqx-LCG4ynoPA-cUSqumuWCJmuyIhymhSpiK1OtviKCCxSd8f_StAtRz4kCJDJ3o3mAXy10pYTez30C7nXedSuPKQm5FsF_aVa0OqSTdfXrPfIgppLtlbZZXR7Us7khCZpLitinL5KtqBfTGzn3Um7H0p')"></div>
+<!-- Grid Overlay -->
+<div class="absolute inset-0 tech-grid"></div>
+<!-- SVG overlays for paths and zones -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" preserveaspectratio="none">
+<!-- Planned Path -->
+<path d="M 40 220 Q 120 180 200 120 T 300 60" fill="none" filter="drop-shadow(0 0 4px rgba(123,208,255,0.6))" stroke="#7bd0ff" stroke-dasharray="6 4" stroke-width="2.5"></path>
+<circle cx="40" cy="220" fill="#7bd0ff" r="4"></circle>
+<circle cx="300" cy="60" fill="#7bd0ff" r="4"></circle>
+<!-- Hazard Cone -->
+<polygon fill="#fe6500" fill-opacity="0.15" points="180,260 320,100 360,260" stroke="#fe6500" stroke-dasharray="2 2" stroke-width="1"></polygon>
+</svg>
+<!-- Map UI Elements -->
+<div class="absolute top-3 left-3 bg-surface-container-low/80 backdrop-blur-md border border-tertiary/40 px-2 py-1.5 rounded text-tertiary flex items-center gap-1.5 shadow-md">
+<div class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_#7bd0ff] animate-pulse"></div>
+<span class="font-label-caps text-label-caps">PFZ: High Yield</span>
+</div>
+<div class="absolute bottom-3 right-3 bg-surface-container-highest/90 backdrop-blur-md border border-error/50 px-2.5 py-1.5 rounded text-error flex items-center gap-1.5 shadow-md">
+<span class="material-symbols-outlined text-error" style="font-size: 16px;">storm</span>
+<span class="font-label-caps text-label-caps text-error">Squall Line</span>
+</div>
+<!-- Crosshair center -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white/20 pointer-events-none">
+<span class="material-symbols-outlined" style="font-size: 32px; font-weight: 100;">add</span>
+</div>
+</div>
+</section>
+<!-- Evidence Cards Carousel -->
+<section class="py-2">
+<h3 class="px-margin-mobile font-label-caps text-label-caps text-on-surface-variant mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-size: 16px;">radar</span>
+                INTELLIGENCE FEED
+            </h3>
+<div class="flex overflow-x-auto snap-x snap-mandatory gap-gutter px-margin-mobile pb-4 scrollbar-hide">
+<!-- Card 1 -->
+<div class="snap-start shrink-0 w-[85%] md:w-72 bg-surface-container-low/40 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-tertiary/5 to-transparent pointer-events-none"></div>
+<div class="flex items-center gap-2 text-tertiary z-10">
+<span class="material-symbols-outlined" style="font-size: 20px;">thermostat</span>
+<span class="font-label-caps text-label-caps text-on-surface">SST Front: 27.4°C</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant z-10">Oceansat-3 OCM (40m ago)</p>
+<div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between z-10">
+<span class="font-label-caps text-label-caps text-primary">High Confidence (88%)</span>
+<div class="w-20 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="w-[88%] h-full bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="snap-start shrink-0 w-[85%] md:w-72 bg-surface-container-low/40 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-secondary-fixed-dim/5 to-transparent pointer-events-none"></div>
+<div class="flex items-center gap-2 text-secondary-fixed-dim z-10">
+<span class="material-symbols-outlined" style="font-size: 20px;">waves</span>
+<span class="font-label-caps text-label-caps text-on-surface">Wave Height: 1.4m Swell</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant z-10">INCOIS Wave Model</p>
+<div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between z-10">
+<span class="font-label-caps text-label-caps text-secondary-fixed-dim">Moderate Conf. (Cloud 25%)</span>
+<div class="w-16 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="w-[50%] h-full bg-secondary-fixed-dim rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="snap-start shrink-0 w-[85%] md:w-72 bg-surface-container-low/40 backdrop-blur-xl border border-white/10 rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden">
+<div class="flex items-center gap-2 text-tertiary z-10">
+<span class="material-symbols-outlined" style="font-size: 20px;">set_meal</span>
+<span class="font-label-caps text-label-caps text-on-surface">Target Species: Bangda</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant z-10">Mackerel • Bathymetry: 32m depth</p>
+<div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between z-10">
+<span class="font-label-caps text-label-caps text-on-surface-variant">Historical Catch Rate: High</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Actions Container -->
+<div class="fixed bottom-24 right-4 z-40 flex flex-col items-end gap-4 pointer-events-none">
+<!-- Trip Simulation Toggle (Interactive element) -->
+<button class="pointer-events-auto bg-surface-container-highest/90 border border-outline-variant/50 backdrop-blur-xl rounded-full pl-3 pr-2 py-2 flex items-center gap-2 text-on-surface shadow-[0_8px_16px_rgba(0,0,0,0.4)] active:scale-95 transition-transform h-[48px]">
+<span class="material-symbols-outlined text-tertiary" style="font-size: 20px;">route</span>
+<span class="font-label-caps text-label-caps mr-1">Trip Sim</span>
+<div class="w-10 h-6 bg-surface-container rounded-full relative flex items-center border border-white/5">
+<div class="w-4 h-4 bg-outline rounded-full absolute left-1 transition-all"></div>
+</div>
+</button>
+<!-- Voice Mic FAB (Interactive element) -->
+<button class="pointer-events-auto w-14 h-14 bg-secondary-container rounded-full flex items-center justify-center text-on-secondary-container shadow-[0_0_20px_rgba(254,101,0,0.4)] relative group touch-manipulation active:scale-90 transition-transform duration-200">
+<!-- Pulsing rings -->
+<div class="absolute inset-0 rounded-full border-2 border-secondary-container animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] opacity-50"></div>
+<div class="absolute inset-0 rounded-full border border-secondary-container animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] opacity-30 delay-700"></div>
+<span class="material-symbols-outlined relative z-10" style="font-variation-settings: 'FILL' 1; font-size: 28px;">mic</span>
+<!-- Contextual Tooltip (visible on long press / generic hint) -->
+<div class="absolute right-16 top-1/2 -translate-y-1/2 bg-surface-container-highest border border-white/10 text-on-surface font-label-caps text-label-caps px-3 py-2 rounded-lg opacity-0 group-active:opacity-100 md:group-hover:opacity-100 whitespace-nowrap transition-opacity pointer-events-none backdrop-blur-xl shadow-lg flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                Hold to speak (मराठी/HI)
+            </div>
+</button>
+</div>
+<!-- BottomNavBar (Shared Component) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 h-20 pb-safe bg-surface-container-highest/90 backdrop-blur-lg rounded-t-xl shadow-lg">
+<!-- Tab 1: Live (Active) -->
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-xl px-4 py-2 scale-90 duration-150 relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">waves</span>
+<span class="text-label-caps font-label-caps mt-1">Live</span>
+</button>
+<!-- Tab 2: Ports -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 active:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">anchor</span>
+<span class="text-label-caps font-label-caps mt-1">Ports</span>
+</button>
+<!-- Tab 3: Alerts -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 active:bg-surface-container-high transition-colors relative">
+<span class="material-symbols-outlined">warning</span>
+<span class="text-label-caps font-label-caps mt-1">Alerts</span>
+<!-- Badge -->
+<div class="absolute top-2 right-4 w-2 h-2 bg-error rounded-full"></div>
+</button>
+<!-- Tab 4: Plan -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 active:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">map</span>
+<span class="text-label-caps font-label-caps mt-1">Plan</span>
+</button>
+</nav>
+<script>
+        // Simple JS for interactive toggle visual feedback (non-functional)
+        document.querySelector('button .w-10.h-6').parentElement.addEventListener('click', function() {
+            const toggleDot = this.querySelector('.w-4.h-4');
+            const toggleBg = this.querySelector('.w-10.h-6');
+            
+            if (toggleDot.classList.contains('left-1')) {
+                toggleDot.classList.remove('left-1', 'bg-outline');
+                toggleDot.classList.add('translate-x-4', 'bg-secondary-container');
+                toggleBg.classList.remove('border-white/5');
+                toggleBg.classList.add('border-secondary-container/50');
+            } else {
+                toggleDot.classList.add('left-1', 'bg-outline');
+                toggleDot.classList.remove('translate-x-4', 'bg-secondary-container');
+                toggleBg.classList.add('border-white/5');
+                toggleBg.classList.remove('border-secondary-container/50');
+            }
+        });
+    </script>
+</body></html>

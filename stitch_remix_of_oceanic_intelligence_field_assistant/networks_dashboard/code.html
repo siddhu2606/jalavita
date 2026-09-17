@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Aegis Marine Intelligence - Networks</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-tint": "#aac9f4",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "secondary": "#ffb596",
+                        "on-secondary-container": "#551c00",
+                        "tertiary-fixed-dim": "#7bd0ff",
+                        "tertiary": "#7bd0ff",
+                        "primary-container": "#1e3e62",
+                        "on-secondary": "#581e00",
+                        "on-error": "#690005",
+                        "surface-bright": "#343a3d",
+                        "surface-dim": "#0f1416",
+                        "on-primary": "#0e3255",
+                        "primary": "#aac9f4",
+                        "on-tertiary-fixed": "#001e2c",
+                        "surface": "#0f1416",
+                        "surface-variant": "#303638",
+                        "surface-container-low": "#171c1f",
+                        "on-tertiary": "#00354a",
+                        "on-primary-fixed": "#001c38",
+                        "outline-variant": "#43474e",
+                        "surface-container-high": "#252b2d",
+                        "primary-fixed-dim": "#aac9f4",
+                        "on-tertiary-container": "#26b3ee",
+                        "on-surface": "#dee3e6",
+                        "on-primary-container": "#8ba9d3",
+                        "on-error-container": "#ffdad6",
+                        "on-background": "#dee3e6",
+                        "secondary-container": "#fe6500",
+                        "inverse-on-surface": "#2c3134",
+                        "surface-container-lowest": "#090f11",
+                        "error": "#ffb4ab",
+                        "tertiary-container": "#00425b",
+                        "on-primary-fixed-variant": "#29486d",
+                        "secondary-fixed": "#ffdbcd",
+                        "on-secondary-fixed": "#360f00",
+                        "tertiary-fixed": "#c4e7ff",
+                        "on-secondary-fixed-variant": "#7d2d00",
+                        "inverse-primary": "#426086",
+                        "secondary-fixed-dim": "#ffb596",
+                        "surface-container": "#1b2023",
+                        "surface-container-highest": "#303638",
+                        "inverse-surface": "#dee3e6",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#d3e4ff",
+                        "on-surface-variant": "#c3c6cf",
+                        "background": "#0f1416",
+                        "outline": "#8d9199"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "container-max-width": "1440px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "mono-data": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    fontSize: {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-data": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0B192C;
+            background-image: linear-gradient(rgba(241, 246, 249, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(241, 246, 249, 0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
+            color: #dee3e6;
+        }
+        
+        .cyber-panel {
+            background: rgba(30, 62, 98, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(241, 246, 249, 0.1);
+        }
+        
+        .cyber-header-divider {
+            border-bottom: 1px solid rgba(241, 246, 249, 0.1);
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-normal { background-color: #38BDF8; color: #00354a; }
+        .status-warning { background-color: #FF6500; color: #fff; }
+        .status-critical { background-color: #dc2626; color: #fff; }
+    </style>
+</head>
+<body class="font-body-md antialiased min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+<!-- SideNavBar (Desktop) -->
+<nav class="hidden md:flex flex-col h-full py-8 bg-surface-container-low/40 backdrop-blur-2xl text-primary font-body-md text-label-caps font-label-caps fixed left-0 top-0 w-64 border-r border-white/5 z-50">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-4 mb-6">
+<img alt="Vessel Operator" class="w-10 h-10 rounded-full border border-primary/30" data-alt="A small, stylized avatar image representing a maritime task force operator, rendered in a sleek, technical UI style with dark navy and bright cyan highlights, conveying professionalism and alertness." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYQGYTQB-bw7g0uh0UROypFTsYj7-JdP92PE13nOO4zhm6pByLqQC1-5io5BYymBrka0MQeEKolrIkEZPVVS2dU_MpUfzczvW1GWFg65pH1ymB0tLl1l5Ls--YW0ddOVrHn6y_xRCKHB8ILBG6DXniSCrpBlhVOl1T1TvN0CcggH3_W9ZJkXhd_cwU14Xympei_4hvOoLaD_exc_B7flQwJ_8BuM5LXHF78fy0uHtNLdERioIN4LFBXA"/>
+<div>
+<h2 class="text-headline-md font-headline-md text-primary truncate">Task Force Alpha</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant truncate">Sector 7G-Delta</p>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto space-y-1">
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dashboard</span>
+<span>Command</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">radar</span>
+<span>Sensors</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-primary font-bold bg-primary-container/20 border-r-2 border-secondary hover:bg-white/10 transition-transform translate-x-1 duration-100" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">hub</span>
+<span>Networks</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">insights</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:bg-white/10 transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">inventory_2</span>
+<span>Archive</span>
+</a>
+</div>
+<div class="px-6 mt-auto pt-6 border-t border-white/5 space-y-4">
+<button class="w-full bg-[#FF6500] hover:bg-[#e65a00] text-white font-bold py-2 px-4 rounded transition-colors text-label-caps flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">warning</span> Initiate Emergency Protocol
+            </button>
+<div class="space-y-1">
+<a class="flex items-center gap-4 px-4 py-2 text-on-surface-variant hover:bg-white/10 transition-colors rounded text-body-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">build</span> Diagnostics
+                </a>
+<a class="flex items-center gap-4 px-4 py-2 text-on-surface-variant hover:bg-white/10 transition-colors rounded text-body-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span> Help
+                </a>
+</div>
+</div>
+</nav>
+<!-- TopNavBar (Mobile) -->
+<header class="md:hidden flex justify-between items-center px-margin-mobile w-full h-16 bg-surface-container/40 backdrop-blur-xl border-b border-white/10 fixed top-0 z-50">
+<span class="text-headline-lg-mobile font-headline-lg-mobile font-bold tracking-tight text-primary truncate">Aegis Marine Intelligence</span>
+<div class="flex items-center gap-4 text-primary">
+<button class="hover:bg-white/5 p-2 rounded-full transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="hover:bg-white/5 p-2 rounded-full transition-colors"><span class="material-symbols-outlined">settings</span></button>
+<img alt="Command Officer Avatar" class="w-8 h-8 rounded-full border border-primary/30" data-alt="Small circular avatar placeholder for Command Officer Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDK5vpQkg0Gk9KVYDmaoXa_cV1tX-vyDKWXGUDRTeo1s5kCGS-8k-1as1J_yOc7496fVp6wbPvTx3l3t4iAICBp5hQPkW_4kCBz2QJAFcw3kAAlQ_TS9RXv4nG_tH1VoA3E62rafJd_0uG-5FRg7ZCDfwyKvCqRp1NKcqVGQoL6xbteLrGcFd1FCyRAwINsvUftpLItc7YQCwHq04190K9FOmFtuROlRHr5s134J-L_6ZzqmY622IYN4Q"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-64 mt-16 md:mt-0 p-margin-mobile md:p-margin-desktop overflow-y-auto">
+<div class="max-w-container-max-width mx-auto">
+<header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface mb-1">Network Topology &amp; Connectivity</h1>
+<p class="text-body-md font-body-md text-on-surface-variant">Live telemetry from global satellite and terrestrial mesh arrays.</p>
+</div>
+<div class="cyber-panel p-4 rounded-lg flex items-center gap-6">
+<div>
+<p class="text-label-caps font-label-caps text-on-surface-variant mb-1">Network Resilience Score</p>
+<div class="flex items-end gap-2">
+<span class="text-headline-lg font-headline-lg text-[#38BDF8]">94</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant pb-1">/ 100</span>
+</div>
+</div>
+<div class="w-16 h-16 rounded-full border-4 border-[#38BDF8] border-t-[#0f1416] flex items-center justify-center transform rotate-45">
+<div class="transform -rotate-45 text-[#38BDF8] font-bold">94%</div>
+</div>
+</div>
+</header>
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter">
+<!-- Left Panel: Topology Diagram -->
+<section class="xl:col-span-8 cyber-panel rounded-xl overflow-hidden flex flex-col">
+<div class="px-6 py-4 cyber-header-divider flex justify-between items-center bg-surface-container/20">
+<h3 class="text-headline-md font-headline-md text-primary flex items-center gap-2">
+<span class="material-symbols-outlined">map</span> Satellite &amp; Terrestrial Mesh Topology
+                        </h3>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-label-caps font-label-caps border border-outline rounded bg-surface-container-high text-on-surface hover:bg-white/10 transition-colors">Refresh</button>
+</div>
+</div>
+<div class="p-6 flex-1 relative min-h-[400px]">
+<!-- Abstract placeholder for a network graph. In a real app, this would be an SVG or Canvas element drawn via a library like D3.js or Cytoscape -->
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-container/20 via-surface/10 to-transparent pointer-events-none"></div>
+<!-- Simulated Nodes & Links (Highly simplified CSS visualization for layout) -->
+<div class="relative w-full h-full">
+<!-- Node 1: HQ -->
+<div class="absolute top-1/2 left-10 transform -translate-y-1/2 flex flex-col items-center gap-2">
+<div class="w-12 h-12 rounded-full bg-primary-container border-2 border-[#38BDF8] flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.5)] z-10 relative">
+<span class="material-symbols-outlined text-[#38BDF8]">account_balance</span>
+</div>
+<span class="text-label-caps font-label-caps bg-surface/80 px-2 rounded">Command HQ</span>
+</div>
+<!-- Link HQ to Sat -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 1;">
+<path class="opacity-50" d="M 80 200 Q 200 100 400 100" fill="none" stroke="#38BDF8" stroke-dasharray="4 4" stroke-width="2"></path>
+<!-- Packet simulation -->
+<circle cx="200" cy="150" fill="#38BDF8" r="3">
+<animate attributename="cx" dur="2s" repeatcount="indefinite" values="80;400"></animate>
+<animate attributename="cy" dur="2s" repeatcount="indefinite" values="200;100"></animate>
+</circle>
+</svg>
+<!-- Node 2: Satellite -->
+<div class="absolute top-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container border border-outline flex items-center justify-center z-10 relative">
+<span class="material-symbols-outlined text-primary">satellite_alt</span>
+</div>
+<div class="bg-surface/90 border border-white/10 rounded p-2 flex flex-col gap-1 z-20">
+<span class="text-label-caps font-label-caps text-primary">Starlink Array Alpha</span>
+<div class="text-mono-data font-mono-data text-xs text-on-surface-variant">Lat: 12ms | Loss: 0.01%</div>
+<span class="status-chip status-normal self-start">Active</span>
+</div>
+</div>
+<!-- Link Sat to Vessel -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 1;">
+<path class="opacity-30" d="M 400 120 Q 600 200 700 300" fill="none" stroke="#38BDF8" stroke-width="2"></path>
+</svg>
+<!-- Node 3: Vessel -->
+<div class="absolute bottom-20 right-20 flex flex-col items-center gap-2">
+<div class="w-12 h-12 rounded-full bg-primary-container border-2 border-secondary flex items-center justify-center shadow-[0_0_10px_rgba(255,181,150,0.3)] z-10 relative">
+<span class="material-symbols-outlined text-secondary">directions_boat</span>
+</div>
+<div class="bg-surface/90 border border-white/10 rounded p-2 flex flex-col gap-1 z-20">
+<span class="text-label-caps font-label-caps text-secondary">TFA Vanguard</span>
+<div class="text-mono-data font-mono-data text-xs text-on-surface-variant">Lat: 245ms | Loss: 1.2%</div>
+<span class="status-chip status-warning self-start">Degraded</span>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest/50 p-4 border-t border-white/5 flex gap-6 text-mono-data font-mono-data text-sm">
+<div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#38BDF8]"></div> High Speed / Low Latency</div>
+<div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-secondary"></div> Tactical / Moderate Latency</div>
+<div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#dc2626]"></div> Disconnected / High Loss</div>
+</div>
+</section>
+<!-- Right Panel: Controls & Logs -->
+<section class="xl:col-span-4 flex flex-col gap-gutter">
+<!-- Bandwidth Allocation -->
+<div class="cyber-panel rounded-xl overflow-hidden flex flex-col">
+<div class="px-6 py-4 cyber-header-divider bg-surface-container/20">
+<h3 class="text-headline-md font-headline-md text-primary flex items-center gap-2">
+<span class="material-symbols-outlined">tune</span> Bandwidth Allocation
+                            </h3>
+</div>
+<div class="p-6 space-y-6">
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-label-caps font-label-caps text-on-surface">NavIC Link</span>
+<span class="text-mono-data font-mono-data text-[#38BDF8]">45 Mbps</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2 mb-1">
+<div class="bg-[#38BDF8] h-2 rounded-full" style="width: 45%"></div>
+</div>
+<div class="flex justify-between text-xs text-on-surface-variant mt-1">
+<span>Throttle: Auto</span>
+<span>Limit: 100 Mbps</span>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-label-caps font-label-caps text-on-surface">Starlink Mesh</span>
+<span class="text-mono-data font-mono-data text-primary">120 Mbps</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2 mb-1">
+<div class="bg-primary h-2 rounded-full" style="width: 80%"></div>
+</div>
+<div class="flex justify-between text-xs text-on-surface-variant mt-1">
+<span>Throttle: Priority</span>
+<span>Limit: 150 Mbps</span>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="text-label-caps font-label-caps text-on-surface">UHF Backup</span>
+<span class="text-mono-data font-mono-data text-secondary">0.2 Mbps</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2 mb-1">
+<div class="bg-secondary h-2 rounded-full" style="width: 10%"></div>
+</div>
+<div class="flex justify-between text-xs text-on-surface-variant mt-1">
+<span>Throttle: Restricted</span>
+<span>Limit: 2 Mbps</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Security Audit Log -->
+<div class="cyber-panel rounded-xl overflow-hidden flex-1 flex flex-col min-h-[300px]">
+<div class="px-6 py-4 cyber-header-divider bg-surface-container/20 flex justify-between items-center">
+<h3 class="text-headline-md font-headline-md text-primary flex items-center gap-2">
+<span class="material-symbols-outlined">security</span> Audit Log
+                            </h3>
+<button class="text-primary hover:text-white"><span class="material-symbols-outlined">filter_list</span></button>
+</div>
+<div class="p-0 overflow-y-auto max-h-[300px]">
+<!-- High density list -->
+<div class="flex flex-col">
+<div class="flex items-center gap-3 px-4 py-2 border-b border-white/5 bg-surface-container-low/30 hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-xs text-[#38BDF8]">vpn_key</span>
+<div class="flex-1">
+<div class="text-body-sm font-body-sm text-on-surface">IPsec Tunnel Established</div>
+<div class="text-mono-data font-mono-data text-xs text-on-surface-variant">Node: Vanguard <span class="mx-1">|</span> AES-256-GCM</div>
+</div>
+<span class="text-mono-data font-mono-data text-xs text-on-surface-variant">10:42:01 Z</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-2 border-b border-white/5 bg-surface-container-lowest/30 hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-xs text-primary">sync</span>
+<div class="flex-1">
+<div class="text-body-sm font-body-sm text-on-surface">Key Rotation Completed</div>
+<div class="text-mono-data font-mono-data text-xs text-on-surface-variant">Global Mesh Authority</div>
+</div>
+<span class="text-mono-data font-mono-data text-xs text-on-surface-variant">10:00:05 Z</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-2 border-b border-white/5 bg-[#FF6500]/10 hover:bg-[#FF6500]/20 transition-colors">
+<span class="material-symbols-outlined text-xs text-[#FF6500]">warning</span>
+<div class="flex-1">
+<div class="text-body-sm font-body-sm text-on-surface">Elevated Packet Drop</div>
+<div class="text-mono-data font-mono-data text-xs text-on-surface-variant">UHF Link Delta-9</div>
+</div>
+<span class="text-mono-data font-mono-data text-xs text-on-surface-variant">09:14:22 Z</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-2 border-b border-white/5 bg-surface-container-low/30 hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-xs text-on-surface-variant">login</span>
+<div class="flex-1">
+<div class="text-body-sm font-body-sm text-on-surface">Operator Authenticated</div>
+<div class="text-mono-data font-mono-data text-xs text-on-surface-variant">Term: CMD-01 <span class="mx-1">|</span> MFA Verified</div>
+</div>
+<span class="text-mono-data font-mono-data text-xs text-on-surface-variant">08:00:00 Z</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+</body></html>
