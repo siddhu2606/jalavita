@@ -1,5 +1,5 @@
 """
-Main FastAPI application — ORCA Command Deck Backend
+Main FastAPI application — Jalavita Command Deck Backend
 """
 import asyncio
 import json
@@ -26,8 +26,8 @@ from ws_manager import (
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="ORCA API",
-    description="Backend for the ORCA Command Deck dashboard",
+    title="Jalavita API",
+    description="Backend for the Jalavita Command Deck dashboard",
     version="1.0.0",
 )
 
@@ -274,4 +274,4 @@ async def ws_agents(websocket: WebSocket):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "ORCA API", "version": "1.0.0"}
+    return {"status": "ok", "service": "Jalavita API", "version": "1.0.0"}

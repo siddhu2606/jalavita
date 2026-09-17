@@ -1,5 +1,5 @@
 """
-Seed the SQLite database with sample data for ORCA.
+Seed the SQLite database with sample data for Jalavita.
 Run this once: python seed.py
 """
 from database import engine, SessionLocal

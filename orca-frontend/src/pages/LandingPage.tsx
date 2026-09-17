@@ -28,7 +28,7 @@ export default function LandingPage() {
           <div className="flex w-full items-center justify-between px-4 md:px-8 max-w-7xl mx-auto">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-[var(--bio)]" style={{ fontVariationSettings: "'FILL' 1" }}>radar</span>
-              <span className="font-bold text-[18px] tracking-wide text-white">ORCA<span className="text-[var(--bio)]">.</span></span>
+              <span className="font-bold text-[18px] tracking-wide text-white">JALAVITA<span className="text-[var(--bio)]">.</span></span>
             </div>
           <nav className="hidden md:flex items-center gap-8">
             {['Sensors', 'Networks', 'Analytics', 'Archive'].map(name => (
